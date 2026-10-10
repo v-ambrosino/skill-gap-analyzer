@@ -1,1 +1,212 @@
-# skill-gap-analyzer
+# Skill Gap Analyzer
+
+**Compare your CV with real job posts and see which data skills the market wants — and which ones you are missing.**
+
+Built for people looking for **Data Analyst, BI Analyst and Business Analyst** roles.
+Upload your CV (PDF), paste a few job posts (English or Italian) and get:
+
+- the most requested skills, grouped by category;
+- the skills in your CV (green) and the missing ones (red);
+- a **weighted coverage score**;
+- your **top 5 study priorities**.
+
+No paid APIs, no external AI, **no data stored**.
+
+![Skill Gap Analyzer screenshot](assets/screenshot.png)
+
+> _Live demo: add your Streamlit Community Cloud link here once deployed._
+
+---
+
+## The problem
+
+Job posts for data roles list dozens of tools, methods and soft skills, with a
+different name in every post ("Power BI", "PowerBI", "PBI"; "data visualization",
+"visualizzazione dati"). When you read ten posts it is hard to tell:
+
+- which skills come up **most often**, and which are one-offs;
+- how well **your CV** matches what employers ask for;
+- what to **study next** to have the biggest impact.
+
+Skill Gap Analyzer answers these three questions in a few seconds, with a
+transparent method you can explain and verify.
+
+## Features
+
+| Feature | Details |
+|---|---|
+| **Input** | CV as PDF (or pasted text). Job posts in **one text box separated by `---`** or **one field per post** (add/remove fields). English and Italian. |
+| **Requested skills** | Horizontal bar chart of how many posts ask for each skill, coloured and optionally grouped by category. |
+| **CV comparison** | Skills in your CV in green, missing ones in red, each with its demand. Skills you have that the posts did not ask for are listed too. |
+| **Coverage score** | Share of requested skills found in your CV, **weighted by demand**. Also shown per category. |
+| **Study priorities** | The 5 missing skills that most posts ask for. |
+| **Export** | Download the full skill table as CSV. |
+| **Privacy** | Everything stays in memory for the session only. |
+
+## How it works
+
+```
+CV (PDF) ──► pdf_reader ──┐
+                          ├─► extractor ──► analysis ──► charts / UI
+Job posts ──► split "---" ┘       ▲
+                                  │
+                       data/skills.yaml (dictionary)
+```
+
+1. **PDF reading** – `pdfplumber` extracts the text of the CV directly from the
+   uploaded bytes, without writing a file.
+2. **Normalisation** – accents, typographic quotes/dashes and extra whitespace are
+   removed, so `Capacità  analitiche` and `capacita analitiche` are the same text.
+3. **Skill extraction** – every synonym in the dictionary becomes a whole-word
+   regular expression. A skill counts **at most once per document**.
+4. **Analysis** – a pandas DataFrame with one row per requested skill:
+   `skill | category | posts_count | posts_share | in_cv`. Every result is an
+   aggregation of this table.
+
+### The coverage score
+
+Each requested skill weighs as much as the number of job posts that ask for it:
+
+```
+coverage = Σ posts_count (skills in CV) / Σ posts_count (all requested skills)
+```
+
+Example: SQL is asked by 4 posts and is in your CV, Tableau is asked by 1 post
+and is missing → coverage = 4 / (4 + 1) = **80%**. An unweighted count would say
+50%, overstating a skill that only one employer wants.
+
+### Skill dictionary
+
+The dictionary lives in [`data/skills.yaml`](data/skills.yaml): **118 skills** in
+six categories (Tools, Programming & Data, Analytics & Statistics, Methodologies,
+Business & Domain, Soft Skills), each with English and Italian synonyms.
+
+```yaml
+- name: Power BI
+  category: Tools
+  synonyms: [power bi, microsoft power bi, pbi]
+```
+
+Matching rules:
+
+- **Case-insensitive and accent-insensitive** (`synonyms`).
+- **Whole words only**: a match cannot touch a letter, digit, `_` or `&`.
+  `sql` is not found in `NoSQL` or `MySQL`.
+- Spaces and hyphens inside a phrase are interchangeable and optional:
+  `power bi` also matches `Power-BI` and `PowerBI`.
+- Phrases of 4+ characters also match their plural (`dashboard` → `dashboards`).
+- **Short or ambiguous names** get special treatment:
+  - `case_sensitive_synonyms` for exact casing: `SAS` (the software) does not match
+    `Sas` (an Italian company type).
+  - `patterns` (raw regex) for the hardest cases. `R` is matched only as an
+    uppercase standalone word, not in `R&D`, not as a name initial (`Mario R. Rossi`)
+    and not in `SAP R/3`.
+  - Common words are guarded: "excel **at**" is a verb, "**reporting to** the CFO"
+    is not a skill, and the Italian adjective "agile" only counts next to
+    methodology words.
+- The skill **name is not matched automatically**: only what is listed is matched.
+
+The loader validates the file at startup (unknown categories, duplicate names,
+a synonym shared by two skills, invalid regex) and shows a clear error.
+
+**Extending it to other industries:** copy `skills.yaml`, change `domain`,
+`categories` and `skills`, and pass the new path to `load_dictionary()`.
+
+## Project structure
+
+```
+skill-gap-analyzer/
+├── app.py                     # Streamlit UI: layout, inputs, session state
+├── skill_gap/
+│   ├── pdf_reader.py          # PDF bytes -> text (in memory)
+│   ├── normalization.py       # accent/punctuation/whitespace normalisation
+│   ├── skills_dictionary.py   # load + validate YAML, compile regexes
+│   ├── extractor.py           # find skills in a text, split job posts
+│   ├── analysis.py            # pandas: skill table, coverage, priorities
+│   └── charts.py              # Plotly charts
+├── data/
+│   ├── skills.yaml            # the skill dictionary (edit me!)
+│   └── samples/               # fictional job posts and CV for the demo
+├── tests/                     # pytest suite with fictional job posts
+├── assets/screenshot.png
+├── .streamlit/config.toml     # upload limit, no usage stats, theme
+└── requirements.txt
+```
+
+## Run it locally
+
+Requires Python 3.10+.
+
+```bash
+git clone https://github.com/v-ambrosino/skill-gap-analyzer.git
+cd skill-gap-analyzer
+
+python -m venv .venv
+source .venv/bin/activate        # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+
+streamlit run app.py
+```
+
+The app opens at http://localhost:8501. Click **Load sample data** to try it
+with fictional posts and a fictional CV.
+
+### Run the tests
+
+```bash
+pytest
+```
+
+The tests cover whole-word matching, Italian/English synonyms, the tricky `R`,
+`SAS`, `Excel` and `Agile` cases, the post separator, the weighted coverage
+score, the study priorities, dictionary validation and PDF reading.
+
+## Deploy on Streamlit Community Cloud (free)
+
+1. Push the repository to GitHub (public or private).
+2. Go to [share.streamlit.io](https://share.streamlit.io) and sign in with GitHub.
+3. Click **Create app** → **Deploy a public app from GitHub**.
+4. Pick the repository, branch `main` and main file path `app.py`.
+5. (Optional) choose a custom subdomain, e.g. `skill-gap-analyzer`.
+6. Click **Deploy**. Dependencies are installed from `requirements.txt`.
+
+Every push to `main` redeploys the app automatically. Add the public link at the
+top of this README.
+
+## Privacy
+
+- The CV and the job posts are kept **only in memory** (Streamlit session state)
+  for the current browser session.
+- Nothing is written to disk, cached, logged or sent to third-party services.
+  Only the skill dictionary is cached.
+- Usage statistics are disabled in `.streamlit/config.toml`.
+- The `.gitignore` excludes `*.pdf`, so a real CV is never committed by mistake.
+
+## Known limitations
+
+- **Dictionary-based**: only the skills in `skills.yaml` are recognised, and new
+  wording ("analytical" on its own, a brand-new tool) is missed until a synonym is added.
+- **No context understanding**: "SQL is a plus" and "SQL is required" count the
+  same; a negated sentence ("no Python needed") still counts as a mention.
+- **Ambiguous short names** are handled with conservative rules: some true
+  mentions can be missed (e.g. a sentence that ends with "… Python e R.").
+- **Scanned PDFs** (images without a text layer) cannot be read: there is no OCR.
+- Multi-column PDF layouts may merge lines in an unusual order. This rarely
+  matters for skill detection, but a phrase split across columns can be missed.
+- English and Italian only.
+- The coverage score measures **keyword overlap**, not proficiency or seniority.
+
+## Future improvements
+
+- Distinguish **required vs nice-to-have** skills from the surrounding text and weight them differently.
+- Skill **levels** (e.g. "advanced Excel") and years of experience.
+- Import job posts from a **URL** or a CSV export of a job board.
+- More **dictionaries** (e.g. Data Engineer, Marketing, Finance) selectable in the app.
+- More languages (French, Spanish, German).
+- Optional **OCR** for scanned CVs (e.g. Tesseract).
+- A downloadable **PDF report** with the results.
+- Suggested learning resources for each study priority.
+
+## License
+
+[MIT](LICENSE)
