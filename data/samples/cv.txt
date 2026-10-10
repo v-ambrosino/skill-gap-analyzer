@@ -1,0 +1,18 @@
+Alex Example - Aspiring Data Analyst
+alex.example@example.com | Milan, Italy
+
+PROFILE
+Analytical and curious graduate in Economics, passionate about turning data
+into decisions. Strong communication skills and used to working in teams.
+
+SKILLS
+Excel (pivot tables, Power Query), SQL (PostgreSQL), Python (pandas, Matplotlib),
+Power BI, data visualization, descriptive statistics.
+
+EXPERIENCE
+Data Analyst Intern - Example Consulting (2025)
+- Built weekly sales reports and dashboards in Power BI for the commercial team
+- Cleaned and merged datasets from the ERP with Python and pandas
+
+LANGUAGES
+Italian (native), English (C1)

@@ -1,0 +1,10 @@
+[server]
+# CVs are small: a low limit also protects the free Community Cloud instance.
+maxUploadSize = 5
+
+[browser]
+# Do not send usage statistics to Streamlit.
+gatherUsageStats = false
+
+[theme]
+primaryColor = "#2a78d6"

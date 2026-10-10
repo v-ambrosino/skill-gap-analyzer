@@ -1,0 +1,52 @@
+Junior Data Analyst - Fictional Retail Co. (Milan, hybrid)
+
+We are looking for a Junior Data Analyst to join our Commercial Analytics team.
+You will build dashboards in Power BI, write SQL queries against our data
+warehouse and support the sales team with weekly reports.
+
+Requirements:
+- Good knowledge of SQL and Excel (pivot tables, VLOOKUP)
+- Experience with Power BI and DAX
+- Basic Python (pandas) is a plus
+- Strong analytical skills and attention to detail
+- Good communication skills and fluent English
+---
+Data Analyst - Azienda Immaginaria S.p.A. (Bologna)
+
+Cerchiamo un/una Data Analyst da inserire nel team Business Intelligence.
+Attività principali:
+- Analisi dei dati di vendita e creazione di cruscotti in Tableau
+- Scrittura di query SQL su database relazionali
+- Pulizia dei dati e controllo della qualità del dato
+- Definizione dei KPI insieme al management
+
+Requisiti:
+- Ottima conoscenza di Excel e SQL
+- Conoscenza di Python o R
+- Capacità analitiche, problem solving e lavoro in team
+- Buona conoscenza della lingua inglese
+---
+BI Analyst - Imaginary Fintech Ltd (remote, EU)
+
+As a BI Analyst you will own our reporting layer: data modeling in dbt,
+dashboards in Looker and ad-hoc analysis for the Finance team.
+
+What you bring:
+- 2+ years of experience with SQL (BigQuery) and data visualization
+- Experience with dbt and Git
+- Knowledge of statistics and A/B testing
+- Stakeholder management and the ability to present findings clearly
+- Experience in an Agile environment (Scrum)
+---
+Business Analyst - Società Fittizia S.r.l. (Torino)
+
+Il/la Business Analyst si occuperà della raccolta dei requisiti di business,
+della mappatura dei processi (BPMN) e della stesura della documentazione funzionale.
+Lavorerà a stretto contatto con gli stakeholder e il team IT in metodologia Agile.
+
+Requisiti:
+- Esperienza con Jira e Confluence
+- Ottima conoscenza di Excel e Power BI
+- Conoscenza base di SQL
+- Spiccate doti comunicative e capacità di problem solving
+- Inglese fluente

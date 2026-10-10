@@ -1,0 +1,438 @@
+# =============================================================================
+# Skill dictionary for data roles (Data Analyst, BI Analyst, Business Analyst)
+# =============================================================================
+#
+# Each entry describes ONE skill. Fields:
+#
+#   name        (required) Display name shown in the app.
+#   category    (required) Must be one of the categories listed below.
+#   synonyms    Phrases matched case-INSENSITIVELY as whole words.
+#               Accents are ignored ("capacità" == "capacita"), spaces and
+#               hyphens are interchangeable/optional ("power bi" also matches
+#               "power-bi" and "powerbi") and a plural "s"/"es" is accepted for
+#               phrases of 4+ characters.
+#   case_sensitive_synonyms
+#               Phrases matched as whole words with EXACT casing. Use them for
+#               short or ambiguous names ("SAS" must not match the Italian
+#               company type "Sas").
+#   patterns    Raw Python regular expressions for the hardest cases
+#               (e.g. the one-letter language "R"). They run on the normalised
+#               text (accents removed, original casing kept). Add (?i) at the
+#               start to make a pattern case-insensitive.
+#
+# Every skill needs at least one of synonyms / case_sensitive_synonyms /
+# patterns. The skill name itself is NOT matched automatically, so tricky
+# names like "R" are never matched by accident.
+#
+# To support another industry, copy this file, change `domain` and the skills,
+# and point the app to the new file.
+# =============================================================================
+
+version: 1
+domain: Data roles
+
+categories:
+  - Tools
+  - Programming & Data
+  - Analytics & Statistics
+  - Methodologies
+  - Business & Domain
+  - Soft Skills
+
+skills:
+  # ---------------------------------------------------------------------------
+  # Tools: BI, spreadsheets, statistical software, cloud and data platforms
+  # ---------------------------------------------------------------------------
+  - name: Excel
+    category: Tools
+    synonyms: [ms excel, microsoft excel, excel avanzato, advanced excel]
+    # "excel" is also an English verb ("excel at", "excel in"): exclude it.
+    patterns: ['(?i)(?<![\w&])excel(?!\s+(?:at|in|as)\b)(?![\w&])']
+  - name: Pivot Tables
+    category: Tools
+    synonyms: [pivot table, pivot tables, tabelle pivot, tabella pivot, pivot]
+  - name: Power BI
+    category: Tools
+    synonyms: [power bi, microsoft power bi, pbi]
+  - name: DAX
+    category: Tools
+    case_sensitive_synonyms: [DAX]
+  - name: Power Query
+    category: Tools
+    synonyms: [power query, m language, linguaggio m]
+  - name: Power Pivot
+    category: Tools
+    synonyms: [power pivot]
+  - name: Power Automate
+    category: Tools
+    synonyms: [power automate, microsoft flow]
+  - name: Tableau
+    category: Tools
+    synonyms: [tableau, tableau desktop, tableau server, tableau prep]
+  - name: Looker
+    category: Tools
+    # Plain "looker" but not "Looker Studio" (a different product, see below).
+    patterns: ['(?i)(?<![\w&])looker(?!\s*studio)(?![\w&])']
+  - name: Looker Studio
+    category: Tools
+    synonyms: [looker studio, google data studio, data studio]
+  - name: Qlik
+    category: Tools
+    synonyms: [qlik, qlik sense, qlikview, qlik view]
+  - name: SSRS
+    category: Tools
+    synonyms: [ssrs, sql server reporting services]
+  - name: SSIS
+    category: Tools
+    synonyms: [ssis, sql server integration services]
+  - name: Google Sheets
+    category: Tools
+    synonyms: [google sheets, google sheet, fogli google, google spreadsheet]
+  - name: Microsoft Access
+    category: Tools
+    # Plain "access" is far too common ("access to data"): only full names.
+    synonyms: [microsoft access, ms access]
+  - name: VBA
+    category: Tools
+    synonyms: [vba, visual basic for applications, macro excel, excel macros, excel macro]
+  - name: SAS
+    category: Tools
+    case_sensitive_synonyms: [SAS, SAS Enterprise Guide, SAS Viya]
+  - name: SPSS
+    category: Tools
+    synonyms: [spss, ibm spss]
+  - name: Stata
+    category: Tools
+    case_sensitive_synonyms: [Stata, STATA]
+  - name: Alteryx
+    category: Tools
+    synonyms: [alteryx]
+  - name: KNIME
+    category: Tools
+    synonyms: [knime]
+  - name: Jupyter
+    category: Tools
+    synonyms: [jupyter, jupyter notebook, jupyterlab, jupyter lab]
+  - name: Git
+    category: Tools
+    synonyms: [git, github, gitlab, bitbucket, version control, controllo di versione]
+  - name: Jira
+    category: Tools
+    synonyms: [jira, atlassian jira]
+  - name: Confluence
+    category: Tools
+    synonyms: [confluence]
+  - name: Google Analytics
+    category: Tools
+    synonyms: [google analytics, ga4, universal analytics]
+  - name: Salesforce
+    category: Tools
+    synonyms: [salesforce, sfdc]
+  - name: SAP
+    category: Tools
+    case_sensitive_synonyms: [SAP, SAP BW, SAP HANA, SAP BO, SAP BusinessObjects, SAP S/4HANA]
+  - name: Snowflake
+    category: Tools
+    synonyms: [snowflake]
+  - name: Databricks
+    category: Tools
+    synonyms: [databricks]
+  - name: BigQuery
+    category: Tools
+    synonyms: [bigquery, google bigquery, big query]
+  - name: Amazon Redshift
+    category: Tools
+    synonyms: [redshift, amazon redshift, aws redshift]
+  - name: AWS
+    category: Tools
+    synonyms: [aws, amazon web services]
+  - name: Microsoft Azure
+    category: Tools
+    synonyms: [azure, microsoft azure, azure synapse, azure data factory]
+  - name: Google Cloud Platform
+    category: Tools
+    synonyms: [gcp, google cloud, google cloud platform]
+  - name: dbt
+    category: Tools
+    synonyms: [dbt, data build tool]
+  - name: Apache Airflow
+    category: Tools
+    synonyms: [airflow, apache airflow]
+  - name: Apache Spark
+    category: Tools
+    synonyms: [spark, apache spark, pyspark, spark sql]
+  - name: Microsoft Fabric
+    category: Tools
+    synonyms: [microsoft fabric, ms fabric]
+
+  # ---------------------------------------------------------------------------
+  # Programming & Data: languages, databases, libraries
+  # ---------------------------------------------------------------------------
+  - name: SQL
+    category: Programming & Data
+    # "NoSQL"/"MySQL" do not match: "sql" must be a whole word.
+    synonyms: [sql, t-sql, pl/sql, ansi sql, query sql, sql queries, sql query]
+  - name: Python
+    category: Programming & Data
+    synonyms: [python, python3]
+  - name: R
+    category: Programming & Data
+    synonyms: [r programming, r language, linguaggio r, rstudio, r studio, tidyverse, ggplot2, dplyr, r shiny]
+    # Uppercase "R" as a standalone word, but NOT:
+    #   - "R&D" (research and development)
+    #   - an initial in a name, like "Mario R. Rossi" or "J.R."
+    #   - "SAP R/3" or "R's"
+    # The second pattern recovers "R" at the end of a sentence after
+    # "and"/"or"/a comma/a slash ("... Python or R. We offer ...").
+    patterns:
+      - '(?<![\w&.''])R(?![\w&''/])(?!\.\s?[A-Z])'
+      - '(?:(?<=and )|(?<=or )|(?<=, )|(?<=/))R(?=\.)'
+  - name: PostgreSQL
+    category: Programming & Data
+    synonyms: [postgresql, postgres]
+  - name: MySQL
+    category: Programming & Data
+    synonyms: [mysql, mariadb]
+  - name: SQL Server
+    category: Programming & Data
+    synonyms: [sql server, microsoft sql server, ms sql server, mssql]
+  - name: Oracle Database
+    category: Programming & Data
+    synonyms: [oracle, oracle database, oracle db, oracle sql]
+  - name: NoSQL
+    category: Programming & Data
+    synonyms: [nosql, mongodb, mongo db, cassandra, dynamodb]
+  - name: pandas
+    category: Programming & Data
+    synonyms: [pandas]
+  - name: NumPy
+    category: Programming & Data
+    synonyms: [numpy]
+  - name: scikit-learn
+    category: Programming & Data
+    synonyms: [scikit-learn, scikit learn, sklearn]
+  - name: Matplotlib / Seaborn
+    category: Programming & Data
+    synonyms: [matplotlib, seaborn]
+  - name: Plotly
+    category: Programming & Data
+    synonyms: [plotly, plotly dash]
+  - name: Streamlit
+    category: Programming & Data
+    synonyms: [streamlit]
+  - name: APIs
+    category: Programming & Data
+    synonyms: [api, apis, rest api, restful api, rest apis, api rest]
+  - name: Web Scraping
+    category: Programming & Data
+    synonyms: [web scraping, scraping, beautifulsoup, beautiful soup, selenium]
+  - name: Bash / Shell
+    category: Programming & Data
+    synonyms: [bash, shell scripting, unix shell, linux shell, command line]
+  - name: Data Warehousing
+    category: Programming & Data
+    synonyms: [data warehouse, data warehousing, dwh, data mart, data lake, lakehouse, data lakehouse]
+  - name: ETL / ELT
+    category: Programming & Data
+    synonyms: [etl, elt, etl pipelines, data pipeline, data pipelines, pipeline di dati, extract transform load]
+  - name: Data Modeling
+    category: Programming & Data
+    synonyms: [data modeling, data modelling, modellazione dati, modellazione dei dati, star schema, schema a stella, dimensional modeling, modello dati, data model]
+  - name: Relational Databases
+    category: Programming & Data
+    synonyms: [relational database, relational databases, database relazionali, database relazionale, rdbms]
+
+  # ---------------------------------------------------------------------------
+  # Analytics & Statistics
+  # ---------------------------------------------------------------------------
+  - name: Data Analysis
+    category: Analytics & Statistics
+    synonyms: [data analysis, analisi dei dati, analisi dati, data analytics, analisi di dati]
+  - name: Data Visualization
+    category: Analytics & Statistics
+    synonyms: [data visualization, data visualisation, data viz, dataviz, visualizzazione dati, visualizzazione dei dati, visualizzazioni]
+  - name: Dashboarding
+    category: Analytics & Statistics
+    synonyms: [dashboard, dashboarding, cruscotti, cruscotto]
+  - name: Reporting
+    category: Analytics & Statistics
+    synonyms: [reportistica, business reporting, report automation, automazione report, creazione di report, creazione report]
+    # "reporting"/"report(s)" but not "reporting to the CFO" / "report directly to".
+    patterns: ['(?i)(?<![\w&])(?:reporting|reports?)(?!\s+(?:to|directly|into)\b)(?![\w&])']
+  - name: Statistics
+    category: Analytics & Statistics
+    synonyms: [statistics, statistical analysis, statistica, statistiche, analisi statistica, analisi statistiche, descriptive statistics, statistica descrittiva, inferential statistics, statistica inferenziale]
+  - name: Hypothesis Testing
+    category: Analytics & Statistics
+    synonyms: [hypothesis testing, statistical testing, test di ipotesi, test statistici, significance testing, statistical significance, significativita statistica, t-test, chi-square]
+  - name: A/B Testing
+    category: Analytics & Statistics
+    synonyms: [a/b testing, a/b test, ab testing, split testing, experimentation, sperimentazione]
+  - name: Regression Analysis
+    category: Analytics & Statistics
+    synonyms: [regression, regression analysis, linear regression, logistic regression, regressione, regressione lineare, regressione logistica]
+  - name: Forecasting
+    category: Analytics & Statistics
+    synonyms: [forecasting, forecast, demand forecasting, sales forecasting, previsioni di vendita, modelli previsionali, previsione della domanda]
+  - name: Time Series Analysis
+    category: Analytics & Statistics
+    synonyms: [time series, time-series analysis, serie storiche, serie temporali, arima]
+  - name: Machine Learning
+    category: Analytics & Statistics
+    synonyms: [machine learning, apprendimento automatico, ml models, modelli di machine learning]
+  - name: Predictive Modeling
+    category: Analytics & Statistics
+    synonyms: [predictive modeling, predictive modelling, predictive analytics, analisi predittiva, modelli predittivi, modellazione predittiva]
+  - name: Clustering & Segmentation
+    category: Analytics & Statistics
+    synonyms: [clustering, segmentation, customer segmentation, segmentazione, segmentazione clienti, segmentazione della clientela, k-means]
+  - name: Data Mining
+    category: Analytics & Statistics
+    synonyms: [data mining]
+  - name: Exploratory Data Analysis
+    category: Analytics & Statistics
+    synonyms: [exploratory data analysis, eda, analisi esplorativa, analisi esplorativa dei dati]
+  - name: Data Cleaning
+    category: Analytics & Statistics
+    synonyms: [data cleaning, data cleansing, data wrangling, data preparation, data prep, pulizia dei dati, pulizia dati, preparazione dei dati, data munging]
+  - name: Cohort & Funnel Analysis
+    category: Analytics & Statistics
+    synonyms: [cohort analysis, funnel analysis, analisi di coorte, analisi delle coorti, analisi del funnel, retention analysis, churn analysis, analisi del churn]
+  - name: KPI Definition
+    category: Analytics & Statistics
+    synonyms: [kpi, kpis, key performance indicators, key performance indicator, metrics definition, indicatori di performance, definizione kpi]
+  - name: Root Cause Analysis
+    category: Analytics & Statistics
+    synonyms: [root cause analysis, analisi delle cause, analisi della causa radice]
+  - name: Data Storytelling
+    category: Analytics & Statistics
+    synonyms: [data storytelling, storytelling, storytelling con i dati, storytelling with data]
+  - name: Natural Language Processing
+    category: Analytics & Statistics
+    synonyms: [natural language processing, nlp, text mining, text analytics, sentiment analysis, analisi del sentiment]
+
+  # ---------------------------------------------------------------------------
+  # Methodologies & ways of working
+  # ---------------------------------------------------------------------------
+  - name: Agile
+    category: Methodologies
+    # In Italian "agile" is also an adjective ("ambiente dinamico e agile"),
+    # so lowercase "agile" counts only next to methodology words.
+    synonyms: [agile methodology, agile methodologies, metodologia agile, metodologie agile, metodologie agili, metodologia agili, agile framework, agile development, agile environment, agile team, agile teams, approccio agile, agile/scrum, agile practices]
+    case_sensitive_synonyms: [Agile]
+  - name: Scrum
+    category: Methodologies
+    synonyms: [scrum, sprint planning, scrum master]
+  - name: Kanban
+    category: Methodologies
+    synonyms: [kanban]
+  - name: Lean / Six Sigma
+    category: Methodologies
+    synonyms: [six sigma, lean six sigma, lean management, lean methodology, metodologia lean, lean thinking]
+  - name: CRISP-DM
+    category: Methodologies
+    synonyms: [crisp-dm, crisp dm]
+  - name: Requirements Gathering
+    category: Methodologies
+    synonyms: [requirements gathering, requirement gathering, requirements analysis, requirements elicitation, raccolta dei requisiti, raccolta requisiti, analisi dei requisiti, analisi requisiti, business requirements, requisiti di business, user stories, user story]
+  - name: Process Modeling (BPMN)
+    category: Methodologies
+    synonyms: [bpmn, process modeling, process modelling, process mapping, mappatura dei processi, modellazione dei processi, business process modeling, analisi dei processi, process analysis]
+  - name: Data Governance
+    category: Methodologies
+    synonyms: [data governance, governance dei dati, master data management, mdm, data catalog, data lineage]
+  - name: Data Quality
+    category: Methodologies
+    synonyms: [data quality, qualita dei dati, qualita del dato, data validation, validazione dei dati, data integrity, integrita dei dati]
+  - name: Project Management
+    category: Methodologies
+    synonyms: [project management, gestione progetti, gestione dei progetti, project manager, pmp, prince2]
+  - name: Documentation
+    category: Methodologies
+    synonyms: [technical documentation, documentazione tecnica, documentazione funzionale, functional documentation, functional specifications, specifiche funzionali, analisi funzionale, functional analysis]
+  - name: Gap Analysis
+    category: Methodologies
+    synonyms: [gap analysis, analisi dei gap, swot analysis, analisi swot]
+
+  # ---------------------------------------------------------------------------
+  # Business & domain knowledge
+  # ---------------------------------------------------------------------------
+  - name: Financial Analysis
+    category: Business & Domain
+    synonyms: [financial analysis, analisi finanziaria, financial modeling, financial modelling, modellazione finanziaria, budgeting, controllo di gestione, controlling, fp&a, financial planning]
+  - name: Marketing Analytics
+    category: Business & Domain
+    synonyms: [marketing analytics, digital marketing, marketing digitale, campaign analysis, analisi delle campagne, marketing performance, attribution modeling, seo, sem]
+  - name: Web Analytics
+    category: Business & Domain
+    synonyms: [web analytics, digital analytics, analisi web]
+  - name: Product Analytics
+    category: Business & Domain
+    synonyms: [product analytics, analisi di prodotto, product metrics, mixpanel, amplitude]
+  - name: CRM
+    category: Business & Domain
+    synonyms: [crm, customer relationship management, hubspot]
+  - name: ERP
+    category: Business & Domain
+    synonyms: [erp, enterprise resource planning, gestionale aziendale]
+  - name: Supply Chain
+    category: Business & Domain
+    synonyms: [supply chain, logistica, logistics, inventory management, gestione del magazzino, gestione delle scorte, procurement]
+  - name: E-commerce
+    category: Business & Domain
+    synonyms: [e-commerce, ecommerce, commercio elettronico, online retail]
+  - name: Sales Analysis
+    category: Business & Domain
+    synonyms: [sales analysis, sales analytics, analisi delle vendite, analisi vendite, sales reporting, sales operations]
+  - name: Business Intelligence
+    category: Business & Domain
+    synonyms: [business intelligence]
+  - name: GDPR & Data Privacy
+    category: Business & Domain
+    synonyms: [gdpr, data privacy, data protection, protezione dei dati, privacy dei dati, trattamento dei dati personali]
+  - name: Business Acumen
+    category: Business & Domain
+    synonyms: [business acumen, business understanding, conoscenza del business, visione di business, business sense, commercial awareness]
+
+  # ---------------------------------------------------------------------------
+  # Soft skills & languages
+  # ---------------------------------------------------------------------------
+  - name: Communication
+    category: Soft Skills
+    synonyms: [communication skills, communication, comunicazione, capacita comunicative, capacita di comunicazione, doti comunicative, competenze comunicative, abilita comunicative]
+  - name: Teamwork
+    category: Soft Skills
+    synonyms: [teamwork, team work, team working, team player, lavoro di squadra, lavoro in team, lavorare in team, lavorare in squadra, collaboration, collaborazione, spirito di squadra, working in teams, working in a team, work in a team, cross-functional teams, team cross-funzionali]
+  - name: Problem Solving
+    category: Soft Skills
+    synonyms: [problem solving, problem-solving, risoluzione dei problemi, risoluzione di problemi]
+  - name: Analytical Thinking
+    category: Soft Skills
+    synonyms: [analytical thinking, analytical skills, analytical mindset, capacita analitiche, capacita di analisi, spirito analitico, mentalita analitica, attitudine analitica, approccio analitico, doti analitiche]
+  - name: Critical Thinking
+    category: Soft Skills
+    synonyms: [critical thinking, pensiero critico, spirito critico]
+  - name: Attention to Detail
+    category: Soft Skills
+    synonyms: [attention to detail, detail-oriented, detail oriented, attenzione ai dettagli, attenzione al dettaglio, precisione, cura del dettaglio]
+  - name: Stakeholder Management
+    category: Soft Skills
+    synonyms: [stakeholder management, stakeholder engagement, gestione degli stakeholder, gestione stakeholder, working with stakeholders, relazione con gli stakeholder, stakeholders, stakeholder]
+  - name: Presentation Skills
+    category: Soft Skills
+    synonyms: [presentation skills, presenting, public speaking, capacita di presentazione, presentazione dei risultati, presentare i risultati, present findings, presenting insights]
+  - name: Time Management
+    category: Soft Skills
+    synonyms: [time management, gestione del tempo, organizzazione del lavoro, prioritization, prioritisation, gestione delle priorita, organizational skills, capacita organizzative, doti organizzative]
+  - name: Autonomy
+    category: Soft Skills
+    synonyms: [autonomia, autonomy, work independently, working independently, ability to work independently, self-starter, proattivita, proactive, proactivity, proattivo, proattiva]
+  - name: Curiosity & Learning
+    category: Soft Skills
+    synonyms: [curiosity, curious, curiosita, curioso, curiosa, eagerness to learn, willingness to learn, voglia di imparare, desire to learn, continuous learning, growth mindset]
+  - name: Adaptability
+    category: Soft Skills
+    synonyms: [adaptability, adattabilita, capacita di adattamento, adaptable]
+  - name: English
+    category: Soft Skills
+    synonyms: [english, inglese, fluent english, inglese fluente, business english]
