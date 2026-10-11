@@ -1,5 +1,8 @@
 # Skill Gap Analyzer
 
+![Status: alpha](https://img.shields.io/badge/status-alpha-orange)
+![Version](https://img.shields.io/badge/version-0.1.0--alpha-blue)
+
 **Compare your CV with real job posts and see which data skills the market wants — and which ones you are missing.**
 
 Built for people looking for **Data Analyst, BI Analyst and Business Analyst** roles.
@@ -11,6 +14,11 @@ Upload your CV (PDF), paste a few job posts (English or Italian) and get:
 - your **top 5 study priorities**.
 
 No paid APIs, no external AI, **no data stored**.
+
+> **Alpha:** the app works end to end, but the skill dictionary is still being
+> tuned on real CVs and job posts. Wrong or missing skills are expected: please
+> [open an issue](https://github.com/v-ambrosino/skill-gap-analyzer/issues) with
+> the exact sentence, so it can become a new synonym and a regression test.
 
 ![Skill Gap Analyzer screenshot](assets/screenshot.png)
 
@@ -77,7 +85,7 @@ and is missing → coverage = 4 / (4 + 1) = **80%**. An unweighted count would s
 
 ### Skill dictionary
 
-The dictionary lives in [`data/skills.yaml`](data/skills.yaml): **118 skills** in
+The dictionary lives in [`data/skills.yaml`](data/skills.yaml): **119 skills** in
 six categories (Tools, Programming & Data, Analytics & Statistics, Methodologies,
 Business & Domain, Soft Skills), each with English and Italian synonyms.
 

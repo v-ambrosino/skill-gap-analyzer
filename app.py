@@ -13,6 +13,7 @@ from pathlib import Path
 
 import streamlit as st
 
+from skill_gap import __version__
 from skill_gap.analysis import (
     build_skill_table,
     category_breakdown,
@@ -29,6 +30,7 @@ SAMPLES_DIR = Path(__file__).resolve().parent / "data" / "samples"
 MODE_SINGLE_BOX = "One text box (separate posts with ---)"
 MODE_FIELDS = "One field per job post"
 TOP_PRIORITIES = 5
+ISSUES_URL = "https://github.com/v-ambrosino/skill-gap-analyzer/issues"
 
 st.set_page_config(page_title="Skill Gap Analyzer", page_icon=":material/insights:", layout="wide")
 
@@ -310,6 +312,11 @@ def main() -> None:
     render_sidebar(dictionary)
 
     st.title("Skill Gap Analyzer")
+    st.badge(f"Alpha · v{__version__}", icon=":material/science:", color="orange")
+    st.caption(
+        "Early version: skill detection is dictionary-based and still being tuned on "
+        f"real job posts. Spotted a wrong or missing skill? [Open an issue]({ISSUES_URL})."
+    )
     st.markdown(
         "Find out which skills the job market asks for in **Data Analyst, BI Analyst "
         "and Business Analyst** roles, and which ones are missing from your CV."
