@@ -15,6 +15,7 @@ import streamlit as st
 
 from skill_gap import __version__
 from skill_gap.analysis import (
+    DEFAULT_NICE_WEIGHT,
     build_skill_table,
     category_breakdown,
     coverage_score,
@@ -22,7 +23,13 @@ from skill_gap.analysis import (
     study_priorities,
 )
 from skill_gap.charts import category_coverage_chart, demand_bar_chart
-from skill_gap.extractor import find_skills, find_skills_in_posts, split_job_posts
+from skill_gap.extractor import (
+    REQUIRED,
+    SkillMention,
+    find_skill_mentions,
+    find_skills_in_posts,
+    split_job_posts,
+)
 from skill_gap.pdf_reader import PdfReadError, extract_text_from_pdf
 from skill_gap.skills_dictionary import DictionaryError, SkillDictionary, load_dictionary
 
@@ -103,8 +110,22 @@ def clear_all() -> None:
 # ---------------------------------------------------------------------------
 # UI building blocks
 # ---------------------------------------------------------------------------
-def render_sidebar(dictionary: SkillDictionary) -> None:
+def render_sidebar(dictionary: SkillDictionary) -> float:
+    """Draw the sidebar and return the chosen weight of nice-to-have skills."""
     with st.sidebar:
+        st.header(":material/tune: Settings")
+        nice_weight = st.select_slider(
+            "Weight of nice-to-have skills",
+            options=[0.0, 0.25, 0.5, 0.75, 1.0],
+            value=DEFAULT_NICE_WEIGHT,
+            format_func=lambda w: f"{w:g}",
+            help=(
+                "A post that requires a skill counts 1. A post where the skill is only "
+                "nice to have (\"is a plus\", \"gradita\", \"Nice to have:\") counts this much. "
+                "0 ignores nice-to-have skills, 1 treats them as requirements."
+            ),
+        )
+        st.divider()
         st.header(":material/lock: Privacy")
         st.markdown(
             "**No data is stored.** Your CV and the job posts are processed "
@@ -117,11 +138,13 @@ def render_sidebar(dictionary: SkillDictionary) -> None:
         st.markdown(
             "1. Skills are recognised with an editable **dictionary** "
             f"of **{len(dictionary.skills)} skills** (English and Italian synonyms).\n"
-            "2. Each skill counts **once per job post**.\n"
+            "2. Each skill counts **once per job post**: 1 if the post **requires** it, "
+            "less if it is only **nice to have** (see Settings).\n"
             "3. **Coverage** = share of the requested skills found in your CV, "
-            "weighted by how many posts ask for each skill."
+            "weighted by that demand."
         )
         st.caption("Categories: " + ", ".join(dictionary.categories))
+    return nice_weight
 
 
 def render_cv_input() -> str:
@@ -193,10 +216,56 @@ def skill_badges(rows, color: str, icon: str) -> str:
     )
 
 
-def render_results(cv_text: str, posts: list[str], dictionary: SkillDictionary) -> None:
-    posts_skills = find_skills_in_posts(posts, dictionary)
-    cv_skills = find_skills(cv_text, dictionary)
-    table = build_skill_table(posts_skills, cv_skills, dictionary)
+def post_title(post: str, number: int) -> str:
+    """'Post #2 · Data Analyst - Acme' from the first line of the post."""
+    first_line = next((line.strip() for line in post.splitlines() if line.strip()), "")
+    if len(first_line) > 60:
+        first_line = first_line[:59].rstrip() + "\u2026"
+    return f"Post #{number} · {first_line}" if first_line else f"Post #{number}"
+
+
+def render_evidence(
+    table,
+    posts: list[str],
+    posts_mentions: list[dict[str, SkillMention]],
+    cv_mentions: dict[str, SkillMention],
+) -> None:
+    """Show the sentences where a chosen skill was found, to check the matching."""
+    st.subheader(":material/format_quote: Where each skill was found")
+    st.caption(
+        "Pick a skill to see the exact sentences that matched. Useful to check "
+        "the result, and to spot wrong matches to report."
+    )
+    skill = st.selectbox("Skill", table["skill"], label_visibility="collapsed")
+    col_posts, col_cv = st.columns([3, 2], gap="large")
+    with col_posts:
+        st.markdown("**In the job posts**")
+        for number, (post, mentions) in enumerate(zip(posts, posts_mentions), start=1):
+            mention = mentions.get(skill)
+            if mention is None:
+                continue
+            if mention.priority == REQUIRED:
+                tag = ":blue-badge[Required]"
+            else:
+                tag = ":gray-badge[Nice to have]"
+            quote = f"“{mention.snippet}”" if mention.snippet else "_(phrase split across lines)_"
+            st.markdown(f"{tag} **{post_title(post, number)}**  \n{quote}")
+    with col_cv:
+        st.markdown("**In your CV**")
+        mention = cv_mentions.get(skill)
+        if mention is None:
+            st.markdown("_Not found in your CV._")
+        else:
+            st.markdown(f"“{mention.snippet}”" if mention.snippet else "_Found (phrase split across lines)._")
+
+
+def render_results(
+    cv_text: str, posts: list[str], dictionary: SkillDictionary, nice_weight: float
+) -> None:
+    posts_mentions = find_skills_in_posts(posts, dictionary)
+    cv_mentions = find_skill_mentions(cv_text, dictionary)
+    cv_skills = set(cv_mentions)
+    table = build_skill_table(posts_mentions, cv_skills, dictionary, nice_weight=nice_weight)
 
     if table.empty:
         st.warning(
@@ -206,6 +275,12 @@ def render_results(cv_text: str, posts: list[str], dictionary: SkillDictionary) 
         return
 
     score = coverage_score(table)
+    if score is None:
+        st.warning(
+            ":material/info: The posts only list nice-to-have skills and their weight is 0. "
+            "Raise the weight in the sidebar to include them."
+        )
+        return
     n_posts = len(posts)
     n_covered = int(table["in_cv"].sum())
     mode = "dark" if st.context.theme.type == "dark" else "light"
@@ -214,7 +289,8 @@ def render_results(cv_text: str, posts: list[str], dictionary: SkillDictionary) 
     st.header("Results")
     kpi = st.columns(4)
     kpi[0].metric("Weighted coverage", f"{score:.0f}%",
-                  help="Requested skills found in your CV, weighted by how many posts ask for each one.")
+                  help="Requested skills found in your CV, weighted by how many posts ask for each one "
+                       "(nice-to-have skills count less, see the sidebar).")
     kpi[1].metric("Job posts analysed", n_posts)
     kpi[2].metric("Skills in your CV", f"{n_covered} of {len(table)}")
     kpi[3].metric("Missing skills", len(table) - n_covered)
@@ -262,17 +338,22 @@ def render_results(cv_text: str, posts: list[str], dictionary: SkillDictionary) 
                 rank=range(1, len(priorities) + 1), share=priorities["posts_share"] * 100
             )
             st.dataframe(
-                priorities[["rank", "skill", "category", "posts_count", "share"]],
+                priorities[["rank", "skill", "category", "required_count", "nice_count", "share"]],
                 hide_index=True,
                 width="stretch",
                 column_config={
                     "rank": st.column_config.NumberColumn("#", width=40),
                     "skill": "Skill",
                     "category": "Category",
-                    "posts_count": st.column_config.NumberColumn("Posts", width=60),
-                    "share": st.column_config.ProgressColumn(
-                        "Share of posts", format="%.0f%%", min_value=0, max_value=100,
-                        width="small",
+                    "required_count": st.column_config.NumberColumn(
+                        "Required", width=70, help="Posts that require the skill"
+                    ),
+                    "nice_count": st.column_config.NumberColumn(
+                        "Nice", width=60, help="Posts where the skill is nice to have"
+                    ),
+                    "share": st.column_config.NumberColumn(
+                        "Share", format="%.0f%%", width=70,
+                        help="Share of the job posts that mention the skill",
                     ),
                 },
             )
@@ -283,6 +364,8 @@ def render_results(cv_text: str, posts: list[str], dictionary: SkillDictionary) 
             width="stretch",
             config={"displayModeBar": False},
         )
+
+    render_evidence(table, posts, posts_mentions, cv_mentions)
 
     # --- Full table ----------------------------------------------------------
     with st.expander("Full skill table"):
@@ -309,7 +392,7 @@ def main() -> None:
         st.error(f"The skill dictionary could not be loaded: {exc}")
         st.stop()
 
-    render_sidebar(dictionary)
+    nice_weight = render_sidebar(dictionary)
 
     st.title("Skill Gap Analyzer")
     st.badge(f"Alpha · v{__version__}", icon=":material/science:", color="orange")
@@ -348,7 +431,7 @@ def main() -> None:
             ":material/arrow_upward: Upload your CV (or paste its text) to compare it "
             "with the market. Meanwhile, here is what the job posts ask for."
         )
-    render_results(cv_text, posts, dictionary)
+    render_results(cv_text, posts, dictionary, nice_weight)
 
 
 main()

@@ -45,9 +45,10 @@ transparent method you can explain and verify.
 | Feature | Details |
 |---|---|
 | **Input** | CV as PDF (or pasted text). Job posts in **one text box separated by `---`** or **one field per post** (add/remove fields). English and Italian. |
-| **Requested skills** | Horizontal bar chart of how many posts ask for each skill, coloured and optionally grouped by category. |
+| **Requested skills** | Horizontal bar chart of how many posts ask for each skill, coloured and optionally grouped by category. The solid part counts posts that **require** the skill, the hatched part posts where it is only **nice to have**. |
 | **CV comparison** | Skills in your CV in green, missing ones in red, each with its demand. Skills you have that the posts did not ask for are listed too. |
-| **Coverage score** | Share of requested skills found in your CV, **weighted by demand**. Also shown per category. |
+| **Coverage score** | Share of requested skills found in your CV, **weighted by demand** (required = 1, nice to have = 0.5, adjustable). Also shown per category. |
+| **Evidence** | For any skill, the exact sentences where it was found in each post and in your CV, to check the result. |
 | **Study priorities** | The 5 missing skills that most posts ask for. |
 | **Export** | Download the full skill table as CSV. |
 | **Privacy** | Everything stays in memory for the session only. |
@@ -72,12 +73,30 @@ Job posts ──► split "---" ┘       ▲
    `skill | category | posts_count | posts_share | in_cv`. Every result is an
    aggregation of this table.
 
+### Required vs nice to have
+
+For job posts, the context of each mention is checked:
+
+- **Section headers**: skills under `Nice to have:`, `Bonus:`, `Titoli preferenziali:`…
+  are nice to have, until a header like `Requirements:`, `Requisiti:` or
+  `Responsibilities:` starts a new section.
+- **Markers in the same clause**: "Python *is a plus*", "*gradita* la conoscenza di
+  Tableau", "*costituisce titolo preferenziale* la conoscenza di R". Clauses are split
+  on `;` and on sentence ends, so in "Fluent English; German is a plus" English stays required.
+- **Markers inside brackets** apply only to the brackets: in "SQL (BigQuery preferred)"
+  SQL is required and BigQuery is nice to have.
+
+If a skill is required anywhere in a post, it counts as required for that post.
+
 ### The coverage score
 
-Each requested skill weighs as much as the number of job posts that ask for it:
+Each requested skill weighs as much as its **demand**: +1 for every post that
+requires it, +0.5 for every post where it is only nice to have (the 0.5 can be
+changed in the sidebar, from 0 = ignore to 1 = same as required):
 
 ```
-coverage = Σ posts_count (skills in CV) / Σ posts_count (all requested skills)
+demand   = required_count + nice_weight × nice_count
+coverage = Σ demand (skills in CV) / Σ demand (all requested skills)
 ```
 
 Example: SQL is asked by 4 posts and is in your CV, Tableau is asked by 1 post
@@ -197,8 +216,10 @@ top of this README.
 
 - **Dictionary-based**: only the skills in `skills.yaml` are recognised, and new
   wording ("analytical" on its own, a brand-new tool) is missed until a synonym is added.
-- **No context understanding**: "SQL is a plus" and "SQL is required" count the
-  same; a negated sentence ("no Python needed") still counts as a mention.
+- **Limited context understanding**: required vs nice to have is detected with
+  section headers and marker words, not by understanding the sentence. A list such
+  as "SQL, Excel, Python is a plus" marks all three as nice to have, and a negated
+  sentence ("no Python needed") still counts as a mention.
 - **Ambiguous short names** are handled with conservative rules: some true
   mentions can be missed (e.g. a sentence that ends with "… Python e R.").
 - **Scanned PDFs** (images without a text layer) cannot be read: there is no OCR.
@@ -209,7 +230,6 @@ top of this README.
 
 ## Future improvements
 
-- Distinguish **required vs nice-to-have** skills from the surrounding text and weight them differently.
 - Skill **levels** (e.g. "advanced Excel") and years of experience.
 - Import job posts from a **URL** or a CSV export of a job board.
 - More **dictionaries** (e.g. Data Engineer, Marketing, Finance) selectable in the app.
