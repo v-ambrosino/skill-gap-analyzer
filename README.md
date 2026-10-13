@@ -2,6 +2,7 @@
 
 ![Status: alpha](https://img.shields.io/badge/status-alpha-orange)
 ![Version](https://img.shields.io/badge/version-0.1.0--alpha-blue)
+[![Tests](https://github.com/v-ambrosino/skill-gap-analyzer/actions/workflows/tests.yml/badge.svg)](https://github.com/v-ambrosino/skill-gap-analyzer/actions/workflows/tests.yml)
 
 **Compare your CV with real job posts and see which data skills the market wants — and which ones you are missing.**
 
@@ -164,6 +165,8 @@ with fictional posts and a fictional CV.
 ```bash
 pytest
 ```
+
+The same tests run automatically on GitHub Actions for every pull request and every push to `main` (Python 3.10 and 3.12), see [`.github/workflows/tests.yml`](.github/workflows/tests.yml).
 
 The tests cover whole-word matching, Italian/English synonyms, the tricky `R`,
 `SAS`, `Excel` and `Agile` cases, the post separator, the weighted coverage
