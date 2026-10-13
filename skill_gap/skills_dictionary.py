@@ -52,6 +52,10 @@ class Skill:
         """True if at least one pattern matches the (normalised) text."""
         return any(pattern.search(normalized_text) for pattern in self.patterns)
 
+    def spans(self, normalized_text: str) -> list[tuple[int, int]]:
+        """Start/end positions of every match, used to look at the context."""
+        return [m.span() for pattern in self.patterns for m in pattern.finditer(normalized_text)]
+
 
 @dataclass(frozen=True)
 class SkillDictionary:

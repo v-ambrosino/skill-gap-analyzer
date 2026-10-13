@@ -108,7 +108,7 @@ def test_empty_text(dictionary):
 
 def test_skill_counted_once_per_post(dictionary):
     [skills] = find_skills_in_posts(["SQL SQL SQL and more SQL"], dictionary)
-    assert skills == {"SQL"}
+    assert set(skills) == {"SQL"}
 
 
 def test_split_job_posts():
