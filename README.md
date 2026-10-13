@@ -6,7 +6,7 @@
 
 **Compare your CV with real job posts and see which data skills the market wants — and which ones you are missing.**
 
-Built for people looking for **Data Analyst, BI Analyst and Business Analyst** roles.
+Built for people looking for **Data Analyst, BI Analyst and Business Analyst** roles, with a second dictionary for **Data Engineer / Analytics Engineer** roles (pick the target role in the sidebar).
 Upload your CV (PDF), paste a few job posts (English or Italian) and get:
 
 - the most requested skills, grouped by category;
@@ -60,7 +60,7 @@ CV (PDF) ──► pdf_reader ──┐
                           ├─► extractor ──► analysis ──► charts / UI
 Job posts ──► split "---" ┘       ▲
                                   │
-                       data/skills.yaml (dictionary)
+                 data/dictionaries/*.yaml (one per role)
 ```
 
 1. **PDF reading** – `pdfplumber` extracts the text of the CV directly from the
@@ -103,11 +103,18 @@ Example: SQL is asked by 4 posts and is in your CV, Tableau is asked by 1 post
 and is missing → coverage = 4 / (4 + 1) = **80%**. An unweighted count would say
 50%, overstating a skill that only one employer wants.
 
-### Skill dictionary
+### Skill dictionaries
 
-The dictionary lives in [`data/skills.yaml`](data/skills.yaml): **119 skills** in
-six categories (Tools, Programming & Data, Analytics & Statistics, Methodologies,
-Business & Domain, Soft Skills), each with English and Italian synonyms.
+Each target role has its own dictionary in [`data/dictionaries/`](data/dictionaries/),
+with English and Italian synonyms:
+
+| Role | File | Skills | Categories |
+|---|---|---|---|
+| Data Analyst / BI / Business Analyst (default) | [`data_analytics.yaml`](data/dictionaries/data_analytics.yaml) | 119 | Tools, Programming & Data, Analytics & Statistics, Methodologies, Business & Domain, Soft Skills |
+| Data Engineer / Analytics Engineer | [`data_engineering.yaml`](data/dictionaries/data_engineering.yaml) | 87 | Cloud & Platforms, Programming & Databases, Pipelines & Processing, Data Architecture, Engineering Practices, Soft Skills |
+
+Soft skills and languages live in [`shared/soft_skills.yaml`](data/dictionaries/shared/soft_skills.yaml)
+and are pulled into both dictionaries with `include`, so they are maintained once.
 
 ```yaml
 - name: Power BI
@@ -137,8 +144,10 @@ Matching rules:
 The loader validates the file at startup (unknown categories, duplicate names,
 a synonym shared by two skills, invalid regex) and shows a clear error.
 
-**Extending it to other industries:** copy `skills.yaml`, change `domain`,
-`categories` and `skills`, and pass the new path to `load_dictionary()`.
+**Adding a role or an industry:** copy a file into `data/dictionaries/`, change
+`domain`, `description`, `categories` and `skills` (and keep
+`include: [shared/soft_skills.yaml]` if the soft skills fit). The app lists every
+`*.yaml` file in that folder automatically, and the tests check that each one is valid.
 
 ## Project structure
 
@@ -153,7 +162,8 @@ skill-gap-analyzer/
 │   ├── analysis.py            # pandas: skill table, coverage, priorities
 │   └── charts.py              # Plotly charts
 ├── data/
-│   ├── skills.yaml            # the skill dictionary (edit me!)
+│   ├── dictionaries/          # one skill dictionary per role (edit me!)
+│   │   └── shared/            # skills included by several roles (soft skills)
 │   └── samples/               # fictional job posts and CV for the demo
 ├── tests/                     # pytest suite with fictional job posts
 ├── assets/screenshot.png
@@ -214,7 +224,7 @@ top of this README.
 
 ## Known limitations
 
-- **Dictionary-based**: only the skills in `skills.yaml` are recognised, and new
+- **Dictionary-based**: only the skills in the dictionaries are recognised, and new
   wording ("analytical" on its own, a brand-new tool) is missed until a synonym is added.
 - **Limited context understanding**: required vs nice to have is detected with
   section headers and marker words, not by understanding the sentence. A list such
@@ -232,7 +242,8 @@ top of this README.
 
 - Skill **levels** (e.g. "advanced Excel") and years of experience.
 - Import job posts from a **URL** or a CSV export of a job board.
-- More **dictionaries** (e.g. Data Engineer, Marketing, Finance) selectable in the app.
+- More **dictionaries** (e.g. Data Scientist, Marketing Analyst, Finance).
+- Sample data for each role (the demo data is for Data Analyst roles).
 - More languages (French, Spanish, German).
 - Optional **OCR** for scanned CVs (e.g. Tesseract).
 - A downloadable **PDF report** with the results.

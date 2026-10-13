@@ -31,7 +31,12 @@ from skill_gap.extractor import (
     split_job_posts,
 )
 from skill_gap.pdf_reader import PdfReadError, extract_text_from_pdf
-from skill_gap.skills_dictionary import DictionaryError, SkillDictionary, load_dictionary
+from skill_gap.skills_dictionary import (
+    DictionaryError,
+    SkillDictionary,
+    list_dictionaries,
+    load_dictionary,
+)
 
 SAMPLES_DIR = Path(__file__).resolve().parent / "data" / "samples"
 MODE_SINGLE_BOX = "One text box (separate posts with ---)"
@@ -46,13 +51,19 @@ st.set_page_config(page_title="Skill Gap Analyzer", page_icon=":material/insight
 # Data loading
 # ---------------------------------------------------------------------------
 @st.cache_resource
-def get_dictionary() -> SkillDictionary:
-    """Load the skill dictionary once per server process.
+def get_dictionary(path: str) -> SkillDictionary:
+    """Load a skill dictionary once per server process.
 
-    Only the dictionary is cached. The CV and the job posts are NEVER cached,
-    so they cannot leak between users or outlive the session.
+    Only the dictionaries are cached. The CV and the job posts are NEVER
+    cached, so they cannot leak between users or outlive the session.
     """
-    return load_dictionary()
+    return load_dictionary(path)
+
+
+@st.cache_resource
+def get_dictionary_files() -> dict[str, str]:
+    """Role name -> dictionary file, for every file in data/dictionaries/."""
+    return {role: str(path) for role, path in list_dictionaries().items()}
 
 
 def read_sample(name: str) -> str:
@@ -270,7 +281,8 @@ def render_results(
     if table.empty:
         st.warning(
             ":material/search_off: No known skills were found in the job posts. "
-            "Check that you pasted the full text, or extend data/skills.yaml."
+            "Check that you pasted the full text, pick another target role in the sidebar, "
+            "or extend the dictionaries in data/dictionaries/."
         )
         return
 
@@ -387,7 +399,14 @@ def render_results(
 def main() -> None:
     init_state()
     try:
-        dictionary = get_dictionary()
+        dictionary_files = get_dictionary_files()
+        with st.sidebar:
+            role = st.selectbox(
+                ":material/work: Target role",
+                list(dictionary_files),
+                help="Each role has its own skill dictionary in data/dictionaries/.",
+            )
+        dictionary = get_dictionary(dictionary_files[role])
     except DictionaryError as exc:
         st.error(f"The skill dictionary could not be loaded: {exc}")
         st.stop()
@@ -401,8 +420,8 @@ def main() -> None:
         f"real job posts. Spotted a wrong or missing skill? [Open an issue]({ISSUES_URL})."
     )
     st.markdown(
-        "Find out which skills the job market asks for in **Data Analyst, BI Analyst "
-        "and Business Analyst** roles, and which ones are missing from your CV."
+        f"Find out which skills the job market asks for in **{dictionary.description or role}**, "
+        "and which ones are missing from your CV. Change the target role in the sidebar."
     )
     st.info(
         "**Privacy:** nothing is saved. Your CV and the job posts stay in memory only "
