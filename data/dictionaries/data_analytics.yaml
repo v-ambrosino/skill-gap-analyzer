@@ -1,5 +1,5 @@
 # =============================================================================
-# Skill dictionary for data roles (Data Analyst, BI Analyst, Business Analyst)
+# Skill dictionary: Data Analyst, BI Analyst, Business Analyst
 # =============================================================================
 #
 # Each entry describes ONE skill. Fields:
@@ -24,12 +24,20 @@
 # patterns. The skill name itself is NOT matched automatically, so tricky
 # names like "R" are never matched by accident.
 #
-# To support another industry, copy this file, change `domain` and the skills,
-# and point the app to the new file.
+# To support another role or industry, copy this file into data/dictionaries/,
+# change `domain`, `description`, `categories` and the skills: the app lists
+# every dictionary in that folder automatically. Shared skills (e.g. soft
+# skills) can be reused with `include`.
 # =============================================================================
 
 version: 1
-domain: Data roles
+domain: Data Analyst / BI / Business Analyst
+description: Data Analyst, BI Analyst and Business Analyst roles
+
+# Other files whose skills are added to this dictionary (paths are relative
+# to this file).
+include:
+  - shared/soft_skills.yaml
 
 categories:
   - Tools
@@ -402,46 +410,3 @@ skills:
   - name: Business Acumen
     category: Business & Domain
     synonyms: [business acumen, business understanding, conoscenza del business, visione di business, business sense, commercial awareness]
-
-  # ---------------------------------------------------------------------------
-  # Soft skills & languages
-  # ---------------------------------------------------------------------------
-  - name: Communication
-    category: Soft Skills
-    synonyms: [communication skills, communication, comunicazione, capacita comunicative, capacita di comunicazione, doti comunicative, competenze comunicative, abilita comunicative, capacita relazionali, written and verbal communication]
-  - name: Teamwork
-    category: Soft Skills
-    synonyms: [teamwork, team work, team working, team player, lavoro di squadra, lavoro in team, lavorare in team, lavorare in squadra, collaboration, collaborazione con, spirito di collaborazione, team spirit, spirito di squadra, working in teams, working in a team, work in a team, cross-functional teams, team cross-funzionali]
-  - name: Problem Solving
-    category: Soft Skills
-    synonyms: [problem solving, problem-solving, risoluzione dei problemi, risoluzione di problemi]
-  - name: Analytical Thinking
-    category: Soft Skills
-    synonyms: [analytical thinking, analytical skills, analytical mindset, capacita analitiche, capacita di analisi, spirito analitico, mentalita analitica, attitudine analitica, approccio analitico, doti analitiche, data-driven mindset]
-  - name: Critical Thinking
-    category: Soft Skills
-    synonyms: [critical thinking, pensiero critico, spirito critico]
-  - name: Attention to Detail
-    category: Soft Skills
-    synonyms: [attention to detail, detail-oriented, detail oriented, attenzione ai dettagli, attenzione al dettaglio, precisione, cura del dettaglio]
-  - name: Stakeholder Management
-    category: Soft Skills
-    synonyms: [stakeholder management, stakeholder engagement, gestione degli stakeholder, gestione stakeholder, working with stakeholders, relazione con gli stakeholder, stakeholders, stakeholder]
-  - name: Presentation Skills
-    category: Soft Skills
-    synonyms: [presentation skills, presenting, public speaking, capacita di presentazione, presentazione dei risultati, presentare i risultati, present findings, presenting insights]
-  - name: Time Management
-    category: Soft Skills
-    synonyms: [time management, gestione del tempo, organizzazione del lavoro, prioritization, prioritisation, gestione delle priorita, multiple priorities, competing priorities, meet deadlines, rispetto delle scadenze, organizational skills, capacita organizzative, doti organizzative]
-  - name: Autonomy
-    category: Soft Skills
-    synonyms: [autonomia, autonomy, work independently, working independently, ability to work independently, self-starter, work autonomously, working autonomously, independent way of working, spirito di iniziativa, take initiative, proattivita, proactive, proactivity, proattivo, proattiva]
-  - name: Curiosity & Learning
-    category: Soft Skills
-    synonyms: [curiosity, curious, curiosita, curioso, curiosa, eagerness to learn, willingness to learn, voglia di imparare, desire to learn, continuous learning, growth mindset]
-  - name: Adaptability
-    category: Soft Skills
-    synonyms: [adaptability, adattabilita, capacita di adattamento, adaptable]
-  - name: English
-    category: Soft Skills
-    synonyms: [english, inglese, fluent english, inglese fluente, business english]

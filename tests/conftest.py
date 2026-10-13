@@ -12,5 +12,5 @@ from skill_gap.skills_dictionary import load_dictionary  # noqa: E402
 
 @pytest.fixture(scope="session")
 def dictionary():
-    """The real dictionary shipped with the app (data/skills.yaml)."""
+    """The real dictionary shipped with the app (data/dictionaries/data_analytics.yaml)."""
     return load_dictionary()

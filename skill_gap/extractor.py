@@ -161,7 +161,10 @@ def find_skill_mentions(text: str, dictionary: SkillDictionary) -> dict[str, Ski
         if not normalized_line:
             continue
         header = _header_kind(normalized_line, dictionary)
-        if header is not None:
+        # "Nice to have:" alone opens a nice-to-have section; "Nice to have: X, Y"
+        # only concerns its own line (the marker in the clause handles it).
+        inline_content = normalized_line.partition(":")[2].strip()
+        if header == REQUIRED or (header == NICE_TO_HAVE and not inline_content):
             section = header
 
         for clause in _CLAUSE_SPLIT.split(line):

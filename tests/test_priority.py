@@ -93,3 +93,10 @@ def test_nice_to_have_weight(dictionary):
     ignored = build_skill_table(posts, {"SQL"}, dictionary, nice_weight=0)
     assert coverage_score(ignored) == 100.0
     assert study_priorities(ignored).empty
+
+
+def test_inline_nice_header_only_applies_to_its_line(dictionary):
+    text = "Requirements:\n- SQL\nNice to have: Tableau, dbt.\nStrong communication skills"
+    found = priorities(text, dictionary)
+    assert found["Tableau"] == NICE_TO_HAVE and found["dbt"] == NICE_TO_HAVE
+    assert found["Communication"] == REQUIRED
