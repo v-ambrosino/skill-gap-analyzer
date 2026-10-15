@@ -13,7 +13,9 @@ from pathlib import Path
 
 import streamlit as st
 
+from skill_gap import __version__
 from skill_gap.analysis import (
+    DEFAULT_NICE_WEIGHT,
     build_skill_table,
     category_breakdown,
     coverage_score,
@@ -21,14 +23,27 @@ from skill_gap.analysis import (
     study_priorities,
 )
 from skill_gap.charts import category_coverage_chart, demand_bar_chart
-from skill_gap.extractor import find_skills, find_skills_in_posts, split_job_posts
+from skill_gap.extractor import (
+    REQUIRED,
+    SkillMention,
+    find_skill_mentions,
+    find_skills_in_posts,
+    split_job_posts,
+)
 from skill_gap.pdf_reader import PdfReadError, extract_text_from_pdf
-from skill_gap.skills_dictionary import DictionaryError, SkillDictionary, load_dictionary
+from skill_gap.report import build_html_report
+from skill_gap.skills_dictionary import (
+    DictionaryError,
+    SkillDictionary,
+    list_dictionaries,
+    load_dictionary,
+)
 
 SAMPLES_DIR = Path(__file__).resolve().parent / "data" / "samples"
 MODE_SINGLE_BOX = "One text box (separate posts with ---)"
 MODE_FIELDS = "One field per job post"
 TOP_PRIORITIES = 5
+ISSUES_URL = "https://github.com/v-ambrosino/skill-gap-analyzer/issues"
 
 st.set_page_config(page_title="Skill Gap Analyzer", page_icon=":material/insights:", layout="wide")
 
@@ -37,17 +52,24 @@ st.set_page_config(page_title="Skill Gap Analyzer", page_icon=":material/insight
 # Data loading
 # ---------------------------------------------------------------------------
 @st.cache_resource
-def get_dictionary() -> SkillDictionary:
-    """Load the skill dictionary once per server process.
+def get_dictionary(path: str) -> SkillDictionary:
+    """Load a skill dictionary once per server process.
 
-    Only the dictionary is cached. The CV and the job posts are NEVER cached,
-    so they cannot leak between users or outlive the session.
+    Only the dictionaries are cached. The CV and the job posts are NEVER
+    cached, so they cannot leak between users or outlive the session.
     """
-    return load_dictionary()
+    return load_dictionary(path)
 
 
-def read_sample(name: str) -> str:
-    return (SAMPLES_DIR / name).read_text(encoding="utf-8")
+@st.cache_resource
+def get_dictionary_files() -> dict[str, str]:
+    """Role name -> dictionary file, for every file in data/dictionaries/."""
+    return {role: str(path) for role, path in list_dictionaries().items()}
+
+
+def read_sample(role_folder: str, name: str) -> str:
+    """Read a fictional sample file for a role (data/samples/<dictionary name>/)."""
+    return (SAMPLES_DIR / role_folder / name).read_text(encoding="utf-8")
 
 
 # ---------------------------------------------------------------------------
@@ -74,17 +96,17 @@ def remove_post_field(post_id: int) -> None:
         add_post_field()
 
 
-def load_sample_data() -> None:
+def load_sample_data(role_folder: str) -> None:
     """Fill both input modes and the CV text box with the fictional samples."""
     clear_all()
-    sample_posts = read_sample("job_posts.txt")
+    sample_posts = read_sample(role_folder, "job_posts.txt")
     st.session_state.posts_text = sample_posts
     posts = split_job_posts(sample_posts)
     st.session_state.post_ids = list(range(len(posts)))
     st.session_state.next_post_id = len(posts)
     for post_id, post in enumerate(posts):
         st.session_state[f"post_{post_id}"] = post
-    st.session_state.cv_text_manual = read_sample("cv.txt")
+    st.session_state.cv_text_manual = read_sample(role_folder, "cv.txt")
 
 
 def clear_all() -> None:
@@ -101,8 +123,22 @@ def clear_all() -> None:
 # ---------------------------------------------------------------------------
 # UI building blocks
 # ---------------------------------------------------------------------------
-def render_sidebar(dictionary: SkillDictionary) -> None:
+def render_sidebar(dictionary: SkillDictionary) -> float:
+    """Draw the sidebar and return the chosen weight of nice-to-have skills."""
     with st.sidebar:
+        st.header(":material/tune: Settings")
+        nice_weight = st.select_slider(
+            "Weight of nice-to-have skills",
+            options=[0.0, 0.25, 0.5, 0.75, 1.0],
+            value=DEFAULT_NICE_WEIGHT,
+            format_func=lambda w: f"{w:g}",
+            help=(
+                "A post that requires a skill counts 1. A post where the skill is only "
+                "nice to have (\"is a plus\", \"gradita\", \"Nice to have:\") counts this much. "
+                "0 ignores nice-to-have skills, 1 treats them as requirements."
+            ),
+        )
+        st.divider()
         st.header(":material/lock: Privacy")
         st.markdown(
             "**No data is stored.** Your CV and the job posts are processed "
@@ -115,11 +151,13 @@ def render_sidebar(dictionary: SkillDictionary) -> None:
         st.markdown(
             "1. Skills are recognised with an editable **dictionary** "
             f"of **{len(dictionary.skills)} skills** (English and Italian synonyms).\n"
-            "2. Each skill counts **once per job post**.\n"
+            "2. Each skill counts **once per job post**: 1 if the post **requires** it, "
+            "less if it is only **nice to have** (see Settings).\n"
             "3. **Coverage** = share of the requested skills found in your CV, "
-            "weighted by how many posts ask for each skill."
+            "weighted by that demand."
         )
         st.caption("Categories: " + ", ".join(dictionary.categories))
+    return nice_weight
 
 
 def render_cv_input() -> str:
@@ -191,19 +229,72 @@ def skill_badges(rows, color: str, icon: str) -> str:
     )
 
 
-def render_results(cv_text: str, posts: list[str], dictionary: SkillDictionary) -> None:
-    posts_skills = find_skills_in_posts(posts, dictionary)
-    cv_skills = find_skills(cv_text, dictionary)
-    table = build_skill_table(posts_skills, cv_skills, dictionary)
+def post_title(post: str, number: int) -> str:
+    """'Post #2 · Data Analyst - Acme' from the first line of the post."""
+    first_line = next((line.strip() for line in post.splitlines() if line.strip()), "")
+    if len(first_line) > 60:
+        first_line = first_line[:59].rstrip() + "\u2026"
+    return f"Post #{number} · {first_line}" if first_line else f"Post #{number}"
+
+
+def render_evidence(
+    table,
+    posts: list[str],
+    posts_mentions: list[dict[str, SkillMention]],
+    cv_mentions: dict[str, SkillMention],
+) -> None:
+    """Show the sentences where a chosen skill was found, to check the matching."""
+    st.subheader(":material/format_quote: Where each skill was found")
+    st.caption(
+        "Pick a skill to see the exact sentences that matched. Useful to check "
+        "the result, and to spot wrong matches to report."
+    )
+    skill = st.selectbox("Skill", table["skill"], label_visibility="collapsed")
+    col_posts, col_cv = st.columns([3, 2], gap="large")
+    with col_posts:
+        st.markdown("**In the job posts**")
+        for number, (post, mentions) in enumerate(zip(posts, posts_mentions), start=1):
+            mention = mentions.get(skill)
+            if mention is None:
+                continue
+            if mention.priority == REQUIRED:
+                tag = ":blue-badge[Required]"
+            else:
+                tag = ":gray-badge[Nice to have]"
+            quote = f"“{mention.snippet}”" if mention.snippet else "_(phrase split across lines)_"
+            st.markdown(f"{tag} **{post_title(post, number)}**  \n{quote}")
+    with col_cv:
+        st.markdown("**In your CV**")
+        mention = cv_mentions.get(skill)
+        if mention is None:
+            st.markdown("_Not found in your CV._")
+        else:
+            st.markdown(f"“{mention.snippet}”" if mention.snippet else "_Found (phrase split across lines)._")
+
+
+def render_results(
+    cv_text: str, posts: list[str], dictionary: SkillDictionary, nice_weight: float
+) -> None:
+    posts_mentions = find_skills_in_posts(posts, dictionary)
+    cv_mentions = find_skill_mentions(cv_text, dictionary)
+    cv_skills = set(cv_mentions)
+    table = build_skill_table(posts_mentions, cv_skills, dictionary, nice_weight=nice_weight)
 
     if table.empty:
         st.warning(
             ":material/search_off: No known skills were found in the job posts. "
-            "Check that you pasted the full text, or extend data/skills.yaml."
+            "Check that you pasted the full text, pick another target role in the sidebar, "
+            "or extend the dictionaries in data/dictionaries/."
         )
         return
 
     score = coverage_score(table)
+    if score is None:
+        st.warning(
+            ":material/info: The posts only list nice-to-have skills and their weight is 0. "
+            "Raise the weight in the sidebar to include them."
+        )
+        return
     n_posts = len(posts)
     n_covered = int(table["in_cv"].sum())
     mode = "dark" if st.context.theme.type == "dark" else "light"
@@ -212,7 +303,8 @@ def render_results(cv_text: str, posts: list[str], dictionary: SkillDictionary) 
     st.header("Results")
     kpi = st.columns(4)
     kpi[0].metric("Weighted coverage", f"{score:.0f}%",
-                  help="Requested skills found in your CV, weighted by how many posts ask for each one.")
+                  help="Requested skills found in your CV, weighted by how many posts ask for each one "
+                       "(nice-to-have skills count less, see the sidebar).")
     kpi[1].metric("Job posts analysed", n_posts)
     kpi[2].metric("Skills in your CV", f"{n_covered} of {len(table)}")
     kpi[3].metric("Missing skills", len(table) - n_covered)
@@ -260,17 +352,22 @@ def render_results(cv_text: str, posts: list[str], dictionary: SkillDictionary) 
                 rank=range(1, len(priorities) + 1), share=priorities["posts_share"] * 100
             )
             st.dataframe(
-                priorities[["rank", "skill", "category", "posts_count", "share"]],
+                priorities[["rank", "skill", "category", "required_count", "nice_count", "share"]],
                 hide_index=True,
                 width="stretch",
                 column_config={
                     "rank": st.column_config.NumberColumn("#", width=40),
                     "skill": "Skill",
                     "category": "Category",
-                    "posts_count": st.column_config.NumberColumn("Posts", width=60),
-                    "share": st.column_config.ProgressColumn(
-                        "Share of posts", format="%.0f%%", min_value=0, max_value=100,
-                        width="small",
+                    "required_count": st.column_config.NumberColumn(
+                        "Required", width=70, help="Posts that require the skill"
+                    ),
+                    "nice_count": st.column_config.NumberColumn(
+                        "Nice", width=60, help="Posts where the skill is nice to have"
+                    ),
+                    "share": st.column_config.NumberColumn(
+                        "Share", format="%.0f%%", width=70,
+                        help="Share of the job posts that mention the skill",
                     ),
                 },
             )
@@ -282,18 +379,48 @@ def render_results(cv_text: str, posts: list[str], dictionary: SkillDictionary) 
             config={"displayModeBar": False},
         )
 
-    # --- Full table ----------------------------------------------------------
+    render_evidence(table, posts, posts_mentions, cv_mentions)
+
+    # --- Full table and downloads -------------------------------------------
+    export = table.assign(posts_share=(table["posts_share"] * 100).round(1))
     with st.expander("Full skill table"):
-        export = table.assign(posts_share=(table["posts_share"] * 100).round(1))
         st.dataframe(export, hide_index=True, width="stretch")
-        st.download_button(
-            "Download as CSV",
-            export.to_csv(index=False).encode("utf-8"),
-            file_name="skill_gap_analysis.csv",
-            mime="text/csv",
-            icon=":material/download:",
-            help="The file is generated in your browser session and not stored on the server.",
-        )
+
+    st.subheader(":material/download: Download your results")
+    st.caption(
+        "Files are generated in memory for this session only. The report contains skill "
+        "names and scores, never the text of your CV or of the job posts."
+    )
+    report = build_html_report(
+        table,
+        category_breakdown(table, dictionary),
+        study_priorities(table, TOP_PRIORITIES),
+        extras,
+        role=dictionary.domain,
+        n_posts=n_posts,
+        coverage=score,
+        nice_weight=nice_weight,
+        version=__version__,
+    )
+    col_report, col_csv, _ = st.columns([2, 2, 3])
+    col_report.download_button(
+        "Report (HTML)",
+        report.encode("utf-8"),
+        file_name="skill_gap_report.html",
+        mime="text/html",
+        icon=":material/description:",
+        width="stretch",
+        help="Open it in a browser; use Print > Save as PDF to get a PDF.",
+    )
+    col_csv.download_button(
+        "Skill table (CSV)",
+        export.to_csv(index=False).encode("utf-8"),
+        file_name="skill_gap_analysis.csv",
+        mime="text/csv",
+        icon=":material/table:",
+        width="stretch",
+        help="The full skill table, to open in Excel or pandas.",
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -302,17 +429,29 @@ def render_results(cv_text: str, posts: list[str], dictionary: SkillDictionary) 
 def main() -> None:
     init_state()
     try:
-        dictionary = get_dictionary()
+        dictionary_files = get_dictionary_files()
+        with st.sidebar:
+            role = st.selectbox(
+                ":material/work: Target role",
+                list(dictionary_files),
+                help="Each role has its own skill dictionary in data/dictionaries/.",
+            )
+        dictionary = get_dictionary(dictionary_files[role])
     except DictionaryError as exc:
         st.error(f"The skill dictionary could not be loaded: {exc}")
         st.stop()
 
-    render_sidebar(dictionary)
+    nice_weight = render_sidebar(dictionary)
 
     st.title("Skill Gap Analyzer")
+    st.badge(f"Alpha · v{__version__}", icon=":material/science:", color="orange")
+    st.caption(
+        "Early version: skill detection is dictionary-based and still being tuned on "
+        f"real job posts. Spotted a wrong or missing skill? [Open an issue]({ISSUES_URL})."
+    )
     st.markdown(
-        "Find out which skills the job market asks for in **Data Analyst, BI Analyst "
-        "and Business Analyst** roles, and which ones are missing from your CV."
+        f"Find out which skills the job market asks for in **{dictionary.description or role}**, "
+        "and which ones are missing from your CV. Change the target role in the sidebar."
     )
     st.info(
         "**Privacy:** nothing is saved. Your CV and the job posts stay in memory only "
@@ -322,6 +461,8 @@ def main() -> None:
 
     buttons = st.columns([3, 2, 7])
     buttons[0].button("Load sample data", icon=":material/science:", on_click=load_sample_data,
+                      args=(Path(dictionary_files[role]).stem,),
+                      help="Fictional job posts and CV for the selected target role.",
                       width="stretch")
     buttons[1].button("Clear all", icon=":material/delete:", on_click=clear_all,
                       width="stretch")
@@ -341,7 +482,7 @@ def main() -> None:
             ":material/arrow_upward: Upload your CV (or paste its text) to compare it "
             "with the market. Meanwhile, here is what the job posts ask for."
         )
-    render_results(cv_text, posts, dictionary)
+    render_results(cv_text, posts, dictionary, nice_weight)
 
 
 main()

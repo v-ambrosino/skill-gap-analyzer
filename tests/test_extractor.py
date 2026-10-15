@@ -108,7 +108,7 @@ def test_empty_text(dictionary):
 
 def test_skill_counted_once_per_post(dictionary):
     [skills] = find_skills_in_posts(["SQL SQL SQL and more SQL"], dictionary)
-    assert skills == {"SQL"}
+    assert set(skills) == {"SQL"}
 
 
 def test_split_job_posts():
@@ -117,3 +117,34 @@ def test_split_job_posts():
     assert split_job_posts("") == []
     # Dashes inside a line are not separators.
     assert split_job_posts("Analyst --- Milan") == ["Analyst --- Milan"]
+
+
+def test_realistic_italian_post(dictionary):
+    from tests.sample_job_posts import REALISTIC_POST_IT
+
+    found = find_skills(REALISTIC_POST_IT, dictionary)
+    assert {"Microsoft Office", "Excel", "Pivot Tables", "SQL", "Power BI",
+            "Attention to Detail", "Autonomy", "Teamwork"} <= found
+
+
+def test_realistic_english_post(dictionary):
+    from tests.sample_job_posts import REALISTIC_POST_EN
+
+    found = find_skills(REALISTIC_POST_EN, dictionary)
+    assert {"Data Cleaning", "Predictive Modeling", "Machine Learning",
+            "Regression Analysis", "Presentation Skills", "Teamwork", "Autonomy",
+            "SSIS / SSRS / SSAS", "User Acceptance Testing", "Web Analytics"} <= found
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Contratto di collaborazione occasionale",  # contract type, not teamwork
+        "I sem. 2024",                               # "semestre", not SEM marketing
+        "Our GTM strategy",                          # go-to-market, not Tag Manager
+        "We clean our offices daily",                # cleaning, but not data
+        "Flexible hours and a training budget",      # benefits, not skills
+    ],
+)
+def test_common_phrases_are_not_skills(dictionary, text):
+    assert find_skills(text, dictionary) == set()

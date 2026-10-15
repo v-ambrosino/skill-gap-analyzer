@@ -1,8 +1,9 @@
 """Load the YAML skill dictionary and compile it into regular expressions.
 
-The dictionary is plain data (see data/skills.yaml) so it can be edited
+Each dictionary is plain data (see data/dictionaries/) so it can be edited
 without touching the code. This module:
-  1. reads and validates the file, with clear error messages;
+  1. reads and validates the file (plus the files it `include`s), with clear
+     error messages;
   2. turns every synonym into a whole-word regular expression;
   3. returns an immutable SkillDictionary used by the extractor.
 """
@@ -17,7 +18,8 @@ import yaml
 
 from skill_gap.normalization import normalize_text
 
-DEFAULT_DICTIONARY_PATH = Path(__file__).resolve().parent.parent / "data" / "skills.yaml"
+DICTIONARIES_DIR = Path(__file__).resolve().parent.parent / "data" / "dictionaries"
+DEFAULT_DICTIONARY_PATH = DICTIONARIES_DIR / "data_analytics.yaml"
 
 # A match must not be glued to a letter, digit, underscore or "&" on either
 # side. This is a stricter version of regex "\b": it stops "sql" matching
@@ -52,6 +54,10 @@ class Skill:
         """True if at least one pattern matches the (normalised) text."""
         return any(pattern.search(normalized_text) for pattern in self.patterns)
 
+    def spans(self, normalized_text: str) -> list[tuple[int, int]]:
+        """Start/end positions of every match, used to look at the context."""
+        return [m.span() for pattern in self.patterns for m in pattern.finditer(normalized_text)]
+
 
 @dataclass(frozen=True)
 class SkillDictionary:
@@ -60,6 +66,7 @@ class SkillDictionary:
     domain: str
     categories: tuple[str, ...]
     skills: tuple[Skill, ...]
+    description: str = ""
 
     def category_of(self, skill_name: str) -> str:
         for skill in self.skills:
@@ -168,12 +175,11 @@ def parse_dictionary(data: dict) -> SkillDictionary:
         domain=str(data.get("domain", "")),
         categories=categories,
         skills=tuple(skills),
+        description=str(data.get("description", "")),
     )
 
 
-def load_dictionary(path: str | Path = DEFAULT_DICTIONARY_PATH) -> SkillDictionary:
-    """Read a YAML dictionary from disk and return a validated SkillDictionary."""
-    path = Path(path)
+def _read_yaml(path: Path) -> dict:
     if not path.exists():
         raise DictionaryError(f"Dictionary file not found: {path}")
     with path.open(encoding="utf-8") as handle:
@@ -181,4 +187,36 @@ def load_dictionary(path: str | Path = DEFAULT_DICTIONARY_PATH) -> SkillDictiona
             data = yaml.safe_load(handle)
         except yaml.YAMLError as exc:
             raise DictionaryError(f"Invalid YAML in {path}: {exc}") from exc
-    return parse_dictionary(data)
+    if not isinstance(data, dict):
+        raise DictionaryError(f"{path} must contain a YAML mapping.")
+    return data
+
+
+def load_dictionary(path: str | Path = DEFAULT_DICTIONARY_PATH) -> SkillDictionary:
+    """Read a YAML dictionary from disk and return a validated SkillDictionary.
+
+    The optional `include` key lists other YAML files (relative to this one)
+    whose `skills` are appended, e.g. soft skills shared by several roles.
+    Included skills are validated like the others: their categories must be
+    declared by the including dictionary.
+    """
+    path = Path(path)
+    data = _read_yaml(path)
+    skills = list(data.get("skills") or [])
+    for included in _as_list(data.get("include"), "include", path.name):
+        skills += _read_yaml(path.parent / included).get("skills") or []
+    return parse_dictionary({**data, "skills": skills})
+
+
+def list_dictionaries(folder: str | Path = DICTIONARIES_DIR) -> dict[str, Path]:
+    """Map each dictionary's `domain` to its file, default dictionary first.
+
+    Every *.yaml file directly inside `folder` is a role dictionary; files in
+    sub-folders (such as shared/) are only meant to be included.
+    """
+    folder = Path(folder)
+    found = {}
+    for path in sorted(folder.glob("*.yaml"), key=lambda p: (p != DEFAULT_DICTIONARY_PATH, p.name)):
+        domain = str(_read_yaml(path).get("domain") or path.stem)
+        found[domain] = path
+    return found
