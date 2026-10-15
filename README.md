@@ -50,7 +50,8 @@ transparent method you can explain and verify.
 | **Coverage score** | Share of requested skills found in your CV, **weighted by demand** (required = 1, nice to have = 0.5, adjustable). Also shown per category. |
 | **Evidence** | For any skill, the exact sentences where it was found in each post and in your CV, to check the result. |
 | **Study priorities** | The 5 missing skills that most posts ask for. |
-| **Export** | Download the full skill table as CSV. |
+| **Export** | Download a self-contained **HTML report** (opens in any browser, prints to PDF) and the full skill table as CSV. The report holds skill names and scores only, never the CV text. |
+| **Sample data** | *Load sample data* fills in fictional job posts and a fictional CV for the selected target role. |
 | **Privacy** | Everything stays in memory for the session only. |
 
 ## How it works
@@ -160,11 +161,12 @@ skill-gap-analyzer/
 │   ├── skills_dictionary.py   # load + validate YAML, compile regexes
 │   ├── extractor.py           # find skills in a text, split job posts
 │   ├── analysis.py            # pandas: skill table, coverage, priorities
-│   └── charts.py              # Plotly charts
+│   ├── charts.py              # Plotly charts
+│   └── report.py              # downloadable HTML report
 ├── data/
 │   ├── dictionaries/          # one skill dictionary per role (edit me!)
 │   │   └── shared/            # skills included by several roles (soft skills)
-│   └── samples/               # fictional job posts and CV for the demo
+│   └── samples/               # fictional job posts and CV, one folder per role
 ├── tests/                     # pytest suite with fictional job posts
 ├── assets/screenshot.png
 ├── .streamlit/config.toml     # upload limit, no usage stats, theme
@@ -187,7 +189,7 @@ streamlit run app.py
 ```
 
 The app opens at http://localhost:8501. Click **Load sample data** to try it
-with fictional posts and a fictional CV.
+with fictional posts and a fictional CV for the selected target role.
 
 ### Run the tests
 
@@ -243,10 +245,9 @@ top of this README.
 - Skill **levels** (e.g. "advanced Excel") and years of experience.
 - Import job posts from a **URL** or a CSV export of a job board.
 - More **dictionaries** (e.g. Data Scientist, Marketing Analyst, Finance).
-- Sample data for each role (the demo data is for Data Analyst roles).
 - More languages (French, Spanish, German).
 - Optional **OCR** for scanned CVs (e.g. Tesseract).
-- A downloadable **PDF report** with the results.
+- A native **PDF** export (today: HTML report, printed to PDF from the browser).
 - Suggested learning resources for each study priority.
 
 ## License

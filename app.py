@@ -31,6 +31,7 @@ from skill_gap.extractor import (
     split_job_posts,
 )
 from skill_gap.pdf_reader import PdfReadError, extract_text_from_pdf
+from skill_gap.report import build_html_report
 from skill_gap.skills_dictionary import (
     DictionaryError,
     SkillDictionary,
@@ -380,18 +381,46 @@ def render_results(
 
     render_evidence(table, posts, posts_mentions, cv_mentions)
 
-    # --- Full table ----------------------------------------------------------
+    # --- Full table and downloads -------------------------------------------
+    export = table.assign(posts_share=(table["posts_share"] * 100).round(1))
     with st.expander("Full skill table"):
-        export = table.assign(posts_share=(table["posts_share"] * 100).round(1))
         st.dataframe(export, hide_index=True, width="stretch")
-        st.download_button(
-            "Download as CSV",
-            export.to_csv(index=False).encode("utf-8"),
-            file_name="skill_gap_analysis.csv",
-            mime="text/csv",
-            icon=":material/download:",
-            help="The file is generated in your browser session and not stored on the server.",
-        )
+
+    st.subheader(":material/download: Download your results")
+    st.caption(
+        "Files are generated in memory for this session only. The report contains skill "
+        "names and scores, never the text of your CV or of the job posts."
+    )
+    report = build_html_report(
+        table,
+        category_breakdown(table, dictionary),
+        study_priorities(table, TOP_PRIORITIES),
+        extras,
+        role=dictionary.domain,
+        n_posts=n_posts,
+        coverage=score,
+        nice_weight=nice_weight,
+        version=__version__,
+    )
+    col_report, col_csv, _ = st.columns([2, 2, 3])
+    col_report.download_button(
+        "Report (HTML)",
+        report.encode("utf-8"),
+        file_name="skill_gap_report.html",
+        mime="text/html",
+        icon=":material/description:",
+        width="stretch",
+        help="Open it in a browser; use Print > Save as PDF to get a PDF.",
+    )
+    col_csv.download_button(
+        "Skill table (CSV)",
+        export.to_csv(index=False).encode("utf-8"),
+        file_name="skill_gap_analysis.csv",
+        mime="text/csv",
+        icon=":material/table:",
+        width="stretch",
+        help="The full skill table, to open in Excel or pandas.",
+    )
 
 
 # ---------------------------------------------------------------------------
