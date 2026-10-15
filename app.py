@@ -66,8 +66,9 @@ def get_dictionary_files() -> dict[str, str]:
     return {role: str(path) for role, path in list_dictionaries().items()}
 
 
-def read_sample(name: str) -> str:
-    return (SAMPLES_DIR / name).read_text(encoding="utf-8")
+def read_sample(role_folder: str, name: str) -> str:
+    """Read a fictional sample file for a role (data/samples/<dictionary name>/)."""
+    return (SAMPLES_DIR / role_folder / name).read_text(encoding="utf-8")
 
 
 # ---------------------------------------------------------------------------
@@ -94,17 +95,17 @@ def remove_post_field(post_id: int) -> None:
         add_post_field()
 
 
-def load_sample_data() -> None:
+def load_sample_data(role_folder: str) -> None:
     """Fill both input modes and the CV text box with the fictional samples."""
     clear_all()
-    sample_posts = read_sample("job_posts.txt")
+    sample_posts = read_sample(role_folder, "job_posts.txt")
     st.session_state.posts_text = sample_posts
     posts = split_job_posts(sample_posts)
     st.session_state.post_ids = list(range(len(posts)))
     st.session_state.next_post_id = len(posts)
     for post_id, post in enumerate(posts):
         st.session_state[f"post_{post_id}"] = post
-    st.session_state.cv_text_manual = read_sample("cv.txt")
+    st.session_state.cv_text_manual = read_sample(role_folder, "cv.txt")
 
 
 def clear_all() -> None:
@@ -431,6 +432,8 @@ def main() -> None:
 
     buttons = st.columns([3, 2, 7])
     buttons[0].button("Load sample data", icon=":material/science:", on_click=load_sample_data,
+                      args=(Path(dictionary_files[role]).stem,),
+                      help="Fictional job posts and CV for the selected target role.",
                       width="stretch")
     buttons[1].button("Clear all", icon=":material/delete:", on_click=clear_all,
                       width="stretch")

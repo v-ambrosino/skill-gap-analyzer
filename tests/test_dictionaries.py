@@ -72,7 +72,28 @@ def test_data_engineer_post(data_engineering):
         ("Progetti su larga scala", "Scala"),     # Italian word, not the language
         ("Frontend in JavaScript", "Java"),       # different language
         ("Let's go live next month", "Go"),       # plain English verb
+        ("Go to market in Q3", "Go"),             # sentence start, not in a list
     ],
 )
 def test_data_engineer_false_positives(data_engineering, text, skill):
     assert skill not in find_skills(text, data_engineering)
+
+
+def test_go_after_a_preposition(data_engineering):
+    assert "Go" in find_skills("Gradita la conoscenza di Go.", data_engineering)
+    assert "Go" in find_skills("Experience with Go is a plus", data_engineering)
+
+
+def test_every_role_has_sample_data():
+    from skill_gap.extractor import find_skills_in_posts, split_job_posts
+    from skill_gap.skills_dictionary import DICTIONARIES_DIR
+
+    samples = DICTIONARIES_DIR.parent / "samples"
+    for path in list_dictionaries().values():
+        folder = samples / path.stem
+        posts = split_job_posts((folder / "job_posts.txt").read_text(encoding="utf-8"))
+        cv = (folder / "cv.txt").read_text(encoding="utf-8")
+        dictionary = load_dictionary(path)
+        assert len(posts) >= 3, path.stem
+        assert all(find_skills_in_posts(posts, dictionary)), path.stem
+        assert find_skills(cv, dictionary), path.stem

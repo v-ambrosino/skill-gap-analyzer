@@ -100,8 +100,9 @@ skills:
     category: Programming & Databases
     # Plain "go" is far too common: only unambiguous names.
     synonyms: [golang, go programming, go language, linguaggio go]
-    # Capitalised "Go" inside a list: "Python, Go and Rust", "(Go)", "Java/Go".
-    patterns: ['(?:(?<=, )|(?<=and )|(?<=or )|(?<=\()|(?<=/))Go(?=[,.;)/]|\s+(?:and|or|e|o)\b|$)']
+    # Capitalised "Go" inside a list or after a preposition: "Python, Go and Rust",
+    # "(Go)", "Java/Go", "experience with Go.", "conoscenza di Go".
+    patterns: ['(?:(?<=, )|(?<=and )|(?<=or )|(?<=\()|(?<=/)|(?<=with )|(?<=in )|(?<=di ))Go(?=[,.;)/]|\s+(?:and|or|e|o|is|are|would|will)\b|$)']
   - name: Bash / Shell
     category: Programming & Databases
     synonyms: [bash, shell scripting, shell scripts, unix shell, linux shell]
@@ -251,10 +252,10 @@ skills:
     synonyms: [infrastructure as code, terraform, cloudformation, pulumi, bicep]
   - name: Testing
     category: Engineering Practices
-    synonyms: [unit testing, unit tests, integration tests, integration testing, pytest, test automation, data testing, test automatici]
+    synonyms: [unit testing, unit tests, integration tests, integration testing, pytest, test automation, automated tests, automated testing, data testing, dbt tests, test automatici]
   - name: Monitoring & Observability
     category: Engineering Practices
-    synonyms: [monitoring, observability, alerting, datadog, prometheus, grafana, monitoraggio delle pipeline]
+    synonyms: [monitoring, monitor pipelines, observability, alerting, datadog, prometheus, grafana, monitoraggio delle pipeline]
   - name: Performance Tuning
     category: Engineering Practices
     synonyms: [performance tuning, query optimization, query optimisation, ottimizzazione delle query, ottimizzazione delle performance, cost optimization, cost optimisation]
