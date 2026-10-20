@@ -327,7 +327,7 @@ skills:
     category: Analytics & Statistics
     synonyms: [root cause analysis, analisi delle cause, analisi della causa radice, analyse des causes, ursachenanalyse, analisis de causa raiz, analise de causa raiz]
   - name: Data Storytelling
-    category: Analytics & Statistics
+    category: Soft Skills
     synonyms: [data storytelling, storytelling, storytelling con i dati, storytelling with data]
   - name: Natural Language Processing
     category: Analytics & Statistics
@@ -344,10 +344,10 @@ skills:
     synonyms: [agile methodology, agile methodologies, metodologia agile, metodologie agile, metodologie agili, metodologia agili, agile framework, agile development, agile environment, agile team, agile teams, approccio agile, agile/scrum, agile practices, methodologie agile, methodes agiles, agile methoden, agile methodik, agiles arbeiten, metodologias agiles, metodologia agil, metodologias ageis]
     case_sensitive_synonyms: [Agile]
   - name: Scrum
-    category: Methodologies
+    category: Soft Skills
     synonyms: [scrum, sprint planning, scrum master]
   - name: Kanban
-    category: Methodologies
+    category: Soft Skills
     synonyms: [kanban]
   - name: Lean / Six Sigma
     category: Methodologies
@@ -356,7 +356,7 @@ skills:
     category: Methodologies
     synonyms: [crisp-dm, crisp dm]
   - name: Requirements Gathering
-    category: Methodologies
+    category: Soft Skills
     synonyms: [requirements gathering, requirement gathering, requirements analysis, requirements elicitation, raccolta dei requisiti, raccolta requisiti, analisi dei requisiti, analisi requisiti, business requirements, requisiti di business, user stories, user story, recueil des besoins, expression des besoins, analyse des besoins, cahier des charges, anforderungsanalyse, anforderungsmanagement, levantamiento de requisitos, toma de requisitos, analisis de requisitos, levantamento de requisitos]
   - name: Process Modeling (BPMN)
     category: Methodologies
@@ -371,7 +371,7 @@ skills:
     category: Methodologies
     synonyms: [project management, gestione progetti, gestione dei progetti, project manager, pmp, prince2, gestion de projet, gestion de projets, projektmanagement, gestion de proyectos, gestão de projetos]
   - name: Documentation
-    category: Methodologies
+    category: Soft Skills
     synonyms: [documentation, technical documentation, technical specifications, specifiche tecniche, documentazione tecnica, documentazione funzionale, functional documentation, functional specifications, specifiche funzionali, analisi funzionale, functional analysis, dokumentation, documentacion, documentação]
   - name: User Acceptance Testing
     category: Methodologies
@@ -418,5 +418,5 @@ skills:
     category: Business & Domain
     synonyms: [gdpr, data privacy, data protection, protezione dei dati, privacy dei dati, trattamento dei dati personali, rgpd, dsgvo, lgpd, protection des donnees, datenschutz, proteccion de datos, proteção de dados]
   - name: Business Acumen
-    category: Business & Domain
+    category: Soft Skills
     synonyms: [business acumen, business understanding, conoscenza del business, visione di business, business sense, commercial awareness]

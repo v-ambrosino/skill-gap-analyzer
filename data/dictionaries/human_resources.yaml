@@ -15,10 +15,10 @@ skills:
   - {name: Training & Development, category: HR Management, synonyms: [training, formazione del personale, learning and development, l&d, sviluppo del personale, talent development, piani formativi, formazione finanziata, fondi interprofessionali]}
   - {name: Talent Management, category: HR Management, synonyms: [talent management, succession planning, career development, piani di carriera, gestione dei talenti, retention]}
   - {name: Compensation & Benefits, category: HR Management, synonyms: [compensation, compensation and benefits, c&b, benefits, welfare aziendale, politiche retributive, total reward, reward]}
-  - {name: Employee Relations, category: HR Management, synonyms: [employee relations, gestione del personale, employee engagement, clima aziendale, people management, hr business partner, hrbp]}
+  - {name: Employee Relations, category: Soft Skills, synonyms: [employee relations, gestione del personale, employee engagement, clima aziendale, people management, hr business partner, hrbp]}
   - {name: Organisational Development, category: HR Management, synonyms: [organizational development, organisational development, sviluppo organizzativo, change management, organizational design, job description, mansionari]}
   - {name: HR Analytics, category: HR Management, synonyms: [hr analytics, people analytics, hr kpi, hr reporting, turnover analysis, headcount reporting]}
-  - {name: Diversity & Inclusion, category: HR Management, synonyms: [diversity and inclusion, diversity & inclusion, d&i, diversity equity inclusion, inclusione]}
+  - {name: Diversity & Inclusion, category: Soft Skills, synonyms: [diversity and inclusion, diversity & inclusion, d&i, diversity equity inclusion, inclusione]}
   - {name: Labour Law, category: Labour & Payroll, synonyms: [labour law, labor law, employment law, diritto del lavoro, normativa giuslavoristica, ccnl, contratti di lavoro, droit du travail, arbeitsrecht, derecho laboral]}
   - {name: Industrial Relations, category: Labour & Payroll, synonyms: [industrial relations, relazioni sindacali, relazioni industriali, trade unions, sindacati]}
   - {name: Payroll, category: Labour & Payroll, synonyms: [payroll, paghe, elaborazione paghe, buste paga, cedolini, amministrazione del personale, personnel administration]}
