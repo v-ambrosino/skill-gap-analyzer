@@ -52,6 +52,7 @@ st.set_page_config(
     page_title="Skill Gap Analyzer",
     page_icon=str(ASSETS_DIR / "logo.svg"),
     layout="wide",
+    initial_sidebar_state="collapsed",
     menu_items={
         "Report a bug": ISSUES_URL,
         "About": "Skill Gap Analyzer: compare your CV with real job posts. No AI, nothing stored.",
@@ -108,6 +109,11 @@ def remove_post_field(post_id: int) -> None:
 
 
 def load_sample_data(role_folder: str) -> None:
+    st.session_state.scroll_to_results = True
+    _load_sample_data(role_folder)
+
+
+def _load_sample_data(role_folder: str) -> None:
     """Fill both input modes and the CV text box with the fictional samples."""
     clear_all()
     sample_posts = read_sample(role_folder, "job_posts.txt")
@@ -137,83 +143,213 @@ def clear_all() -> None:
 # Look and feel
 # ---------------------------------------------------------------------------
 LANGUAGES = "English, Italian, French, German, Spanish and Portuguese"
+REPO_URL = "https://github.com/v-ambrosino/skill-gap-analyzer"
 
-# A little CSS on top of the theme in .streamlit/config.toml: the hero band and
-# the step cards. Colours are fixed on the hero (white on blue), so it reads the
-# same in light and dark mode.
+# The page is styled like a product website on top of the theme in
+# .streamlit/config.toml: Streamlit's own toolbar is hidden, the content is
+# centred, cards get soft shadows, buttons are pills and tabs are a segmented
+# control. Only stable `data-testid` hooks are used.
 _CSS = """
 <style>
-.sga-hero {
-  background: linear-gradient(120deg, #1c5cab 0%, #2a78d6 55%, #5b8def 100%);
-  border-radius: 20px; padding: 36px 40px 30px; color: #ffffff; margin-bottom: 8px;
+[data-testid="stHeader"] { background: transparent; }
+[data-testid="stToolbar"], [data-testid="stDecoration"], #MainMenu, footer { visibility: hidden; height: 0; }
+[data-testid="stAppViewContainer"] {
+  background:
+    radial-gradient(1100px 520px at 0% -10%, #dfeafc 0%, rgba(223,234,252,0) 60%),
+    radial-gradient(900px 480px at 100% -5%, #ece6fd 0%, rgba(236,230,253,0) 55%),
+    #f8fafd;
 }
-.sga-hero h1 { color: #ffffff; font-size: 2.6rem; line-height: 1.15; margin: 0 0 10px; padding: 0; }
-.sga-hero p { color: #e8f0fd; font-size: 1.1rem; margin: 0 0 18px; max-width: 760px; }
-.sga-chip {
-  display: inline-block; background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.35);
-  color: #ffffff; border-radius: 999px; padding: 4px 12px; margin: 0 6px 6px 0; font-size: 0.85rem;
+[data-testid="stMainBlockContainer"] { max-width: 1160px; padding-top: 1rem; padding-bottom: 2rem; }
+[data-testid="stVerticalBlockBorderWrapper"] {
+  background: #ffffff; border: 1px solid #e6eaf1 !important; border-radius: 18px;
+  box-shadow: 0 1px 2px rgba(16,24,40,.04), 0 10px 28px rgba(16,24,40,.06);
 }
-.sga-step-number {
-  display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px;
-  border-radius: 50%; background: #2a78d6; color: #ffffff; font-weight: 700; margin-bottom: 6px;
+[data-testid="stMetric"] {
+  background: #ffffff; border-radius: 16px; border: 1px solid #e6eaf1;
+  box-shadow: 0 1px 2px rgba(16,24,40,.04), 0 8px 20px rgba(16,24,40,.05);
 }
-@media (max-width: 640px) {
-  .sga-hero { padding: 24px 20px 18px; }
-  .sga-hero h1 { font-size: 1.9rem; }
+[data-testid="stMetricValue"] { font-weight: 700; color: #14213d; }
+[data-testid="stBaseButton-primary"] {
+  background: linear-gradient(135deg, #2a78d6 0%, #5b5bd6 100%); border: 0; border-radius: 999px;
+  box-shadow: 0 8px 18px rgba(42,120,214,.28); font-weight: 600; transition: transform .15s, filter .15s;
+}
+[data-testid="stBaseButton-primary"]:hover { filter: brightness(1.07); transform: translateY(-1px); }
+[data-testid="stBaseButton-secondary"] { border-radius: 999px; background: #ffffff; }
+[role="tablist"] { gap: 4px; background: #eaf0f8; padding: 5px; border-radius: 999px; width: fit-content;
+  border: 0 !important; box-shadow: none !important; }
+[data-testid="stTab"] { border-radius: 999px; padding: 6px 18px; height: auto; border: 0 !important; }
+[data-testid="stTab"][aria-selected="true"] { background: #ffffff; box-shadow: 0 1px 4px rgba(16,24,40,.14); }
+[role="tablist"] > :not([role="tab"]) { display: none; }
+
+.sga-nav { display: flex; align-items: center; justify-content: space-between; padding: 6px 2px 18px; }
+.sga-brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.15rem; color: #14213d; }
+.sga-links a { color: #475467; text-decoration: none; margin-left: 22px; font-size: .95rem; font-weight: 500; }
+.sga-links a:hover { color: #2a78d6; }
+.sga-eyebrow { display: inline-block; background: #e3eefc; color: #1c5cab; border-radius: 999px;
+  padding: 4px 12px; font-size: .82rem; font-weight: 600; margin-bottom: 14px; }
+.sga-title { font-size: 3.1rem; line-height: 1.08; font-weight: 800; color: #14213d; margin: 0 0 16px;
+  letter-spacing: -0.02em; }
+.sga-title span { background: linear-gradient(135deg, #2a78d6, #6d4fd8); -webkit-background-clip: text;
+  background-clip: text; color: transparent; }
+.sga-lead { font-size: 1.12rem; color: #475467; line-height: 1.6; margin: 0 0 18px; max-width: 560px; }
+.sga-ghost { display: inline-block; padding: 8px 18px; border-radius: 999px; border: 1px solid #d0d7e2;
+  background: #ffffff; color: #14213d !important; text-decoration: none !important; font-weight: 600; font-size: .95rem; }
+.sga-ghost:hover { border-color: #2a78d6; color: #2a78d6 !important; }
+.sga-checks { color: #475467; font-size: .92rem; margin: 6px 0 0; }
+.sga-checks b { color: #0e9f6e; }
+.sga-preview { background: #ffffff; border: 1px solid #e6eaf1; border-radius: 22px; padding: 22px 24px;
+  box-shadow: 0 24px 60px rgba(28,92,171,.16); }
+.sga-preview-head { display: flex; justify-content: space-between; color: #667085; font-size: .82rem; }
+.sga-preview-row { display: flex; align-items: center; gap: 20px; margin: 12px 0 14px; }
+.sga-preview-kpi { font-size: .85rem; color: #667085; line-height: 1.9; }
+.sga-preview-kpi b { color: #14213d; font-size: 1rem; }
+.sga-chip { display: inline-block; border-radius: 8px; padding: 3px 9px; margin: 0 5px 6px 0; font-size: .8rem; font-weight: 500; }
+.sga-chip.ok { background: #e7f6ec; color: #08663a; }
+.sga-chip.miss { background: #fdecec; color: #a32121; }
+.sga-section-title { text-align: center; font-size: 2rem; font-weight: 800; color: #14213d; margin: 46px 0 6px;
+  letter-spacing: -0.01em; }
+.sga-section-lead { text-align: center; color: #667085; margin: 0 auto 22px !important; max-width: 640px; display: block; }
+.sga-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+.sga-card { background: #ffffff; border: 1px solid #e6eaf1; border-radius: 18px; padding: 20px;
+  box-shadow: 0 1px 2px rgba(16,24,40,.04), 0 10px 28px rgba(16,24,40,.06); }
+.sga-card h4 { margin: 12px 0 6px; font-size: 1.02rem; color: #14213d; padding: 0; }
+.sga-card p { margin: 0; color: #667085; font-size: .92rem; line-height: 1.5; }
+.sga-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center;
+  justify-content: center; background: linear-gradient(135deg, #e3eefc, #ece6fd); color: #2a78d6; font-weight: 800; }
+.sga-footer { margin-top: 48px; padding: 22px 0 6px; border-top: 1px solid #e6eaf1; display: flex;
+  flex-wrap: wrap; justify-content: space-between; gap: 10px; color: #667085; font-size: .88rem; }
+.sga-footer a { color: #475467; text-decoration: none; margin-left: 16px; }
+@media (max-width: 760px) {
+  .sga-title { font-size: 2.2rem; }
+  .sga-links a { margin-left: 12px; font-size: .85rem; }
+  .sga-links a.hide-sm { display: none; }
 }
 </style>
 """
 
+_LOGO_SVG = (
+    '<svg width="30" height="30" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" '
+    'fill="#2a78d6"/><rect x="13" y="34" width="9" height="17" rx="3" fill="#fff"/><rect x="27.5" y="24" '
+    'width="9" height="27" rx="3" fill="#fff"/><rect x="42" y="13" width="9" height="38" rx="3" fill="#fff" '
+    'fill-opacity="0.45"/><path d="M42 13h9v12h-9z" fill="#fff"/></svg>'
+)
 
-def render_hero(dictionary: SkillDictionary, role: str) -> None:
+# A static example card shown in the hero, so visitors see the result at a glance.
+_PREVIEW = """
+<div class="sga-preview">
+  <div class="sga-preview-head"><span>Example result</span><span>12 job posts · Data Analyst</span></div>
+  <div class="sga-preview-row">
+    <svg width="116" height="116" viewBox="0 0 120 120" aria-label="72% coverage">
+      <circle cx="60" cy="60" r="48" fill="none" stroke="#e3eefc" stroke-width="14"/>
+      <circle cx="60" cy="60" r="48" fill="none" stroke="url(#g)" stroke-width="14" stroke-linecap="round"
+        stroke-dasharray="217 302" transform="rotate(-90 60 60)"/>
+      <defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="#2a78d6"/><stop offset="1" stop-color="#6d4fd8"/></linearGradient></defs>
+      <text x="60" y="66" text-anchor="middle" font-size="24" font-weight="800" fill="#14213d">72%</text>
+    </svg>
+    <div class="sga-preview-kpi"><b>18 of 25</b> skills in your CV<br><b>3</b> study priorities<br><b>PDF</b> report ready</div>
+  </div>
+  <div><span class="sga-chip ok">✓ SQL · 11</span><span class="sga-chip ok">✓ Power BI · 8</span><span class="sga-chip ok">✓ Python · 7</span>
+  <span class="sga-chip miss">✕ Tableau · 5</span><span class="sga-chip miss">✕ dbt · 3</span><span class="sga-chip miss">✕ A/B Testing · 2</span></div>
+</div>
+"""
+
+_FEATURES = [
+    ("✓", "Explainable, no AI", "Every skill comes from a dictionary rule, and the app shows the exact sentence that matched."),
+    ("⚖", "Weighted by demand", "Skills that most employers require count more; nice-to-have skills count half."),
+    ("🌍", "6 European languages", f"Job posts in {LANGUAGES}."),
+    ("🔒", "Private by design", "Your CV is processed in memory for this session only and never stored."),
+]
+_STEPS = [
+    ("1", "Upload your CV", "A text-based PDF, or paste its text."),
+    ("2", "Paste job posts", "One or more posts, separated by a line with ---."),
+    ("3", "Get your gap", "Coverage, study priorities, the evidence and a PDF report."),
+]
+
+
+def render_header() -> None:
     st.markdown(_CSS, unsafe_allow_html=True)
     st.markdown(
         f"""
-<div class="sga-hero">
-  <h1>Find your skill gap in 30 seconds</h1>
-  <p>Upload your CV, paste a few job posts for <b>{dictionary.description or role}</b>
-  and see which skills the market asks for, which ones you are missing and what to study first.</p>
-  <span class="sga-chip">No AI, explainable results</span>
-  <span class="sga-chip">Private: nothing is stored</span>
-  <span class="sga-chip">6 European languages</span>
-  <span class="sga-chip">PDF report</span>
+<div class="sga-nav">
+  <div class="sga-brand">{_LOGO_SVG}<span>Skill Gap Analyzer</span></div>
+  <div class="sga-links"><a href="#how-it-works" class="hide-sm">How it works</a>
+  <a href="#analyze">Try it</a><a href="{REPO_URL}" target="_blank">GitHub</a></div>
 </div>
 """,
         unsafe_allow_html=True,
     )
 
 
-def render_steps() -> None:
-    steps = [
-        ("1", "Upload your CV", "A text-based PDF, or paste its text."),
-        ("2", "Paste job posts", f"One or more posts, in {LANGUAGES}."),
-        ("3", "Get your gap", "Coverage, priorities, evidence and a PDF report."),
-    ]
-    for column, (number, title, text) in zip(st.columns(3), steps):
-        with column.container(border=True):
-            st.markdown(f'<span class="sga-step-number">{number}</span>', unsafe_allow_html=True)
-            st.markdown(f"**{title}**  \n{text}")
+def render_hero(dictionary: SkillDictionary, role: str, sample_folder: str) -> None:
+    text_col, preview_col = st.columns([1.15, 1], gap="large", vertical_alignment="center")
+    with text_col:
+        st.markdown(
+            f"""
+<div class="sga-eyebrow">Free · open source · v{__version__}</div>
+<h1 class="sga-title">Find your <span>skill gap</span> in 30 seconds</h1>
+<p class="sga-lead">Compare your CV with real job posts for <b>{dictionary.description or role}</b>:
+see which skills employers ask for, which ones you are missing and what to study first.</p>
+""",
+            unsafe_allow_html=True,
+        )
+        buttons = st.columns([1.3, 1, 0.4], vertical_alignment="center")
+        buttons[0].button(
+            "Try with sample data", icon=":material/play_arrow:", on_click=load_sample_data,
+            args=(sample_folder,), type="primary", width="stretch",
+            help="Fictional job posts and CV for the selected target role.",
+        )
+        buttons[1].markdown('<a class="sga-ghost" href="#how-it-works">How it works →</a>',
+                            unsafe_allow_html=True)
+        st.markdown(
+            '<p class="sga-checks"><b>✓</b> No sign-up &nbsp; <b>✓</b> Nothing stored &nbsp; <b>✓</b> PDF report</p>',
+            unsafe_allow_html=True,
+        )
+    with preview_col:
+        st.markdown(_PREVIEW, unsafe_allow_html=True)
+
+
+def render_features() -> None:
+    cards = "".join(
+        f'<div class="sga-card"><div class="sga-icon">{icon}</div><h4>{title}</h4><p>{text}</p></div>'
+        for icon, title, text in _FEATURES
+    )
+    steps = "".join(
+        f'<div class="sga-card"><div class="sga-icon">{number}</div><h4>{title}</h4><p>{text}</p></div>'
+        for number, title, text in _STEPS
+    )
+    st.markdown(
+        f"""
+<div class="sga-section-title">Why Skill Gap Analyzer</div>
+<p class="sga-section-lead">A transparent way to read the job market, built for Data Analyst, BI and Data Engineer roles.</p>
+<div class="sga-grid">{cards}</div>
+<div class="sga-section-title" id="how-it-works">How it works</div>
+<p class="sga-section-lead">Three steps, about a minute, no account needed.</p>
+<div class="sga-grid">{steps}</div>
+<div class="sga-section-title" id="analyze">Analyze your CV</div>
+<p class="sga-section-lead">Choose the role, add your CV and the job posts, then click Analyze.</p>
+""",
+        unsafe_allow_html=True,
+    )
+
+
+def render_footer() -> None:
+    st.markdown(
+        f"""
+<div class="sga-footer">
+  <span>Skill Gap Analyzer v{__version__} · No AI, nothing stored · Made with Python and Streamlit</span>
+  <span><a href="{REPO_URL}" target="_blank">Source code</a><a href="{ISSUES_URL}" target="_blank">Report an issue</a></span>
+</div>
+""",
+        unsafe_allow_html=True,
+    )
 
 
 # ---------------------------------------------------------------------------
 # UI building blocks
 # ---------------------------------------------------------------------------
-def render_sidebar(dictionary: SkillDictionary) -> float:
-    """Draw the sidebar and return the chosen weight of nice-to-have skills."""
+def render_sidebar(dictionary: SkillDictionary) -> None:
+    """The sidebar (collapsed at start): privacy and how the score works."""
     with st.sidebar:
-        st.header(":material/tune: Settings")
-        nice_weight = st.select_slider(
-            "Weight of nice-to-have skills",
-            options=[0.0, 0.25, 0.5, 0.75, 1.0],
-            value=DEFAULT_NICE_WEIGHT,
-            format_func=lambda w: f"{w:g}",
-            help=(
-                "A post that requires a skill counts 1. A post where the skill is only "
-                "nice to have (\"is a plus\", \"gradita\", \"von Vorteil\", \"se valorará\") "
-                "counts this much. 0 ignores nice-to-have skills, 1 treats them as requirements."
-            ),
-        )
-        st.divider()
         st.header(":material/lock: Privacy")
         st.markdown(
             "**No data is stored.** Your CV and the job posts are processed "
@@ -240,7 +376,6 @@ def render_sidebar(dictionary: SkillDictionary) -> float:
             f"v{__version__} · [Source code](https://github.com/v-ambrosino/skill-gap-analyzer) · "
             f"[Report an issue]({ISSUES_URL})"
         )
-    return nice_weight
 
 
 def render_cv_input() -> str:
@@ -554,6 +689,23 @@ def render_results(
 # ---------------------------------------------------------------------------
 def start_analysis() -> None:
     st.session_state.analyzed = True
+    st.session_state.scroll_to_results = True
+
+
+def scroll_to_results() -> None:
+    """Bring the results into view after Analyze or Try with sample data."""
+    if not st.session_state.pop("scroll_to_results", False):
+        return
+    script = (
+        "<script>const el = window.parent.document.getElementById('your-results');"
+        "if (el) { el.scrollIntoView({behavior: 'smooth', block: 'start'}); }</script>"
+    )
+    if hasattr(st, "iframe"):  # Streamlit 1.5x+
+        st.iframe(script, height=1)
+    else:  # older Streamlit versions
+        import streamlit.components.v1 as components
+
+        components.html(script, height=0)
 
 
 def main() -> None:
@@ -562,29 +714,39 @@ def main() -> None:
     st.logo(str(ASSETS_DIR / "logo_wide.svg"), icon_image=str(ASSETS_DIR / "logo.svg"))
     try:
         dictionary_files = get_dictionary_files()
-        with st.sidebar:
-            role = st.selectbox(
-                ":material/work: Target role",
-                list(dictionary_files),
-                help="Each role has its own skill dictionary in data/dictionaries/.",
-            )
+        role = st.session_state.get("role") or next(iter(dictionary_files))
         dictionary = get_dictionary(dictionary_files[role])
     except DictionaryError as exc:
         st.error(f"The skill dictionary could not be loaded: {exc}")
         st.stop()
+    sample_folder = Path(dictionary_files[role]).stem
 
-    nice_weight = render_sidebar(dictionary)
-    render_hero(dictionary, role)
+    render_sidebar(dictionary)
+    render_header()
+    render_hero(dictionary, role, sample_folder)
+    render_features()
 
-    buttons = st.columns([3, 2, 6])
-    buttons[0].button(
-        "Try with sample data", icon=":material/science:", on_click=load_sample_data,
-        args=(Path(dictionary_files[role]).stem,), type="primary", width="stretch",
-        help="Fictional job posts and CV for the selected target role.",
-    )
-    buttons[1].button("Clear all", icon=":material/delete:", on_click=clear_all, width="stretch")
-
-    render_steps()
+    # --- The analyser ---------------------------------------------------------
+    with st.container(border=True):
+        col_role, col_weight, col_clear = st.columns([2, 2, 1], vertical_alignment="bottom")
+        col_role.selectbox(
+            ":material/work: Target role", list(dictionary_files), key="role",
+            help="Each role has its own skill dictionary in data/dictionaries/.",
+        )
+        with col_weight.popover("Advanced settings", icon=":material/tune:", width="stretch"):
+            nice_weight = st.select_slider(
+                "Weight of nice-to-have skills",
+                options=[0.0, 0.25, 0.5, 0.75, 1.0],
+                value=DEFAULT_NICE_WEIGHT,
+                format_func=lambda w: f"{w:g}",
+                key="nice_weight",
+                help=(
+                    "A post that requires a skill counts 1. A post where the skill is only "
+                    "nice to have (\"is a plus\", \"gradita\", \"von Vorteil\", \"se valorará\") "
+                    "counts this much. 0 ignores nice-to-have skills, 1 treats them as requirements."
+                ),
+            )
+        col_clear.button("Clear all", icon=":material/delete:", on_click=clear_all, width="stretch")
 
     col_cv, col_posts = st.columns([2, 3], gap="large")
     with col_cv.container(border=True):
@@ -598,20 +760,22 @@ def main() -> None:
         help=None if posts else "Add at least one job post first.",
     )
 
-    if not st.session_state.analyzed or not posts:
+    if st.session_state.analyzed and posts:
+        st.markdown('<div id="your-results"></div>', unsafe_allow_html=True)
+        if not cv_text.strip():
+            st.info(
+                "No CV yet: upload it (or paste its text) to compare it with the market. "
+                "Meanwhile, here is what the job posts ask for.",
+                icon=":material/info:",
+            )
+        render_results(cv_text, posts, dictionary, nice_weight)
+        scroll_to_results()
+    else:
         st.caption(
             ":material/lock: Your CV and the job posts stay in memory for this session only "
             "and are discarded when you close the page."
         )
-        return
-    st.divider()
-    if not cv_text.strip():
-        st.info(
-            "No CV yet: upload it (or paste its text) to compare it with the market. "
-            "Meanwhile, here is what the job posts ask for.",
-            icon=":material/info:",
-        )
-    render_results(cv_text, posts, dictionary, nice_weight)
+    render_footer()
 
 
 main()
