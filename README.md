@@ -1,7 +1,7 @@
 # Skill Gap Analyzer
 
-![Status: alpha](https://img.shields.io/badge/status-alpha-orange)
-![Version](https://img.shields.io/badge/version-0.1.0--alpha-blue)
+![Status: beta](https://img.shields.io/badge/status-beta-blue)
+![Version](https://img.shields.io/badge/version-0.2.0--beta-blue)
 [![Tests](https://github.com/v-ambrosino/skill-gap-analyzer/actions/workflows/tests.yml/badge.svg)](https://github.com/v-ambrosino/skill-gap-analyzer/actions/workflows/tests.yml)
 
 **Compare your CV with real job posts and see which data skills the market wants — and which ones you are missing.**
@@ -16,10 +16,11 @@ Upload your CV (PDF), paste a few job posts (English or Italian) and get:
 
 No paid APIs, no external AI, **no data stored**.
 
-> **Alpha:** the app works end to end, but the skill dictionary is still being
-> tuned on real CVs and job posts. Wrong or missing skills are expected: please
+> **Beta:** tested on real Italian and English job posts and a real CV. Skill
+> detection is dictionary-based, so some wording can still be missed: please
 > [open an issue](https://github.com/v-ambrosino/skill-gap-analyzer/issues) with
 > the exact sentence, so it can become a new synonym and a regression test.
+> See the [changelog](CHANGELOG.md) for what changed in each version.
 
 ![Skill Gap Analyzer screenshot](assets/screenshot.png)
 

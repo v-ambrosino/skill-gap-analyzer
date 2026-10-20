@@ -7,4 +7,4 @@ Modules:
     analysis           Turn extracted skills into demand, coverage and priorities.
 """
 
-__version__ = "0.1.0-alpha"
+__version__ = "0.2.0-beta"
