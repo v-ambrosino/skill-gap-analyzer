@@ -177,127 +177,302 @@ LANGUAGES = "English, Italian, French, German, Spanish and Portuguese"
 
 # The page is styled like a product website on top of the theme in
 # .streamlit/config.toml: Streamlit's own toolbar is hidden, the content is
-# centred, cards get soft shadows, buttons are pills and tabs are a segmented
-# control. Only stable `data-testid` hooks are used.
+# centred, cards get soft layered shadows, buttons are pills and tabs are a
+# segmented control. Only stable `data-testid` / `st-key-*` hooks are used.
 _CSS = """
 <style>
-[data-testid="stHeader"] { background: transparent; }
+:root {
+  --ink: #0b1430; --ink-2: #344054; --muted: #667085; --line: #e7eaf3; --surface: #ffffff;
+  --brand: #2f6fe4; --brand-2: #7048e8; --brand-soft: #eef3ff; --ok: #0e9f6e; --bad: #d92d20;
+  --grad: linear-gradient(135deg, #2f6fe4 0%, #5a55e6 55%, #7048e8 100%);
+  --shadow-sm: 0 1px 2px rgba(16,24,40,.05);
+  --shadow: 0 1px 2px rgba(16,24,40,.04), 0 4px 10px rgba(16,24,40,.04), 0 18px 40px rgba(16,24,40,.06);
+  --shadow-lg: 0 2px 6px rgba(16,24,40,.05), 0 30px 70px rgba(47,111,228,.18);
+}
+
+/* --- Page --------------------------------------------------------------------------- */
+[data-testid="stHeader"] { background: transparent; height: 0; }
 [data-testid="stToolbar"], [data-testid="stDecoration"], #MainMenu, footer { visibility: hidden; height: 0; }
 [data-testid="stAppViewContainer"] {
   background:
-    radial-gradient(1100px 520px at 0% -10%, #dfeafc 0%, rgba(223,234,252,0) 60%),
-    radial-gradient(900px 480px at 100% -5%, #ece6fd 0%, rgba(236,230,253,0) 55%),
+    radial-gradient(900px 520px at 8% -8%, rgba(47,111,228,.16), transparent 62%),
+    radial-gradient(800px 480px at 95% 0%, rgba(112,72,232,.14), transparent 60%),
+    linear-gradient(to bottom, rgba(248,250,253,0) 0, #f8fafd 820px),
+    radial-gradient(circle at 1px 1px, rgba(11,20,48,.07) 1px, transparent 0) 0 0 / 24px 24px,
     #f8fafd;
 }
-[data-testid="stMainBlockContainer"] { max-width: 1160px; padding-top: 1rem; padding-bottom: 2rem; }
+[data-testid="stMainBlockContainer"] { max-width: 1180px; padding-top: .6rem; padding-bottom: 2rem; }
+h1, h2, h3, h4 { color: var(--ink); letter-spacing: -.015em; }
+::selection { background: rgba(47,111,228,.18); }
+
+/* --- Streamlit widgets -------------------------------------------------------------- */
 [data-testid="stVerticalBlockBorderWrapper"] {
-  background: #ffffff; border: 1px solid #e6eaf1 !important; border-radius: 18px;
-  box-shadow: 0 1px 2px rgba(16,24,40,.04), 0 10px 28px rgba(16,24,40,.06);
+  background: var(--surface); border: 1px solid var(--line) !important; border-radius: 20px; box-shadow: var(--shadow);
 }
 [data-testid="stMetric"] {
-  background: #ffffff; border-radius: 16px; border: 1px solid #e6eaf1;
-  box-shadow: 0 1px 2px rgba(16,24,40,.04), 0 8px 20px rgba(16,24,40,.05);
+  position: relative; overflow: hidden; background: var(--surface); border-radius: 18px;
+  border: 1px solid var(--line); box-shadow: var(--shadow); padding: 18px 20px 16px !important;
 }
-[data-testid="stMetricValue"] { font-weight: 700; color: #14213d; }
+[data-testid="stMetric"]::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 3px; background: var(--grad); }
+[data-testid="stMetricLabel"] p { text-transform: uppercase; letter-spacing: .06em; font-size: .74rem !important;
+  font-weight: 600; color: var(--muted); }
+[data-testid="stMetricValue"] { font-weight: 800; color: var(--ink); font-size: 2.1rem; letter-spacing: -.02em; }
 [data-testid="stBaseButton-primary"] {
-  background: linear-gradient(135deg, #2a78d6 0%, #5b5bd6 100%); border: 0; border-radius: 999px;
-  box-shadow: 0 8px 18px rgba(42,120,214,.28); font-weight: 600; transition: transform .15s, filter .15s;
+  background: var(--grad); border: 0; border-radius: 999px; font-weight: 600; letter-spacing: .005em;
+  box-shadow: 0 1px 0 rgba(255,255,255,.25) inset, 0 8px 20px rgba(47,111,228,.30);
+  transition: transform .15s ease, box-shadow .15s ease, filter .15s ease;
 }
-.st-key-analyze button { min-height: 3.4rem; font-size: 1.15rem; font-weight: 700;
-  box-shadow: 0 8px 22px rgba(42, 120, 214, .35); }
-.st-key-analyze button:disabled { box-shadow: none; }
-[data-testid="stBaseButton-primary"]:hover { filter: brightness(1.07); transform: translateY(-1px); }
-[data-testid="stBaseButton-secondary"] { border-radius: 999px; background: #ffffff; }
-[role="tablist"] { gap: 4px; background: #eaf0f8; padding: 5px; border-radius: 999px; width: fit-content;
-  border: 0 !important; box-shadow: none !important; }
-[data-testid="stTab"] { border-radius: 999px; padding: 6px 18px; height: auto; border: 0 !important; }
-[data-testid="stTab"][aria-selected="true"] { background: #ffffff; box-shadow: 0 1px 4px rgba(16,24,40,.14); }
+[data-testid="stBaseButton-primary"]:hover { filter: brightness(1.06); transform: translateY(-1px);
+  box-shadow: 0 1px 0 rgba(255,255,255,.25) inset, 0 12px 26px rgba(47,111,228,.36); }
+[data-testid="stBaseButton-primary"]:disabled { background: #c9d3e6; box-shadow: none; transform: none; filter: none; }
+[data-testid="stBaseButton-secondary"] { border-radius: 999px; background: var(--surface); border-color: var(--line);
+  box-shadow: var(--shadow-sm); font-weight: 500; }
+[data-testid="stBaseButton-secondary"]:hover { border-color: var(--brand); color: var(--brand); }
+.st-key-analyze button { min-height: 3.6rem; font-size: 1.12rem; font-weight: 700; }
+.st-key-analyze button p { font-size: 1.12rem; }
+[data-testid="stFileUploaderDropzone"] {
+  background: linear-gradient(180deg, #f7f9ff, #f1f5ff); border: 1.5px dashed #b8c8ef; border-radius: 16px;
+}
+[data-testid="stFileUploaderDropzone"]:hover { border-color: var(--brand); }
+[data-baseweb="textarea"], [data-baseweb="select"] > div, [data-baseweb="input"] {
+  border-radius: 12px !important; background: #fbfcff !important; border-color: var(--line) !important;
+}
+[data-baseweb="textarea"]:focus-within, [data-baseweb="select"] > div:focus-within, [data-baseweb="input"]:focus-within {
+  border-color: var(--brand) !important; box-shadow: 0 0 0 4px rgba(47,111,228,.12);
+}
+[data-testid="stExpander"] details { border-radius: 16px; border: 1px solid var(--line); background: var(--surface);
+  box-shadow: var(--shadow-sm); }
+[data-testid="stExpander"] summary:hover { color: var(--brand); }
+[data-testid="stAlert"] { border-radius: 14px; }
+[role="tablist"] { gap: 4px; background: #eaeff8; padding: 5px; border-radius: 999px; width: fit-content;
+  border: 0 !important; box-shadow: inset 0 1px 2px rgba(16,24,40,.06) !important; }
+[data-testid="stTab"] { border-radius: 999px; padding: 7px 18px; height: auto; border: 0 !important; }
+[data-testid="stTab"] p { font-weight: 600; }
+[data-testid="stTab"][aria-selected="true"] { background: var(--surface); box-shadow: 0 1px 2px rgba(16,24,40,.08), 0 4px 10px rgba(16,24,40,.06); }
+[data-testid="stTab"][aria-selected="true"] p { color: var(--brand); }
 [role="tablist"] > :not([role="tab"]) { display: none; }
+[data-testid="stDataFrame"] { border-radius: 14px; overflow: hidden; }
 
-.sga-nav { display: flex; align-items: center; justify-content: space-between; padding: 6px 2px 18px; }
-.sga-brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.15rem; color: #14213d; }
-.sga-links { color: #475467; font-size: .95rem; }
-.sga-links a { color: #475467; text-decoration: none; margin-left: 4px; font-size: .95rem; font-weight: 500; }
-.sga-links a:hover { color: #2a78d6; }
-.sga-eyebrow { display: inline-block; background: #e3eefc; color: #1c5cab; border-radius: 999px;
-  padding: 4px 12px; font-size: .82rem; font-weight: 600; margin-bottom: 14px; }
-.sga-title { font-size: 3.1rem; line-height: 1.08; font-weight: 800; color: #14213d; margin: 0 0 16px;
-  letter-spacing: -0.02em; }
-.sga-title span { background: linear-gradient(135deg, #2a78d6, #6d4fd8); -webkit-background-clip: text;
-  background-clip: text; color: transparent; }
-.sga-lead { font-size: 1.12rem; color: #475467; line-height: 1.6; margin: 0 0 18px; max-width: 560px; }
-.sga-ghost { display: inline-block; padding: 8px 18px; border-radius: 999px; border: 1px solid #d0d7e2;
-  background: #ffffff; color: #14213d !important; text-decoration: none !important; font-weight: 600; font-size: .95rem; }
-.sga-ghost:hover { border-color: #2a78d6; color: #2a78d6 !important; }
-.sga-checks { color: #475467; font-size: .92rem; margin: 6px 0 0; }
-.sga-checks b { color: #0e9f6e; }
-.sga-checks span { white-space: nowrap; }
-.sga-preview { background: #ffffff; border: 1px solid #e6eaf1; border-radius: 22px; padding: 22px 24px;
-  box-shadow: 0 24px 60px rgba(28,92,171,.16); }
-.sga-preview-head { display: flex; justify-content: space-between; color: #667085; font-size: .82rem; }
-.sga-preview-row { display: flex; align-items: center; gap: 20px; margin: 12px 0 14px; }
-.sga-preview-kpi { font-size: .85rem; color: #667085; line-height: 1.9; }
-.sga-preview-kpi b { color: #14213d; font-size: 1rem; }
-.sga-chip { display: inline-block; border-radius: 8px; padding: 3px 9px; margin: 0 5px 6px 0; font-size: .8rem; font-weight: 500; }
-.sga-chip.ok { background: #e7f6ec; color: #08663a; }
-.sga-chip.miss { background: #fdecec; color: #a32121; }
-.sga-section-title { text-align: center; font-size: 2rem; font-weight: 800; color: #14213d; margin: 46px 0 6px;
-  letter-spacing: -0.01em; }
-.sga-section-lead { text-align: center; color: #667085; margin: 0 auto 22px !important; max-width: 640px; display: block; }
-.sga-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
-.sga-card { background: #ffffff; border: 1px solid #e6eaf1; border-radius: 18px; padding: 20px;
-  box-shadow: 0 1px 2px rgba(16,24,40,.04), 0 10px 28px rgba(16,24,40,.06); }
-.sga-card h4 { margin: 12px 0 6px; font-size: 1.02rem; color: #14213d; padding: 0; }
-.sga-card p { margin: 0; color: #667085; font-size: .92rem; line-height: 1.5; }
-.sga-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center;
-  justify-content: center; background: linear-gradient(135deg, #e3eefc, #ece6fd); color: #2a78d6; font-weight: 800; }
-.sga-footer { margin-top: 48px; padding: 22px 0 6px; border-top: 1px solid #e6eaf1; display: flex;
-  flex-wrap: wrap; justify-content: space-between; gap: 10px; color: #667085; font-size: .88rem; }
-.sga-footer a { color: #475467; text-decoration: none; margin-left: 16px; }
-@media (max-width: 760px) {
-  .sga-title { font-size: 2.2rem; }
-  .sga-links, .sga-links a { font-size: .85rem; }
-  .sga-links a.hide-sm { display: none; }
+/* --- Navigation --------------------------------------------------------------------- */
+.sga-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 4px 0 26px;
+  padding: 10px 12px 10px 14px; background: rgba(255,255,255,.72); border: 1px solid rgba(231,234,243,.9);
+  border-radius: 18px; backdrop-filter: saturate(1.6) blur(12px); -webkit-backdrop-filter: saturate(1.6) blur(12px);
+  box-shadow: var(--shadow-sm); }
+.sga-brand { display: flex; align-items: center; gap: 10px; font-weight: 750; font-size: 1.08rem; color: var(--ink); }
+.sga-version { font-size: .7rem; font-weight: 600; color: var(--brand); background: var(--brand-soft);
+  border-radius: 999px; padding: 2px 8px; }
+.sga-links { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: .9rem; }
+.sga-links .by { margin-right: 6px; }
+.sga-links .by b { color: var(--ink); font-weight: 600; }
+.sga-links a { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-2) !important;
+  text-decoration: none !important; font-weight: 500; padding: 6px 12px; border-radius: 999px;
+  border: 1px solid var(--line); background: #fff; transition: border-color .15s, color .15s; }
+.sga-links a:hover { border-color: var(--brand); color: var(--brand) !important; }
+.sga-links svg { width: 15px; height: 15px; }
+
+/* --- Hero --------------------------------------------------------------------------- */
+.sga-eyebrow { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,.8);
+  border: 1px solid var(--line); color: var(--ink-2); border-radius: 999px; padding: 5px 12px 5px 6px;
+  font-size: .82rem; font-weight: 500; margin-bottom: 18px; box-shadow: var(--shadow-sm); }
+.sga-eyebrow .tag { background: var(--grad); color: #fff; border-radius: 999px; padding: 2px 9px; font-weight: 600; font-size: .74rem; }
+.sga-title { font-size: 3.7rem; line-height: 1.02; font-weight: 800; color: var(--ink); margin: 0 0 18px;
+  letter-spacing: -0.035em; }
+.sga-title .hl { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.sga-lead { font-size: 1.16rem; color: var(--ink-2); line-height: 1.62; margin: 0 0 24px; max-width: 540px; }
+.sga-ghost { display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: 100%;
+  padding: 8px 18px; border-radius: 999px; border: 1px solid var(--line); background: #fff; box-shadow: var(--shadow-sm);
+  color: var(--ink) !important; text-decoration: none !important; font-weight: 600; font-size: .95rem; }
+.sga-ghost:hover { border-color: var(--brand); color: var(--brand) !important; }
+.sga-checks { display: flex; flex-wrap: wrap; gap: 8px 18px; color: var(--ink-2); font-size: .9rem; margin: 14px 0 0; }
+.sga-checks span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.sga-checks svg { width: 16px; height: 16px; color: var(--ok); }
+
+.sga-stage { position: relative; padding: 26px 10px 34px 30px; }
+.sga-stage::before { content: ""; position: absolute; inset: 6% 4% 4% 12%; background: var(--grad); filter: blur(60px);
+  opacity: .22; border-radius: 40px; z-index: 0; }
+.sga-preview { position: relative; z-index: 1; background: rgba(255,255,255,.92); border: 1px solid rgba(231,234,243,.95);
+  border-radius: 24px; padding: 22px 24px 46px; box-shadow: var(--shadow-lg); }
+.sga-preview-head { display: flex; justify-content: space-between; align-items: center; color: var(--muted); font-size: .8rem; }
+.sga-dots { display: inline-flex; gap: 5px; } .sga-dots i { width: 9px; height: 9px; border-radius: 50%; background: #e4e7ef; display: block; }
+.sga-preview-row { display: flex; align-items: center; gap: 22px; margin: 14px 0 16px; }
+.sga-preview-kpi { display: grid; gap: 8px; font-size: .84rem; color: var(--muted); }
+.sga-preview-kpi b { color: var(--ink); font-size: 1.02rem; margin-right: 4px; }
+.sga-bars { display: grid; gap: 7px; margin: 4px 0 14px; }
+.sga-bar { display: grid; grid-template-columns: 78px 1fr 22px; align-items: center; gap: 10px; font-size: .78rem; color: var(--ink-2); }
+.sga-bar div { height: 8px; border-radius: 99px; background: #eef1f7; overflow: hidden; }
+.sga-bar div span { display: block; height: 100%; border-radius: 99px; background: var(--grad); }
+.sga-bar.miss div span { background: linear-gradient(90deg, #f79009, #f04438); }
+.sga-bar em { font-style: normal; color: var(--muted); text-align: right; }
+.sga-chip { display: inline-block; border-radius: 8px; padding: 3px 9px; margin: 0 5px 6px 0; font-size: .78rem; font-weight: 600; }
+.sga-chip.ok { background: #e7f6ee; color: #067647; }
+.sga-chip.miss { background: #fef0ef; color: #b42318; }
+.sga-float { position: absolute; z-index: 2; background: #fff; border: 1px solid var(--line); border-radius: 16px;
+  box-shadow: 0 12px 32px rgba(16,24,40,.14); padding: 10px 14px; font-size: .8rem; color: var(--ink-2);
+  display: flex; align-items: center; gap: 10px; animation: sga-float 6s ease-in-out infinite; }
+.sga-float b { display: block; color: var(--ink); font-size: .9rem; }
+.sga-float .ico { width: 30px; height: 30px; border-radius: 10px; display: grid; place-items: center; color: #fff; background: var(--grad); }
+.sga-float .ico svg { width: 16px; height: 16px; }
+.sga-float.one { top: -4px; left: -26px; }
+.sga-float.two { bottom: 6px; right: -6px; animation-delay: -3s; }
+.sga-float.two .ico { background: linear-gradient(135deg, #12b76a, #0e9f6e); }
+@keyframes sga-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+@media (prefers-reduced-motion: reduce) { .sga-float { animation: none; } }
+
+/* --- Stats band and sections ------------------------------------------------------------ */
+.sga-stats { display: grid; grid-template-columns: repeat(4, 1fr); margin: 34px 0 8px; background: var(--surface);
+  border: 1px solid var(--line); border-radius: 22px; box-shadow: var(--shadow); overflow: hidden; }
+.sga-stat { padding: 20px 22px; border-left: 1px solid var(--line); }
+.sga-stat:first-child { border-left: 0; }
+.sga-stat b { display: block; font-size: 1.9rem; font-weight: 800; letter-spacing: -.03em; background: var(--grad);
+  -webkit-background-clip: text; background-clip: text; color: transparent; line-height: 1.15; }
+.sga-stat span { color: var(--muted); font-size: .88rem; }
+.sga-kicker { text-align: center; text-transform: uppercase; letter-spacing: .14em; font-size: .74rem; font-weight: 700;
+  color: var(--brand); margin: 70px 0 8px; }
+.sga-section-title { text-align: center; font-size: 2.3rem; font-weight: 800; color: var(--ink); margin: 0 0 10px;
+  letter-spacing: -0.03em; line-height: 1.15; }
+.sga-section-lead { text-align: center; color: var(--muted); font-size: 1.04rem; margin: 0 auto 28px !important;
+  max-width: 640px; display: block; line-height: 1.6; }
+.sga-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 18px; }
+.sga-card { position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: 20px;
+  padding: 22px 22px 24px; box-shadow: var(--shadow); transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+.sga-card:hover { transform: translateY(-3px); border-color: #d3dcf3; box-shadow: var(--shadow-lg); }
+.sga-card h4 { margin: 16px 0 6px; font-size: 1.04rem; font-weight: 700; color: var(--ink); padding: 0; }
+.sga-card p { margin: 0; color: var(--muted); font-size: .92rem; line-height: 1.55; }
+.sga-icon { width: 44px; height: 44px; border-radius: 13px; display: grid; place-items: center; color: #fff;
+  background: var(--grad); box-shadow: 0 8px 18px rgba(47,111,228,.28); }
+.sga-icon svg { width: 21px; height: 21px; }
+.sga-icon.c2 { background: linear-gradient(135deg, #f79009, #ef6820); box-shadow: 0 8px 18px rgba(239,104,32,.26); }
+.sga-icon.c3 { background: linear-gradient(135deg, #12b76a, #079455); box-shadow: 0 8px 18px rgba(18,183,106,.26); }
+.sga-icon.c4 { background: linear-gradient(135deg, #ee46bc, #9e44e6); box-shadow: 0 8px 18px rgba(158,68,230,.26); }
+.sga-steps { counter-reset: step; }
+.sga-step-num { position: absolute; top: 18px; right: 20px; font-size: 2.6rem; font-weight: 800; line-height: 1;
+  color: transparent; -webkit-text-stroke: 1.5px #dbe3f5; letter-spacing: -.04em; }
+
+/* --- Analyzer ------------------------------------------------------------------------------ */
+.sga-card-title { display: flex; align-items: center; gap: 10px; font-size: 1.12rem; font-weight: 700; color: var(--ink);
+  margin: 2px 0 10px; }
+.sga-card-title .n { width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; font-size: .82rem;
+  color: #fff; background: var(--grad); }
+.sga-results-head { display: flex; align-items: center; gap: 12px; margin: 34px 0 2px; }
+.sga-results-head h2 { margin: 0; padding: 0; font-size: 2rem; font-weight: 800; letter-spacing: -.03em; }
+.sga-results-head .pill { font-size: .78rem; font-weight: 600; color: #067647; background: #e7f6ee; border-radius: 999px; padding: 4px 10px; }
+.sga-results-sub { color: var(--muted); font-size: .95rem; margin: 0; }
+
+.sga-assure { list-style: none; padding: 0; margin: 14px 0 4px; display: grid; gap: 12px; }
+.sga-assure li { display: flex; gap: 12px; align-items: flex-start; margin: 0; padding: 12px 14px; border-radius: 14px;
+  background: #f7f9fd; border: 1px solid #edf0f7; }
+.sga-assure svg { flex: 0 0 18px; width: 18px; height: 18px; color: var(--brand); margin-top: 2px; }
+.sga-assure b { display: block; color: var(--ink); font-size: .9rem; font-weight: 600; }
+.sga-assure span { color: var(--muted); font-size: .84rem; line-height: 1.45; }
+
+/* --- Footer --------------------------------------------------------------------------------- */
+.sga-footer { margin-top: 64px; padding: 26px 26px 22px; background: var(--surface); border: 1px solid var(--line);
+  border-radius: 22px; box-shadow: var(--shadow-sm); display: flex; flex-wrap: wrap; justify-content: space-between;
+  align-items: center; gap: 14px; color: var(--muted); font-size: .88rem; }
+.sga-footer .brand { display: flex; align-items: center; gap: 10px; color: var(--ink); font-weight: 700; }
+.sga-footer .brand small { display: block; color: var(--muted); font-weight: 400; font-size: .82rem; }
+.sga-footer a { color: var(--ink-2) !important; text-decoration: none !important; margin-left: 16px; font-weight: 500; }
+.sga-footer a:hover { color: var(--brand) !important; }
+
+@media (max-width: 900px) {
+  .sga-title { font-size: 2.6rem; }
+  .sga-stats { grid-template-columns: repeat(2, 1fr); }
+  .sga-stat:nth-child(3) { border-left: 0; }
+  .sga-stat:nth-child(n+3) { border-top: 1px solid var(--line); }
+  .sga-links .by { display: none; }
+  .sga-stage { padding: 26px 0 34px; }
+}
+@media (max-width: 640px) {
+  .sga-title { font-size: 2.35rem; }
+  .sga-nav { padding: 8px 8px 8px 10px; }
+  .sga-version { display: none; }
+  .sga-links .lbl { display: none; }
+  .sga-links a { padding: 7px 9px; }
+  .sga-float.one { left: 0; top: -2px; }
+  .sga-float.two { right: 0; }
+  .sga-section-title { font-size: 1.8rem; }
+  .sga-stat b { font-size: 1.6rem; }
 }
 </style>
 """
 
 _LOGO_SVG = (
-    '<svg width="30" height="30" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" '
-    'fill="#2a78d6"/><rect x="13" y="34" width="9" height="17" rx="3" fill="#fff"/><rect x="27.5" y="24" '
-    'width="9" height="27" rx="3" fill="#fff"/><rect x="42" y="13" width="9" height="38" rx="3" fill="#fff" '
-    'fill-opacity="0.45"/><path d="M42 13h9v12h-9z" fill="#fff"/></svg>'
+    '<svg width="32" height="32" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="0" '
+    'x2="1" y2="1"><stop offset="0" stop-color="#2f6fe4"/><stop offset="1" stop-color="#7048e8"/></linearGradient></defs>'
+    '<rect width="64" height="64" rx="16" fill="url(#lg)"/><rect x="13" y="34" width="9" height="17" rx="3" fill="#fff"/>'
+    '<rect x="27.5" y="24" width="9" height="27" rx="3" fill="#fff"/><rect x="42" y="13" width="9" height="38" rx="3" '
+    'fill="#fff" fill-opacity="0.45"/><path d="M42 13h9v12h-9z" fill="#fff"/></svg>'
 )
 
+
+def _icon(paths: str) -> str:
+    """A stroke icon in the style of Lucide (24x24 grid, currentColor)."""
+    return (
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" '
+        f'stroke-linejoin="round" aria-hidden="true">{paths}</svg>'
+    )
+
+
+_ICONS = {
+    "search": _icon('<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>'),
+    "chart": _icon('<path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>'),
+    "globe": _icon('<circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/>'),
+    "lock": _icon('<rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>'),
+    "file": _icon('<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/>'
+                  '<path d="M16 13H8"/><path d="M16 17H8"/>'),
+    "briefcase": _icon('<path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/><rect width="20" height="14" x="2" y="6" rx="2"/>'),
+    "target": _icon('<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>'),
+    "check": _icon('<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>'),
+    "book": _icon('<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>'),
+    "github": _icon('<path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5'
+                    '-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.4 5.4 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85'
+                    ' 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/>'),
+    "linkedin": _icon('<path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2"'
+                      ' y="9"/><circle cx="4" cy="4" r="2"/>'),
+    "doc": _icon('<path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><path d="M12 18v-6"/>'
+                 '<path d="m9 15 3 3 3-3"/>'),
+}
+
 # A static example card shown in the hero, so visitors see the result at a glance.
-_PREVIEW = """
-<div class="sga-preview">
-  <div class="sga-preview-head"><span>Example result</span><span>12 job posts · Data Analyst</span></div>
-  <div class="sga-preview-row">
-    <svg width="116" height="116" viewBox="0 0 120 120" aria-label="72% coverage">
-      <circle cx="60" cy="60" r="48" fill="none" stroke="#e3eefc" stroke-width="14"/>
-      <circle cx="60" cy="60" r="48" fill="none" stroke="url(#g)" stroke-width="14" stroke-linecap="round"
-        stroke-dasharray="217 302" transform="rotate(-90 60 60)"/>
-      <defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="#2a78d6"/><stop offset="1" stop-color="#6d4fd8"/></linearGradient></defs>
-      <text x="60" y="66" text-anchor="middle" font-size="24" font-weight="800" fill="#14213d">72%</text>
-    </svg>
-    <div class="sga-preview-kpi"><b>18 of 25</b> skills in your CV<br><b>3</b> study priorities<br><b>PDF</b> report ready</div>
+_PREVIEW = f"""
+<div class="sga-stage">
+  <div class="sga-float one"><span class="ico">{_ICONS["book"]}</span><span>Top study priority<b>Tableau · 5 of 12 posts</b></span></div>
+  <div class="sga-preview">
+    <div class="sga-preview-head"><span class="sga-dots"><i></i><i></i><i></i></span><span>Example · 12 job posts · Data Analyst</span></div>
+    <div class="sga-preview-row">
+      <svg width="118" height="118" viewBox="0 0 120 120" aria-label="72% coverage">
+        <defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#2f6fe4"/><stop offset="1" stop-color="#7048e8"/></linearGradient></defs>
+        <circle cx="60" cy="60" r="48" fill="none" stroke="#eef1f7" stroke-width="13"/>
+        <circle cx="60" cy="60" r="48" fill="none" stroke="url(#g)" stroke-width="13" stroke-linecap="round"
+          stroke-dasharray="217 302" transform="rotate(-90 60 60)"/>
+        <text x="60" y="64" text-anchor="middle" font-size="25" font-weight="800" fill="#0b1430" font-family="Inter, sans-serif">72%</text>
+        <text x="60" y="81" text-anchor="middle" font-size="9.5" fill="#667085" font-family="Inter, sans-serif">coverage</text>
+      </svg>
+      <div class="sga-preview-kpi"><span><b>18 / 25</b> skills in your CV</span><span><b>3</b> study priorities</span>
+        <span><b>PDF</b> report ready</span></div>
+    </div>
+    <div class="sga-bars">
+      <div class="sga-bar"><span>SQL</span><div><span style="width:92%"></span></div><em>11</em></div>
+      <div class="sga-bar"><span>Power BI</span><div><span style="width:67%"></span></div><em>8</em></div>
+      <div class="sga-bar miss"><span>Tableau</span><div><span style="width:42%"></span></div><em>5</em></div>
+    </div>
+    <div><span class="sga-chip ok">✓ Python · 7</span><span class="sga-chip ok">✓ Excel · 6</span>
+      <span class="sga-chip miss">✕ dbt · 3</span></div>
   </div>
-  <div><span class="sga-chip ok">✓ SQL · 11</span><span class="sga-chip ok">✓ Power BI · 8</span><span class="sga-chip ok">✓ Python · 7</span>
-  <span class="sga-chip miss">✕ Tableau · 5</span><span class="sga-chip miss">✕ dbt · 3</span><span class="sga-chip miss">✕ A/B Testing · 2</span></div>
+  <div class="sga-float two"><span class="ico">{_ICONS["check"]}</span><span>Report<b>skill_gap_report.pdf</b></span></div>
 </div>
 """
 
 _FEATURES = [
-    ("✓", "Explainable, no AI", "Skills are recognised with a list of {skills} skills and their synonyms, and the app shows the exact sentence that matched."),
-    ("⚖", "Weighted by demand", "Skills that most employers require count more; nice-to-have skills count half."),
-    ("🌍", "6 European languages", f"Job posts in {LANGUAGES}."),
-    ("🔒", "Private by design", "Your CV is processed in memory for this session only and never stored."),
+    ("search", "", "Explainable, no AI", "Skills are recognised with a list of {skills} skills and their synonyms, and the app shows the exact sentence that matched."),
+    ("chart", "c2", "Weighted by demand", "Skills that most employers require count more; nice-to-have skills count half."),
+    ("globe", "c3", "6 European languages", f"Job posts in {LANGUAGES}, also mixed together."),
+    ("lock", "c4", "Private by design", "Your CV is processed in memory for this session only and never stored."),
 ]
 _STEPS = [
-    ("1", "Upload your CV", "A text-based PDF, or paste its text."),
-    ("2", "Paste job posts", "One or more posts, separated by a line with ---."),
-    ("3", "Get your gap", "Coverage, study priorities, the evidence and a PDF report."),
+    ("file", "Upload your CV", "A text-based PDF, or paste its text."),
+    ("briefcase", "Paste job posts", "One or more posts, separated by a line with ---."),
+    ("target", "Get your gap", "Coverage, study priorities with free resources, the evidence and a PDF report."),
 ]
 
 
@@ -306,10 +481,10 @@ def render_header() -> None:
     st.markdown(
         f"""
 <div class="sga-nav">
-  <div class="sga-brand">{_LOGO_SVG}<span>Skill Gap Analyzer</span></div>
-  <div class="sga-links">Built by {AUTHOR} ·
-  <a href="{AUTHOR_URL}" target="_blank">GitHub</a> ·
-  <a href="{LINKEDIN_URL}" target="_blank">LinkedIn</a></div>
+  <div class="sga-brand">{_LOGO_SVG}<span>Skill Gap Analyzer</span><span class="sga-version">v{__version__}</span></div>
+  <div class="sga-links"><span class="by">Built by <b>{AUTHOR}</b></span>
+  <a href="{AUTHOR_URL}" target="_blank" aria-label="GitHub">{_ICONS["github"]}<span class="lbl">GitHub</span></a>
+  <a href="{LINKEDIN_URL}" target="_blank" aria-label="LinkedIn">{_ICONS["linkedin"]}<span class="lbl">LinkedIn</span></a></div>
 </div>
 """,
         unsafe_allow_html=True,
@@ -317,17 +492,18 @@ def render_header() -> None:
 
 
 def render_hero(dictionary: SkillDictionary, role: str, sample_folder: str) -> None:
-    text_col, preview_col = st.columns([1.15, 1], gap="large", vertical_alignment="center")
+    text_col, preview_col = st.columns([1.1, 1], gap="large", vertical_alignment="center")
     with text_col:
         st.markdown(
-            f"""
-<h1 class="sga-title">Find your <span>skill gap</span> in 30 seconds</h1>
+            """
+<div class="sga-eyebrow"><span class="tag">New</span>Works for any job title, in 6 languages</div>
+<h1 class="sga-title">Find your <span class="hl">skill gap</span><br>in 30 seconds</h1>
 <p class="sga-lead">Compare your CV with real job posts:
 see which skills employers ask for, which ones you are missing and what to study first.</p>
 """,
             unsafe_allow_html=True,
         )
-        buttons = st.columns([1.3, 1, 0.4], vertical_alignment="center")
+        buttons = st.columns([1.25, 1, 0.35], vertical_alignment="center")
         buttons[0].button(
             "Try with sample data", icon=":material/play_arrow:", on_click=load_sample_data,
             args=(sample_folder,), type="primary", width="stretch",
@@ -337,41 +513,65 @@ see which skills employers ask for, which ones you are missing and what to study
         buttons[1].markdown('<a class="sga-ghost" href="#how-it-works">How it works →</a>',
                             unsafe_allow_html=True)
         st.markdown(
-            '<p class="sga-checks">' + " &nbsp; ".join(
-                f"<span><b>✓</b> {item}</span>"
-                for item in ("No sign-up", "Nothing stored", "PDF report", f"Knows {known_skills_label()} skills")
+            '<p class="sga-checks">' + "".join(
+                f'<span>{_ICONS["check"]}{item}</span>'
+                for item in ("No sign-up", "Nothing stored", "PDF report", "Free")
             ) + "</p>",
             unsafe_allow_html=True,
         )
     with preview_col:
         st.markdown(_PREVIEW, unsafe_allow_html=True)
 
+    stats = [
+        (known_skills_label(), "skills and synonyms recognised"),
+        ("6", "European languages, also mixed"),
+        (str(len(get_dictionary_files())), "ready-made roles, plus any job title"),
+        ("0", "bytes of your CV stored"),
+    ]
+    st.markdown(
+        '<div class="sga-stats">'
+        + "".join(f'<div class="sga-stat"><b>{value}</b><span>{label}</span></div>' for value, label in stats)
+        + "</div>",
+        unsafe_allow_html=True,
+    )
+
+
+def _section(kicker: str, title: str, lead: str, anchor: str = "") -> str:
+    anchor_attr = f' id="{anchor}"' if anchor else ""
+    return (
+        f'<div class="sga-kicker"{anchor_attr}>{kicker}</div><div class="sga-section-title">{title}</div>'
+        f'<p class="sga-section-lead">{lead}</p>'
+    )
+
 
 def render_features() -> None:
     cards = "".join(
-        f'<div class="sga-card"><div class="sga-icon">{icon}</div><h4>{title}</h4><p>{text}</p></div>'
-        for icon, title, text in ((i, t, x.format(skills=known_skills_label())) for i, t, x in _FEATURES)
+        f'<div class="sga-card"><div class="sga-icon {tone}">{_ICONS[icon]}</div><h4>{title}</h4><p>{text}</p></div>'
+        for icon, tone, title, text in (
+            (i, c, t, x.format(skills=known_skills_label())) for i, c, t, x in _FEATURES
+        )
     )
     steps = "".join(
-        f'<div class="sga-card"><div class="sga-icon">{number}</div><h4>{title}</h4><p>{text}</p></div>'
-        for number, title, text in _STEPS
+        f'<div class="sga-card"><span class="sga-step-num">0{number}</span><div class="sga-icon">{_ICONS[icon]}</div>'
+        f"<h4>{title}</h4><p>{text}</p></div>"
+        for number, (icon, title, text) in enumerate(_STEPS, start=1)
     )
     st.markdown(
-        f"""
-<div class="sga-section-title">Why Skill Gap Analyzer</div>
-<p class="sga-section-lead">A transparent way to read the job market, for any role: ready-made skill lists for the most common jobs, automatic detection for all the others.</p>
-<div class="sga-grid">{cards}</div>
-<div class="sga-section-title" id="how-it-works">How it works</div>
-<p class="sga-section-lead">Three steps, about a minute, no account needed.</p>
-<div class="sga-grid">{steps}</div>
-<div class="sga-section-title" id="limitations">Good to know</div>
-""",
+        _section("Why Skill Gap Analyzer", "Read the job market like a recruiter",
+                 "A transparent way to read the job market, for any role: ready-made skill lists for the "
+                 "most common jobs, automatic detection for all the others.")
+        + f'<div class="sga-grid">{cards}</div>'
+        + _section("How it works", "Three steps, about a minute",
+                   "No account, no upload to third parties: everything happens in this session.", "how-it-works")
+        + f'<div class="sga-grid sga-steps">{steps}</div>'
+        + _section("Good to know", "Honest about its limits",
+                   "What the app can and cannot do, so you know how far to trust the result.", "limitations"),
         unsafe_allow_html=True,
     )
     render_limitations()
     st.markdown(
-        '<div class="sga-section-title" id="analyze">Analyze your CV</div>'
-        '<p class="sga-section-lead">Choose the role, add your CV and the job posts, then click Analyze.</p>',
+        _section("Analyze", "Analyze your CV",
+                 "Choose the role, add your CV and the job posts, then click Analyze.", "analyze"),
         unsafe_allow_html=True,
     )
 
@@ -402,8 +602,9 @@ def render_footer() -> None:
     st.markdown(
         f"""
 <div class="sga-footer">
-  <span>Skill Gap Analyzer v{__version__} · No AI, nothing stored · Made with Python and Streamlit</span>
-  <span>© 2026 {AUTHOR}. All rights reserved.</span>
+  <div class="brand">{_LOGO_SVG}<span>Skill Gap Analyzer<small>v{__version__} · No AI, nothing stored · © 2026 {AUTHOR}. All rights reserved.</small></span></div>
+  <div><a href="#how-it-works">How it works</a><a href="#limitations">Limitations</a>
+  <a href="{AUTHOR_URL}" target="_blank">GitHub</a><a href="{LINKEDIN_URL}" target="_blank">LinkedIn</a></div>
 </div>
 """,
         unsafe_allow_html=True,
@@ -445,7 +646,7 @@ def render_sidebar(dictionary: SkillDictionary) -> None:
 
 def render_cv_input() -> str:
     """Return the CV text, from the uploaded PDF or from the text box."""
-    st.markdown("#### :material/description: Your CV")
+    st.markdown('<div class="sga-card-title"><span class="n">1</span>Your CV</div>', unsafe_allow_html=True)
     uploaded = st.file_uploader(
         "Upload your CV (PDF)",
         type=["pdf"],
@@ -454,6 +655,16 @@ def render_cv_input() -> str:
     )
     with st.expander("No PDF at hand? Paste your CV text instead", expanded=False):
         st.text_area("CV text", key="cv_text_manual", height=200, label_visibility="collapsed")
+    st.markdown(
+        '<ul class="sga-assure">'
+        + "".join(f"<li>{_ICONS[icon]}<span><b>{title}</b>{text}</span></li>" for icon, title, text in (
+            ("lock", "Read in memory only", "The PDF is never saved, logged or sent to third parties."),
+            ("file", "Text-based PDF, up to 5 MB", "Exported from Word, Google Docs or Canva works best."),
+            ("check", "Gone when you close the page", "Nothing is kept between sessions."),
+        ))
+        + "</ul>",
+        unsafe_allow_html=True,
+    )
 
     if uploaded is not None:
         try:
@@ -493,7 +704,7 @@ def render_custom_skills(posts: list[str], dictionary: SkillDictionary, role: st
 
 def render_posts_input() -> list[str]:
     """Return the list of job posts, from either input mode."""
-    st.markdown("#### :material/work: Job posts")
+    st.markdown('<div class="sga-card-title"><span class="n">2</span>Job posts</div>', unsafe_allow_html=True)
     st.caption(f":material/translate: Posts can be in {LANGUAGES}, and you can mix languages freely.")
     mode = st.radio("Input mode", [MODE_SINGLE_BOX, MODE_FIELDS], horizontal=True, key="input_mode")
 
@@ -630,13 +841,12 @@ def render_priorities(technical) -> None:
         learn=[resources_for(skill, resources)[0][1] for skill in priorities["skill"]],
     )
     st.dataframe(
-        priorities[["rank", "skill", "category", "required_count", "nice_count", "level_count", "share", "learn"]],
+        priorities[["rank", "skill", "required_count", "nice_count", "level_count", "share", "learn"]],
         hide_index=True,
         width="stretch",
         column_config={
             "rank": st.column_config.NumberColumn("#", width=40),
             "skill": "Skill",
-            "category": "Category",
             "required_count": st.column_config.NumberColumn(
                 "Required", width=70, help="Posts that require the skill"
             ),
@@ -708,7 +918,11 @@ def render_results(
 
     # --- Header row and headline numbers ------------------------------------
     title_col, download_col = st.columns([3, 1], vertical_alignment="bottom")
-    title_col.header("Your results")
+    title_col.markdown(
+        f'<div class="sga-results-head"><h2>Your results</h2><span class="pill">Analysis ready</span></div>'
+        f'<p class="sga-results-sub">{n_posts} job post{"s" * (n_posts != 1)} · {dictionary.domain}</p>',
+        unsafe_allow_html=True,
+    )
     download_col.download_button(
         "Download PDF report",
         report,
@@ -724,9 +938,11 @@ def render_results(
                   help="Requested technical skills found in your CV, weighted by how many posts ask "
                        "for each one (nice-to-have skills count less, see the sidebar). "
                        "Soft skills are listed separately and not scored.")
-    kpi[1].metric("Job posts analysed", n_posts, border=True)
-    kpi[2].metric("Technical skills in your CV", f"{n_covered} of {len(technical)}", border=True)
-    kpi[3].metric("Missing technical skills", len(technical) - n_covered, border=True)
+    kpi[1].metric("Job posts", n_posts, border=True)
+    kpi[2].metric("Skills you have", f"{n_covered} of {len(technical)}", border=True,
+                  help="Requested technical skills found in your CV.")
+    kpi[3].metric("Skills to learn", len(technical) - n_covered, border=True,
+                  help="Requested technical skills missing from your CV.")
 
     overview, skills_tab, evidence_tab, report_tab = st.tabs([
         ":material/dashboard: Overview",

@@ -3,6 +3,20 @@
 All notable changes to Skill Gap Analyzer. Versions follow
 [semantic versioning](https://semver.org/); pre-release tags mark the stage.
 
+## 1.6.0 — 2026-10-20
+
+### Changed
+- **Redesigned interface:** frosted navigation bar with GitHub / LinkedIn buttons, a
+  bigger hero with a gradient headline, a layered product preview with floating cards,
+  a stats band (skills, languages, roles, data stored), section kickers, feature cards
+  with gradient icons, numbered steps, privacy notes in the CV card, numbered input
+  cards, a results header, KPI cards with an accent bar and a new footer.
+- Consistent design tokens (colours, radii, layered shadows), styled inputs, upload
+  area, expanders and tabs; responsive layout for phones; subtle motion that respects
+  "reduce motion".
+- Charts use Inter and the brand blue; the legend no longer overlaps the bars.
+- Study priorities table without the category column, so the "Learn it" links fit.
+
 ## 1.5.0 — 2026-10-20
 
 ### Added
