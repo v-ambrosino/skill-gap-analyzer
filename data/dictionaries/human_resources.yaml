@@ -1,0 +1,32 @@
+# Skill dictionary: Human Resources. Same format as data_analytics.yaml.
+version: 1
+domain: Human Resources / Recruiter
+description: HR Specialist, Recruiter, HR Business Partner and People roles
+include: [shared/soft_skills.yaml, shared/office.yaml]
+categories: [Recruiting, HR Management, Labour & Payroll, Tools, Office & General, Soft Skills]
+skills:
+  - {name: Recruiting, category: Recruiting, synonyms: [recruiting, recruitment, recruiter, selezione del personale, ricerca e selezione, reclutamento, talent acquisition, recrutement, personalbeschaffung, reclutamiento, recrutamento]}
+  - {name: Candidate Screening, category: Recruiting, synonyms: [screening, cv screening, screening dei cv, screening curricula, preselezione, sourcing, candidate sourcing]}
+  - {name: Interviewing, category: Recruiting, synonyms: [interviewing, interviews, colloqui, colloqui di selezione, competency-based interview, structured interviews, assessment center, entretiens]}
+  - {name: Employer Branding, category: Recruiting, synonyms: [employer branding, employer brand, candidate experience, job posting, annunci di lavoro, career day, job fair]}
+  - {name: Onboarding, category: Recruiting, synonyms: [onboarding, inserimento dei nuovi assunti, induction, offboarding]}
+  - {name: Headhunting, category: Recruiting, synonyms: [headhunting, headhunter, executive search, direct search]}
+  - {name: Performance Management, category: HR Management, synonyms: [performance management, valutazione delle performance, performance review, performance appraisal, gestione delle prestazioni, okr]}
+  - {name: Training & Development, category: HR Management, synonyms: [training, formazione del personale, learning and development, l&d, sviluppo del personale, talent development, piani formativi, formazione finanziata, fondi interprofessionali]}
+  - {name: Talent Management, category: HR Management, synonyms: [talent management, succession planning, career development, piani di carriera, gestione dei talenti, retention]}
+  - {name: Compensation & Benefits, category: HR Management, synonyms: [compensation, compensation and benefits, c&b, benefits, welfare aziendale, politiche retributive, total reward, reward]}
+  - {name: Employee Relations, category: HR Management, synonyms: [employee relations, gestione del personale, employee engagement, clima aziendale, people management, hr business partner, hrbp]}
+  - {name: Organisational Development, category: HR Management, synonyms: [organizational development, organisational development, sviluppo organizzativo, change management, organizational design, job description, mansionari]}
+  - {name: HR Analytics, category: HR Management, synonyms: [hr analytics, people analytics, hr kpi, hr reporting, turnover analysis, headcount reporting]}
+  - {name: Diversity & Inclusion, category: HR Management, synonyms: [diversity and inclusion, diversity & inclusion, d&i, diversity equity inclusion, inclusione]}
+  - {name: Labour Law, category: Labour & Payroll, synonyms: [labour law, labor law, employment law, diritto del lavoro, normativa giuslavoristica, ccnl, contratti di lavoro, droit du travail, arbeitsrecht, derecho laboral]}
+  - {name: Industrial Relations, category: Labour & Payroll, synonyms: [industrial relations, relazioni sindacali, relazioni industriali, trade unions, sindacati]}
+  - {name: Payroll, category: Labour & Payroll, synonyms: [payroll, paghe, elaborazione paghe, buste paga, cedolini, amministrazione del personale, personnel administration]}
+  - {name: Health & Safety, category: Labour & Payroll, synonyms: [health and safety, sicurezza sul lavoro, d.lgs. 81/08, dlgs 81/08, hse, workplace safety]}
+  - {name: GDPR, category: Labour & Payroll, synonyms: [gdpr, privacy, data protection, protezione dei dati]}
+  - {name: HRIS, category: Tools, synonyms: [hris, hrms, hr information system, hr software, gestionale hr]}
+  - {name: ATS, category: Tools, synonyms: [ats, applicant tracking system, greenhouse, smartrecruiters, teamtailor]}
+  - {name: Workday, category: Tools, synonyms: [workday]}
+  - {name: SAP SuccessFactors, category: Tools, synonyms: [successfactors, sap successfactors, sap hr, sap hcm]}
+  - {name: LinkedIn Recruiter, category: Tools, synonyms: [linkedin recruiter, linkedin talent solutions, boolean search]}
+  - {name: Zucchetti HR, category: Tools, synonyms: [zucchetti, zucchetti hr, teamsystem hr, inaz, cezanne hr, factorial, personio, bamboohr]}

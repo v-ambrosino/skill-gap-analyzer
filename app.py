@@ -9,6 +9,7 @@ lives in the `skill_gap` package:
 
 from __future__ import annotations
 
+from dataclasses import replace
 from pathlib import Path
 
 import streamlit as st
@@ -32,6 +33,7 @@ from skill_gap.extractor import (
     post_title,
     split_job_posts,
 )
+from skill_gap.keywords import add_custom_skills, merge_dictionaries, suggest_terms
 from skill_gap.pdf_reader import PdfReadError, extract_text_from_pdf
 from skill_gap.report import build_pdf_report
 from skill_gap.resources import load_cv_phrases, load_resources, resources_for
@@ -91,6 +93,12 @@ def get_dictionary_files() -> dict[str, str]:
     return {role: str(path) for role, path in list_dictionaries().items()}
 
 
+@st.cache_resource
+def get_all_skills() -> SkillDictionary:
+    """Every skill of every dictionary: the starting point for a role typed by the user."""
+    return merge_dictionaries([get_dictionary(p) for p in get_dictionary_files().values()], "")
+
+
 def read_sample(role_folder: str, name: str) -> str:
     """Read a fictional sample file for a role (data/samples/<dictionary name>/)."""
     return (SAMPLES_DIR / role_folder / name).read_text(encoding="utf-8")
@@ -122,6 +130,10 @@ def remove_post_field(post_id: int) -> None:
 
 def load_sample_data(role_folder: str) -> None:
     st.session_state.scroll_to_results = True
+    if not role_folder or not (SAMPLES_DIR / role_folder).is_dir():
+        # Samples exist for some roles only: show the default role's ones.
+        st.session_state.role = next(iter(get_dictionary_files()))
+        role_folder = Path(get_dictionary_files()[st.session_state.role]).stem
     _load_sample_data(role_folder)
 
 
@@ -307,7 +319,8 @@ see which skills employers ask for, which ones you are missing and what to study
         buttons[0].button(
             "Try with sample data", icon=":material/play_arrow:", on_click=load_sample_data,
             args=(sample_folder,), type="primary", width="stretch",
-            help="Fictional job posts and CV for the selected target role.",
+            help="Fictional job posts and CV for the selected target role "
+            "(or for Data Analyst, when the role has no sample).",
         )
         buttons[1].markdown('<a class="sga-ghost" href="#how-it-works">How it works →</a>',
                             unsafe_allow_html=True)
@@ -331,7 +344,7 @@ def render_features() -> None:
     st.markdown(
         f"""
 <div class="sga-section-title">Why Skill Gap Analyzer</div>
-<p class="sga-section-lead">A transparent way to read the job market, built for Data Analyst, BI and Data Engineer roles.</p>
+<p class="sga-section-lead">A transparent way to read the job market, for any role: ready-made skill lists for the most common jobs, automatic detection for all the others.</p>
 <div class="sga-grid">{cards}</div>
 <div class="sga-section-title" id="how-it-works">How it works</div>
 <p class="sga-section-lead">Three steps, about a minute, no account needed.</p>
@@ -415,6 +428,24 @@ def render_cv_input() -> str:
             st.caption(f":material/check_circle: Read {len(text.split()):,} words from **{uploaded.name}**.")
         return text
     return st.session_state.cv_text_manual
+
+
+def render_custom_skills(posts: list[str], dictionary: SkillDictionary, role: str) -> SkillDictionary:
+    """For a typed role: let the user review the skills detected in the posts."""
+    suggestions = suggest_terms(posts, dictionary, role)
+    with st.container(border=True):
+        st.markdown(f"#### :material/auto_awesome: Skills detected for *{role}*")
+        st.caption(
+            "There is no ready-made skill list for this role, so the app also looks for the terms "
+            "that keep coming back in your job posts (on top of hundreds of known skills). "
+            "Remove the wrong ones and type any skill that is missing, then click Analyze."
+        )
+        terms = st.multiselect(
+            "Skills from the job posts", suggestions, default=suggestions,
+            key=f"custom_terms_{hash(tuple(suggestions))}", accept_new_options=True,
+            placeholder="Type a skill and press Enter", label_visibility="collapsed",
+        )
+    return add_custom_skills(dictionary, terms)
 
 
 def render_posts_input() -> list[str]:
@@ -744,11 +775,14 @@ def main() -> None:
     try:
         dictionary_files = get_dictionary_files()
         role = st.session_state.get("role") or next(iter(dictionary_files))
-        dictionary = get_dictionary(dictionary_files[role])
+        custom_role = role not in dictionary_files
+        dictionary = get_all_skills() if custom_role else get_dictionary(dictionary_files[role])
     except DictionaryError as exc:
         st.error(f"The skill dictionary could not be loaded: {exc}")
         st.stop()
-    sample_folder = Path(dictionary_files[role]).stem
+    if custom_role:
+        dictionary = replace(dictionary, domain=role, description=role)
+    sample_folder = "" if custom_role else Path(dictionary_files[role]).stem
 
     render_sidebar(dictionary)
     render_header()
@@ -760,7 +794,9 @@ def main() -> None:
         col_role, col_weight, col_clear = st.columns([2, 2, 1], vertical_alignment="bottom")
         col_role.selectbox(
             ":material/work: Target role", list(dictionary_files), key="role",
-            help="Each role has its own skill dictionary in data/dictionaries/.",
+            accept_new_options=True,
+            help="Pick a ready-made role or type any job title (e.g. Nurse, Chef, Architect): "
+            "for a typed role the skills are detected in the job posts themselves.",
         )
         with col_weight.popover("Advanced settings", icon=":material/tune:", width="stretch"):
             nice_weight = st.select_slider(
@@ -782,6 +818,9 @@ def main() -> None:
         cv_text = render_cv_input()
     with col_posts.container(border=True):
         posts = render_posts_input()
+
+    if custom_role and posts:
+        dictionary = render_custom_skills(posts, dictionary, role)
 
     st.button(
         "Analyze my skill gap", icon=":material/insights:", type="primary",

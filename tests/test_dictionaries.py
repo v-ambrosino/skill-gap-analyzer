@@ -21,7 +21,7 @@ def test_every_dictionary_is_valid():
     assert list(dictionaries)[0] == "Data Analyst / BI / Business Analyst"
     for path in dictionaries.values():
         dictionary = load_dictionary(path)
-        assert 80 <= len(dictionary.skills) <= 120, path.name
+        assert 40 <= len(dictionary.skills) <= 120, path.name
         assert dictionary.description
 
 
@@ -84,13 +84,17 @@ def test_go_after_a_preposition(data_engineering):
     assert "Go" in find_skills("Experience with Go is a plus", data_engineering)
 
 
-def test_every_role_has_sample_data():
+def test_sample_data_matches_its_role():
     from skill_gap.extractor import find_skills_in_posts, split_job_posts
     from skill_gap.skills_dictionary import DICTIONARIES_DIR
 
     samples = DICTIONARIES_DIR.parent / "samples"
+    # The default role must have samples: the app falls back to them for the other roles.
+    assert (samples / "data_analytics").is_dir()
     for path in list_dictionaries().values():
         folder = samples / path.stem
+        if not folder.is_dir():
+            continue
         posts = split_job_posts((folder / "job_posts.txt").read_text(encoding="utf-8"))
         cv = (folder / "cv.txt").read_text(encoding="utf-8")
         dictionary = load_dictionary(path)

@@ -1,0 +1,45 @@
+# Skill dictionary: Software Developer. Same format as data_analytics.yaml.
+version: 1
+domain: Software Developer / Web Developer
+description: Software Developer, Web Developer and Full-stack roles
+include: [shared/soft_skills.yaml, shared/office.yaml]
+categories: [Languages, Frameworks, Data & Cloud, Practices, Office & General, Soft Skills]
+skills:
+  - {name: Python, category: Languages, synonyms: [python]}
+  - {name: Java, category: Languages, synonyms: [java, java ee, j2ee]}
+  - {name: JavaScript, category: Languages, synonyms: [javascript, js, ecmascript, es6]}
+  - {name: TypeScript, category: Languages, synonyms: [typescript]}
+  - {name: C#, category: Languages, synonyms: ['c#', csharp, c sharp]}
+  - {name: C++, category: Languages, synonyms: ['c++', cpp]}
+  - {name: PHP, category: Languages, synonyms: [php]}
+  - {name: Go, category: Languages, synonyms: [golang, go language]}
+  - {name: Kotlin, category: Languages, synonyms: [kotlin]}
+  - {name: Swift, category: Languages, synonyms: [swift, swiftui]}
+  - {name: HTML & CSS, category: Languages, synonyms: [html, html5, css, css3, sass, scss]}
+  - {name: SQL, category: Data & Cloud, synonyms: [sql, t-sql, pl/sql]}
+  - {name: React, category: Frameworks, synonyms: [react, reactjs, react.js, react native]}
+  - {name: Angular, category: Frameworks, synonyms: [angular, angularjs]}
+  - {name: Vue.js, category: Frameworks, synonyms: [vue, vue.js, vuejs, nuxt]}
+  - {name: Node.js, category: Frameworks, synonyms: [node.js, nodejs, express.js, expressjs, nestjs]}
+  - {name: .NET, category: Frameworks, synonyms: [.net, .net core, asp.net, dotnet]}
+  - {name: Spring, category: Frameworks, synonyms: [spring, spring boot, springboot]}
+  - {name: Django, category: Frameworks, synonyms: [django]}
+  - {name: Flask / FastAPI, category: Frameworks, synonyms: [flask, fastapi]}
+  - {name: Laravel, category: Frameworks, synonyms: [laravel, symfony]}
+  - {name: PostgreSQL, category: Data & Cloud, synonyms: [postgresql, postgres]}
+  - {name: MySQL, category: Data & Cloud, synonyms: [mysql, mariadb]}
+  - {name: MongoDB, category: Data & Cloud, synonyms: [mongodb, mongo, nosql]}
+  - {name: Docker, category: Data & Cloud, synonyms: [docker, container, containers, containerization]}
+  - {name: Kubernetes, category: Data & Cloud, synonyms: [kubernetes, k8s, openshift]}
+  - {name: AWS, category: Data & Cloud, synonyms: [aws, amazon web services]}
+  - {name: Azure, category: Data & Cloud, synonyms: [azure, microsoft azure]}
+  - {name: Google Cloud, category: Data & Cloud, synonyms: [google cloud, gcp, google cloud platform]}
+  - {name: Linux, category: Data & Cloud, synonyms: [linux, unix, bash, shell scripting]}
+  - {name: Git, category: Practices, synonyms: [git, github, gitlab, bitbucket, version control, controllo di versione]}
+  - {name: CI/CD, category: Practices, synonyms: [ci/cd, continuous integration, continuous delivery, continuous deployment, jenkins, github actions, gitlab ci, devops]}
+  - {name: REST APIs, category: Practices, synonyms: [rest api, rest apis, restful, api rest, web services, graphql]}
+  - {name: Microservices, category: Practices, synonyms: [microservices, microservizi, micro-services, microservicios]}
+  - {name: Testing, category: Practices, synonyms: [unit testing, unit test, test automation, automated testing, tdd, test driven development, junit, pytest, jest, selenium, cypress]}
+  - {name: Object-Oriented Programming, category: Practices, synonyms: [oop, object oriented, object-oriented programming, programmazione a oggetti, design patterns, solid principles]}
+  - {name: Agile / Scrum, category: Practices, synonyms: [agile, scrum, kanban, metodologia agile, metodologie agile, sprint]}
+  - {name: Cybersecurity, category: Practices, synonyms: [security, sicurezza informatica, cybersecurity, owasp, oauth, authentication]}

@@ -1,0 +1,40 @@
+# Skill dictionary: Digital Marketing. Same format as data_analytics.yaml.
+version: 1
+domain: Digital Marketing / Communication
+description: Digital Marketing, Social Media and Communication roles
+include: [shared/soft_skills.yaml, shared/office.yaml]
+categories: [Channels, Tools, Content & Brand, Analytics, Office & General, Soft Skills]
+skills:
+  - {name: SEO, category: Channels, synonyms: [seo, search engine optimization, search engine optimisation, posizionamento organico, referencement naturel]}
+  - {name: SEM / Google Ads, category: Channels, synonyms: [sem, google ads, adwords, ppc, pay per click, paid search, search advertising]}
+  - {name: Social Media Marketing, category: Channels, synonyms: [social media marketing, social media management, social media manager, gestione social, social network, social media, smm, reseaux sociaux, redes sociales]}
+  - {name: Meta Ads, category: Channels, synonyms: [meta ads, facebook ads, instagram ads, meta business suite, paid social]}
+  - {name: LinkedIn Ads, category: Channels, synonyms: [linkedin ads, linkedin campaign manager]}
+  - {name: TikTok, category: Channels, synonyms: [tiktok, tik tok]}
+  - {name: Email Marketing, category: Channels, synonyms: [email marketing, e-mail marketing, newsletter, direct email marketing]}
+  - {name: Influencer Marketing, category: Channels, synonyms: [influencer marketing, influencer, creator marketing]}
+  - {name: E-commerce, category: Channels, synonyms: [e-commerce, ecommerce, commercio elettronico, online store, marketplace, amazon seller]}
+  - {name: Performance Marketing, category: Channels, synonyms: [performance marketing, growth marketing, growth hacking, digital advertising, programmatic]}
+  - {name: Content Marketing, category: Content & Brand, synonyms: [content marketing, content strategy, content creation, creazione di contenuti, content creator, storytelling]}
+  - {name: Copywriting, category: Content & Brand, synonyms: [copywriting, copywriter, scrittura persuasiva, redazione testi, web writing]}
+  - {name: Brand Management, category: Content & Brand, synonyms: [brand management, branding, brand awareness, brand identity, brand strategy, brand manager]}
+  - {name: Marketing Strategy, category: Content & Brand, synonyms: [marketing strategy, strategia di marketing, piano marketing, marketing plan, go-to-market, go to market, digital strategy, strategia digitale]}
+  - {name: Public Relations, category: Content & Brand, synonyms: [public relations, ufficio stampa, press office, media relations, relazioni pubbliche]}
+  - {name: Event Management, category: Content & Brand, synonyms: [event management, organizzazione eventi, event planning, trade fairs, fiere]}
+  - {name: Video Editing, category: Tools, synonyms: [video editing, montaggio video, premiere pro, after effects, final cut, capcut]}
+  - {name: Adobe Photoshop, category: Tools, synonyms: [photoshop, adobe photoshop]}
+  - {name: Adobe Illustrator, category: Tools, synonyms: [illustrator, adobe illustrator, indesign, adobe creative suite, adobe creative cloud]}
+  - {name: Canva, category: Tools, synonyms: [canva]}
+  - {name: Figma, category: Tools, synonyms: [figma]}
+  - {name: WordPress, category: Tools, synonyms: [wordpress, cms, content management system, wix, webflow]}
+  - {name: Shopify, category: Tools, synonyms: [shopify, woocommerce, magento, prestashop]}
+  - {name: HubSpot, category: Tools, synonyms: [hubspot]}
+  - {name: Mailchimp, category: Tools, synonyms: [mailchimp, klaviyo, brevo, sendinblue, activecampaign]}
+  - {name: Marketing Automation, category: Tools, synonyms: [marketing automation, automazione marketing, salesforce marketing cloud, marketo, pardot]}
+  - {name: CRM, category: Tools, synonyms: [crm, customer relationship management, salesforce]}
+  - {name: Google Analytics, category: Analytics, synonyms: [google analytics, ga4, universal analytics, web analytics]}
+  - {name: Google Tag Manager, category: Analytics, synonyms: [google tag manager, gtm, tag manager]}
+  - {name: A/B Testing, category: Analytics, synonyms: [a/b testing, a/b test, ab testing, split testing, test a/b]}
+  - {name: KPI & Reporting, category: Analytics, synonyms: [kpi, kpis, reporting, marketing reporting, roi, roas, ctr, conversion rate, tasso di conversione, cro, conversion rate optimization]}
+  - {name: Market Research, category: Analytics, synonyms: [market research, ricerche di mercato, ricerca di mercato, competitor analysis, analisi della concorrenza, benchmarking, etude de marche, marktforschung, estudio de mercado]}
+  - {name: Looker Studio, category: Analytics, synonyms: [looker studio, google data studio, data studio]}

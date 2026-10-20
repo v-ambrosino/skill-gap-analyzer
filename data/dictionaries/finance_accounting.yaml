@@ -1,0 +1,35 @@
+# Skill dictionary: Finance and Accounting. Same format as data_analytics.yaml.
+version: 1
+domain: Finance / Accounting / Controlling
+description: Accountant, Controller, Financial Analyst and Finance roles
+include: [shared/soft_skills.yaml, shared/office.yaml]
+categories: [Accounting, Finance & Control, Tax & Compliance, Tools, Office & General, Soft Skills]
+skills:
+  - {name: General Accounting, category: Accounting, synonyms: [accounting, general accounting, contabilita, contabilita generale, comptabilite, buchhaltung, contabilidad, contabilidade, general ledger, contabilita ordinaria]}
+  - {name: Bookkeeping, category: Accounting, synonyms: [bookkeeping, prima nota, registrazioni contabili, scritture contabili, journal entries]}
+  - {name: Accounts Payable, category: Accounting, synonyms: [accounts payable, ciclo passivo, contabilita fornitori, comptabilite fournisseurs]}
+  - {name: Accounts Receivable, category: Accounting, synonyms: [accounts receivable, ciclo attivo, contabilita clienti, credit management, gestione crediti, recupero crediti, comptabilite clients]}
+  - {name: Bank Reconciliation, category: Accounting, synonyms: [reconciliation, reconciliations, riconciliazioni, riconciliazione bancaria, riconciliazioni bancarie, bank reconciliation, quadrature]}
+  - {name: Financial Statements, category: Accounting, synonyms: [financial statements, bilancio, bilancio d'esercizio, redazione del bilancio, balance sheet, closing, chiusure contabili, chiusure mensili, month end close, year end close, jahresabschluss, bilan]}
+  - {name: Consolidation, category: Accounting, synonyms: [consolidation, bilancio consolidato, consolidated financial statements, consolidamento, intercompany]}
+  - {name: Cost Accounting, category: Accounting, synonyms: [cost accounting, contabilita analitica, contabilita industriale, analisi dei costi, cost analysis, centri di costo, cost centers]}
+  - {name: Payroll, category: Accounting, synonyms: [payroll, paghe, elaborazione paghe, buste paga, cedolini, paie, lohnbuchhaltung, nominas]}
+  - {name: Controlling, category: Finance & Control, synonyms: [controlling, controllo di gestione, management control, controller, financial controller, controle de gestion]}
+  - {name: Budgeting, category: Finance & Control, synonyms: [budgeting, budget, budget planning, pianificazione del budget, budget annuale]}
+  - {name: Financial Forecasting, category: Finance & Control, synonyms: [forecasting, forecast, financial forecasting, rolling forecast, previsioni finanziarie]}
+  - {name: Financial Analysis, category: Finance & Control, synonyms: [financial analysis, analisi finanziaria, analisi di bilancio, variance analysis, analisi degli scostamenti, fp&a, financial planning]}
+  - {name: Financial Modelling, category: Finance & Control, synonyms: [financial modelling, financial modeling, modelli finanziari, valuation, valutazione d'azienda, dcf, business plan]}
+  - {name: Cash Flow Management, category: Finance & Control, synonyms: [cash flow, cash management, tesoreria, treasury, gestione della liquidita, rendiconto finanziario]}
+  - {name: Management Reporting, category: Finance & Control, synonyms: [management reporting, reporting finanziario, financial reporting, reportistica, kpi finanziari]}
+  - {name: Audit, category: Tax & Compliance, synonyms: [audit, auditing, revisione contabile, revisione legale, internal audit, external audit, audit interno, wirtschaftsprufung, auditoria]}
+  - {name: IFRS, category: Tax & Compliance, synonyms: [ifrs, ias, ias/ifrs, international financial reporting standards]}
+  - {name: GAAP, category: Tax & Compliance, synonyms: [gaap, us gaap, principi contabili, oic, principi contabili italiani]}
+  - {name: Tax, category: Tax & Compliance, synonyms: [tax, taxation, fiscale, adempimenti fiscali, dichiarazioni fiscali, fiscalita, imposte, fiscalite, steuern, impuestos]}
+  - {name: VAT, category: Tax & Compliance, synonyms: [vat, iva, liquidazione iva, tva, mehrwertsteuer]}
+  - {name: Compliance, category: Tax & Compliance, synonyms: [compliance, internal controls, controlli interni, sox, risk management, antiriciclaggio, aml]}
+  - {name: SAP, category: Tools, synonyms: [sap, sap fi, sap co, sap fico, sap s/4hana, s/4hana]}
+  - {name: Oracle Financials, category: Tools, synonyms: [oracle financials, oracle ebs, oracle netsuite, netsuite]}
+  - {name: ERP, category: Tools, synonyms: [erp, gestionale, gestionali, software gestionale, enterprise resource planning]}
+  - {name: Italian Accounting Software, category: Tools, synonyms: [teamsystem, zucchetti, profis, sistemi spa, arca evolution]}
+  - {name: Power BI, category: Tools, synonyms: [power bi, powerbi]}
+  - {name: Pivot Tables, category: Tools, synonyms: [pivot table, pivot tables, tabelle pivot, tabella pivot, pivot]}

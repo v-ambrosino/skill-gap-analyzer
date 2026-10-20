@@ -1,0 +1,26 @@
+# =============================================================================
+# Office tools and general requirements shared by the non-data role dictionaries.
+# The including dictionary must declare the "Office & General" category.
+# =============================================================================
+
+skills:
+  - name: Excel
+    category: Office & General
+    synonyms: [ms excel, microsoft excel, excel avanzato, advanced excel, vlookup, cerca.vert, recherchev, sverweis, buscarv, procv]
+    patterns: ['(?i)(?<![\w&])excel(?!\s+(?:at|in|as)\b)(?![\w&])']
+  - name: Microsoft Office
+    category: Office & General
+    synonyms: [microsoft office, ms office, pacchetto office, office suite, microsoft 365, office 365, suite office]
+  - name: Word
+    category: Office & General
+    synonyms: [microsoft word, ms word]
+    case_sensitive_synonyms: [Word]
+  - name: PowerPoint
+    category: Office & General
+    synonyms: [powerpoint, power point, ms powerpoint]
+  - name: Google Workspace
+    category: Office & General
+    synonyms: [google workspace, g suite, gsuite, google sheets, google docs, fogli google]
+  - name: Driving Licence
+    category: Office & General
+    synonyms: [driving licence, driving license, driver's license, patente b, patente di guida, automunito, automunita, permis b, permis de conduire, fuhrerschein, carnet de conducir, carta de conducao]

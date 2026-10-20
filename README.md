@@ -1,7 +1,7 @@
 # Skill Gap Analyzer
 
 [![Live demo](https://img.shields.io/badge/live%20demo-skill--gap.streamlit.app-ff4b4b?logo=streamlit&logoColor=white)](https://skill-gap.streamlit.app/)
-![Version](https://img.shields.io/badge/version-1.3.1-blue)
+![Version](https://img.shields.io/badge/version-1.4.0-blue)
 [![Tests](https://github.com/v-ambrosino/skill-gap-analyzer/actions/workflows/tests.yml/badge.svg)](https://github.com/v-ambrosino/skill-gap-analyzer/actions/workflows/tests.yml)
 
 **Compare your CV with real job posts and see which data skills the market wants — and which ones you are missing.**
@@ -52,6 +52,7 @@ transparent method you can explain and verify.
 
 | Feature | Details |
 |---|---|
+| **Target role** | Eight ready-made roles (data, software, marketing, sales, finance, HR, project management) or **any job title typed by the user**: for those, skills are also detected from the terms that recur in the posts, in an editable list. |
 | **Input** | CV as PDF (or pasted text). Job posts in **one text box separated by `---`** or **one field per post** (add/remove fields), then **Analyze**. Posts in English, Italian, French, German, Spanish or Portuguese. |
 | **Requested skills** | Horizontal bar chart of how many posts ask for each skill, coloured and optionally grouped by category. The solid part counts posts that **require** the skill, the hatched part posts where it is only **nice to have**. |
 | **CV comparison** | Skills in your CV in green, missing ones in red, each with its demand. Skills you have that the posts did not ask for are listed too. |
