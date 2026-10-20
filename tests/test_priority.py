@@ -141,3 +141,42 @@ def test_post_title_skips_generic_headings(post, expected):
     from skill_gap.extractor import post_title
 
     assert post_title(post, 1) == expected
+
+
+@pytest.mark.parametrize(
+    "post",
+    [
+        "Neolaureato/a in Statistica, Economia o Ingegneria.",
+        "Lauree in Statistica, Matematica, Fisica.",
+        "Laurea in una delle seguenti discipline:\n- Statistica\n- Economia\n- Informatica",
+        "Formazione\nStatistica, Matematica o Informatica",
+        "Titolo di studio: Statistica, Economia",
+        "Discipline quantitative come Statistica o Matematica",
+        "BSc/MSc in Statistics or a related quantitative field",
+        "Graduated in Statistics or Economics",
+        "Studies in Statistics or Economics",
+        "Education: Statistics, Computer Science or similar",
+        "Quantitative background (Statistics, Econometrics)",
+    ],
+)
+def test_more_degree_wordings(dictionary, post):
+    from skill_gap.extractor import find_skills_in_posts
+
+    [skills] = find_skills_in_posts([post], dictionary)
+    assert "Statistics" not in skills
+
+
+@pytest.mark.parametrize(
+    "post",
+    [
+        "Strong knowledge of statistics and SQL",
+        "Solid background in statistics and machine learning",
+        "Requisiti:\nLaurea in Economia\nConoscenza della statistica descrittiva e inferenziale",
+        "Formazione\nLaurea in Economia\n\nRequisiti\nOttima conoscenza della statistica",
+    ],
+)
+def test_statistics_as_a_skill_is_kept(dictionary, post):
+    from skill_gap.extractor import find_skills_in_posts
+
+    [skills] = find_skills_in_posts([post], dictionary)
+    assert "Statistics" in skills
