@@ -100,3 +100,44 @@ def test_inline_nice_header_only_applies_to_its_line(dictionary):
     found = priorities(text, dictionary)
     assert found["Tableau"] == NICE_TO_HAVE and found["dbt"] == NICE_TO_HAVE
     assert found["Communication"] == REQUIRED
+
+
+def test_emoji_bullets_become_lines(dictionary):
+    text = "What you'll be doing✅ Analyse data with SQL✅ Build Tableau dashboards\n✅ Nice to have\n✅ dbt"
+    mentions = find_skill_mentions(text, dictionary)
+    assert mentions["SQL"].snippet == "Analyse data with SQL"
+    assert mentions["Tableau"].priority == REQUIRED
+    # "Nice to have" on its own bullet still opens a nice-to-have section.
+    assert mentions["dbt"].priority == NICE_TO_HAVE
+
+
+def test_degree_subjects_are_not_skills_in_posts(dictionary):
+    from skill_gap.extractor import find_skills_in_posts
+
+    post = (
+        "Requisiti\n"
+        "Laurea in discipline STEM (Matematica, Statistica, Informatica o affini).\n"
+        "Buona conoscenza di SQL."
+    )
+    [skills] = find_skills_in_posts([post], dictionary)
+    assert "Statistics" not in skills
+    assert "SQL" in skills
+    # Outside a sentence about a degree, statistics is a skill.
+    [skills] = find_skills_in_posts(["Conoscenza della statistica descrittiva"], dictionary)
+    assert "Statistics" in skills
+    # In the CV a degree in statistics does show the skill.
+    assert "Statistics" in find_skill_mentions("Laurea in Statistica", dictionary)
+
+
+@pytest.mark.parametrize(
+    "post, expected",
+    [
+        ("About the job\nData Analyst - Acme\nWe need SQL", "Post #1 · Data Analyst - Acme"),
+        ("Informazioni sull'offerta di lavoro\nDescrizione del ruolo\nCerchiamo un Data Analyst", "Post #1 · Cerchiamo un Data Analyst"),
+        ("✅ BI Analyst (remote)", "Post #1 · BI Analyst (remote)"),
+    ],
+)
+def test_post_title_skips_generic_headings(post, expected):
+    from skill_gap.extractor import post_title
+
+    assert post_title(post, 1) == expected

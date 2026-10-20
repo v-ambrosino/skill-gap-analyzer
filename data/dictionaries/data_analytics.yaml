@@ -15,6 +15,10 @@
 #               Phrases matched as whole words with EXACT casing. Use them for
 #               short or ambiguous names ("SAS" must not match the Italian
 #               company type "Sas").
+#   degree_subject
+#               Optional, true for skills that are also a field of study
+#               (Statistics). In a job post, a mention inside a sentence about
+#               a degree ("Laurea in Statistica o affini") is not counted.
 #   patterns    Raw Python regular expressions for the hardest cases
 #               (e.g. the one-letter language "R"). They run on the normalised
 #               text (accents removed, original casing kept). Add (?i) at the
@@ -269,6 +273,8 @@ skills:
     patterns: ['(?i)(?<![\w&])(?:reporting|reports?)(?!\s+(?:to|directly|into)\b)(?![\w&])']
   - name: Statistics
     category: Analytics & Statistics
+    # "Laurea in Statistica" in a job post is a degree, not a skill request.
+    degree_subject: true
     synonyms: [statistics, statistical analysis, statistica, statistiche, analisi statistica, analisi statistiche, descriptive statistics, statistica descrittiva, inferential statistics, statistica inferenziale]
   - name: Hypothesis Testing
     category: Analytics & Statistics

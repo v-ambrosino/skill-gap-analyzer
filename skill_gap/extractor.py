@@ -18,6 +18,14 @@ skills that are required from skills that are only "nice to have":
   * markers inside brackets apply only to the brackets:
     "SQL (BigQuery preferred)" -> SQL required, BigQuery nice to have.
 
+Two clean-ups make real copy-pasted posts readable:
+
+  * bullets drawn with emoji or symbols ("\u2705 Python \u2705 SQL", common on
+    LinkedIn) are turned into line breaks, so each bullet is its own line;
+  * a skill that is also a field of study (`degree_subject` in the
+    dictionary, e.g. Statistics) is not counted in a sentence about a degree:
+    "Laurea in Statistica o affini" asks for a degree, not for the skill.
+
 A skill is "required" in a post if at least one of its mentions is in a
 required context.
 """
@@ -56,8 +64,22 @@ _REQUIRED_HEADER = re.compile(
     r"what\s+(?:we're|we\s+are)\s+looking\s+for|what\s+you(?:'ll|\s+will)?\s+(?:bring|need|do)|"
     r"your\s+profile|your\s+responsibilities|il\s+tuo\s+profilo|profilo(?:\s+ricercato)?|"
     r"qualifications?|required|essential|competenze(?:\s+richieste)?|cosa\s+cerchiamo|"
-    r"responsibilities|responsabilita|attivita(?:\s+principali)?|mansioni|"
+    r"responsibilities|responsabilita(?:\s+principali)?|attivita(?:\s+principali)?|mansioni|"
+    r"what\s+you(?:'ll|\s+will)\s+be\s+doing|cosa\s+farai|"
     r"key\s+skills|skills|about\s+you|chi\s+cerchiamo)\b"
+)
+
+# Symbols and emoji used as bullets in copy-pasted posts (\u2022 \u25aa \u25b6 \u2713 \u2705 \U0001F539 ...).
+# Each one is replaced by a line break before reading the post line by line.
+_BULLET_SYMBOLS = re.compile(
+    "[\u2022\u2023\u2043\u2219\u25aa\u25ab\u25b6\u25ba\u25cf\u25e6\u2605\u2611"
+    "\u2713\u2714\u2705\u27a1\u27a4\u2b50\U0001F300-\U0001FAFF]\ufe0f?"
+)
+
+# Words that make a clause about education ("Laurea in ...", "Degree in ...").
+_EDUCATION = re.compile(
+    r"(?i)(?<![\w&])(?:laurea|laureat[oaie]|degree|bachelor'?s?|master'?s|msc|bsc|phd|"
+    r"dottorato|diploma|corso\s+di\s+studi)(?![\w&])"
 )
 
 # Bullets and numbering at the start of a line.
@@ -143,11 +165,20 @@ def _shorten(text: str) -> str:
     return text[: _SNIPPET_LENGTH - 1].rstrip() + "…"
 
 
-def find_skill_mentions(text: str, dictionary: SkillDictionary) -> dict[str, SkillMention]:
+def split_lines(text: str) -> list[str]:
+    """Lines of `text`, with emoji/symbol bullets turned into line breaks."""
+    return _BULLET_SYMBOLS.sub("\n", text).splitlines()
+
+
+def find_skill_mentions(
+    text: str, dictionary: SkillDictionary, ignore_degree_subjects: bool = False
+) -> dict[str, SkillMention]:
     """Find every skill in `text`, with its priority and an example snippet.
 
     The text is read line by line (to follow the section headers) and clause
     by clause (to apply markers like "is a plus" only where they belong).
+    With `ignore_degree_subjects` (used for job posts, not for the CV), a
+    `degree_subject` skill is skipped in clauses about a degree.
     """
     found = find_skills(text, dictionary)
     if not found:
@@ -155,8 +186,9 @@ def find_skill_mentions(text: str, dictionary: SkillDictionary) -> dict[str, Ski
     skills: list[Skill] = [s for s in dictionary.skills if s.name in found]
 
     mentions: dict[str, SkillMention] = {}
+    seen: set[str] = set()  # skills matched in at least one clause, even if skipped
     section = REQUIRED
-    for line in text.splitlines():
+    for line in split_lines(text):
         normalized_line = normalize_text(line)
         if not normalized_line:
             continue
@@ -175,6 +207,13 @@ def find_skill_mentions(text: str, dictionary: SkillDictionary) -> dict[str, Ski
                 spans = skill.spans(normalized_clause)
                 if not spans:
                     continue
+                seen.add(skill.name)
+                if (
+                    ignore_degree_subjects
+                    and skill.degree_subject
+                    and _EDUCATION.search(normalized_clause)
+                ):
+                    continue
                 priorities = {_mention_priority(normalized_clause, s, section) for s in spans}
                 priority = REQUIRED if REQUIRED in priorities else NICE_TO_HAVE
                 previous = mentions.get(skill.name)
@@ -184,13 +223,33 @@ def find_skill_mentions(text: str, dictionary: SkillDictionary) -> dict[str, Ski
 
     # A phrase broken across two lines is found in the whole text but in no
     # single clause: count it as required, without a snippet.
-    for name in found - mentions.keys():
+    for name in found - seen:
         mentions[name] = SkillMention(name, REQUIRED, "")
     return mentions
+
+
+# Generic headings that job boards put at the top of a post (LinkedIn's
+# "About the job", "Informazioni sull'offerta di lavoro"...): skipped when
+# choosing a title for the post.
+_GENERIC_HEADING = re.compile(
+    r"(?i)^(?:about\s+the\s+(?:job|role|company)|about\s+us|job\s+description|the\s+role|"
+    r"overview|informazioni\s+sull'offerta(?:\s+di\s+lavoro)?|descrizione\s+(?:del\s+ruolo|"
+    r"dell'offerta|della\s+posizione)|il\s+ruolo|chi\s+siamo|cosa\s+farai|what\s+you'll\s+do)\W*$"
+)
+_TITLE_LENGTH = 60
+
+
+def post_title(post: str, number: int) -> str:
+    """'Post #2 · Data Analyst - Acme' from the first meaningful line of a post."""
+    lines = (normalize_text(line) for line in split_lines(post))
+    title = next((line for line in lines if line and not _GENERIC_HEADING.match(line)), "")
+    if len(title) > _TITLE_LENGTH:
+        title = title[: _TITLE_LENGTH - 1].rstrip() + "\u2026"
+    return f"Post #{number} · {title}" if title else f"Post #{number}"
 
 
 def find_skills_in_posts(
     posts: list[str], dictionary: SkillDictionary
 ) -> list[dict[str, SkillMention]]:
     """Run `find_skill_mentions` on every job post, keeping one dict per post."""
-    return [find_skill_mentions(post, dictionary) for post in posts]
+    return [find_skill_mentions(post, dictionary, ignore_degree_subjects=True) for post in posts]

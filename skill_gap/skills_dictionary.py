@@ -49,6 +49,9 @@ class Skill:
     name: str
     category: str
     patterns: tuple[re.Pattern, ...]
+    # True for skills that are also a field of study ("Statistics"): in a job
+    # post, "Laurea in Statistica" is an education requirement, not a skill.
+    degree_subject: bool = False
 
     def is_in(self, normalized_text: str) -> bool:
         """True if at least one pattern matches the (normalised) text."""
@@ -169,7 +172,14 @@ def parse_dictionary(data: dict) -> SkillDictionary:
         # Different synonyms can compile to the same regex ("crisp-dm" and
         # "crisp dm"): drop the duplicates, keeping the original order.
         unique = tuple({(p.pattern, p.flags): p for p in compiled}.values())
-        skills.append(Skill(name=name, category=category, patterns=unique))
+        skills.append(
+            Skill(
+                name=name,
+                category=category,
+                patterns=unique,
+                degree_subject=bool(entry.get("degree_subject", False)),
+            )
+        )
 
     return SkillDictionary(
         domain=str(data.get("domain", "")),
