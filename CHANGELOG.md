@@ -3,6 +3,26 @@
 All notable changes to Skill Gap Analyzer. Versions follow
 [semantic versioning](https://semver.org/); pre-release tags mark the stage.
 
+## 1.0.0 — 2026-10-20
+
+First stable release, live at [skill-gap.streamlit.app](https://skill-gap.streamlit.app/).
+
+### Added
+- Hosted on Streamlit Community Cloud; live demo link and badge in the README.
+
+### Changed
+- `pytest` moved to `requirements-dev.txt`: the hosted app installs only what it runs.
+- Privacy wording (README and sidebar) now describes the hosted version: files are
+  processed in the Streamlit server's memory and never stored.
+
+### Fixed
+- Statistics was still counted as a requested skill when a post named it as a field
+  of study in other words. Now recognised as education: "neolaureato/a in",
+  "lauree in", "titolo di studio", "discipline quantitative", "graduated in",
+  "studies in", "education:", "quantitative background", and a list of subjects on
+  the lines under "Formazione" or "Laurea in una delle seguenti discipline:".
+  "Strong knowledge of statistics" still counts as the skill.
+
 ## 0.2.0-beta — 2026-10-20
 
 First version tested on real job posts (12 Italian and English posts) and a real CV.

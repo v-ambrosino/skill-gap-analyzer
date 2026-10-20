@@ -1,7 +1,7 @@
 # Skill Gap Analyzer
 
-![Status: beta](https://img.shields.io/badge/status-beta-blue)
-![Version](https://img.shields.io/badge/version-0.2.0--beta-blue)
+[![Live demo](https://img.shields.io/badge/live%20demo-skill--gap.streamlit.app-ff4b4b?logo=streamlit&logoColor=white)](https://skill-gap.streamlit.app/)
+![Version](https://img.shields.io/badge/version-1.0.0-blue)
 [![Tests](https://github.com/v-ambrosino/skill-gap-analyzer/actions/workflows/tests.yml/badge.svg)](https://github.com/v-ambrosino/skill-gap-analyzer/actions/workflows/tests.yml)
 
 **Compare your CV with real job posts and see which data skills the market wants — and which ones you are missing.**
@@ -16,15 +16,16 @@ Upload your CV (PDF), paste a few job posts (English or Italian) and get:
 
 No paid APIs, no external AI, **no data stored**.
 
-> **Beta:** tested on real Italian and English job posts and a real CV. Skill
-> detection is dictionary-based, so some wording can still be missed: please
+**Try it online: [skill-gap.streamlit.app](https://skill-gap.streamlit.app/)**
+(click *Load sample data* to see it in action without your own CV).
+
+> Tested on real Italian and English job posts and a real CV. Skill detection is
+> dictionary-based, so some wording can still be missed: please
 > [open an issue](https://github.com/v-ambrosino/skill-gap-analyzer/issues) with
 > the exact sentence, so it can become a new synonym and a regression test.
 > See the [changelog](CHANGELOG.md) for what changed in each version.
 
 ![Skill Gap Analyzer screenshot](assets/screenshot.png)
-
-> _Live demo: add your Streamlit Community Cloud link here once deployed._
 
 ---
 

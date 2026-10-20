@@ -78,9 +78,28 @@ _BULLET_SYMBOLS = re.compile(
 
 # Words that make a clause about education ("Laurea in ...", "Degree in ...").
 _EDUCATION = re.compile(
-    r"(?i)(?<![\w&])(?:laurea|laureat[oaie]|degree|bachelor'?s?|master'?s|msc|bsc|phd|"
-    r"dottorato|diploma|corso\s+di\s+studi)(?![\w&])"
+    r"(?i)(?<![\w&])(?:"
+    # Italian: laurea/lauree, (neo)laureato/a, laureando/a, titolo/percorso di studi...
+    r"(?:neo)?laure(?:a|e|at[oaie]|and[oaie])|dottorato|diploma|facolta|"
+    r"titol[oi]\s+di\s+studio|percorso\s+(?:di\s+)?studi|corso\s+di\s+(?:studi|laurea)|"
+    r"studi|disciplin[ae]|formazione\s+(?:accademica|universitaria)|universit\w*|"
+    r"background\s+(?:accademico|universitario)|"
+    # English: degree, bachelor's, MSc, graduated, studies, education, discipline...
+    r"degrees?|bachelor'?s?|master'?s|msc|bsc|phd|(?:under|post)?graduat\w*|studies|"
+    r"education(?:al)?|disciplines?|majors?\s+in|field\s+of\s+study|"
+    r"(?:related|quantitative|similar|scientific|technical)\s+(?:field|discipline)s?|"
+    r"(?:academic|educational|quantitative|scientific)\s+background"
+    r")(?![\w&])"
 )
+
+# A section that lists the fields of study on the next lines: "Formazione",
+# "Education", "Titolo di studio" on their own line, or any line about a
+# degree that ends with a colon ("Laurea in una delle seguenti discipline:").
+_EDUCATION_HEADER = re.compile(
+    r"(?i)^(?:formazione|istruzione|titol[oi]\s+di\s+studio|education|"
+    r"educational\s+background|academic\s+background)\W*$"
+)
+_EDUCATION_LIST_MAX_WORDS = 8
 
 # Bullets and numbering at the start of a line.
 _BULLET = re.compile(r"^[\s\-\*•·>\d.)]+")
@@ -188,11 +207,24 @@ def find_skill_mentions(
     mentions: dict[str, SkillMention] = {}
     seen: set[str] = set()  # skills matched in at least one clause, even if skipped
     section = REQUIRED
+    education_list = False  # True right after "Formazione" or "Laurea in ...:"
     for line in split_lines(text):
         normalized_line = normalize_text(line)
         if not normalized_line:
             continue
         header = _header_kind(normalized_line, dictionary)
+        bare_line = _BULLET.sub("", normalized_line).strip()
+        # Short lines under an education heading are fields of study ("- Statistica").
+        in_education_list = (
+            education_list
+            and header is None
+            and len(bare_line.split()) <= _EDUCATION_LIST_MAX_WORDS
+        )
+        education_list = bool(
+            _EDUCATION_HEADER.match(bare_line)
+            or (_EDUCATION.search(bare_line) and bare_line.endswith(":"))
+            or in_education_list
+        )
         # "Nice to have:" alone opens a nice-to-have section; "Nice to have: X, Y"
         # only concerns its own line (the marker in the clause handles it).
         inline_content = normalized_line.partition(":")[2].strip()
@@ -211,7 +243,7 @@ def find_skill_mentions(
                 if (
                     ignore_degree_subjects
                     and skill.degree_subject
-                    and _EDUCATION.search(normalized_clause)
+                    and (in_education_list or _EDUCATION.search(normalized_clause))
                 ):
                     continue
                 priorities = {_mention_priority(normalized_clause, s, section) for s in spans}
