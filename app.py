@@ -94,6 +94,12 @@ def get_dictionary_files() -> dict[str, str]:
     return {role: str(path) for role, path in list_dictionaries().items()}
 
 
+def known_skills_label() -> str:
+    """The number of distinct known skills, rounded down: "300+"."""
+    count = len(get_all_skills().skills)
+    return f"{count // 50 * 50}+" if count >= 100 else str(count)
+
+
 @st.cache_resource
 def get_all_skills() -> SkillDictionary:
     """Every skill of every dictionary: the starting point for a role typed by the user."""
@@ -197,6 +203,9 @@ _CSS = """
   background: linear-gradient(135deg, #2a78d6 0%, #5b5bd6 100%); border: 0; border-radius: 999px;
   box-shadow: 0 8px 18px rgba(42,120,214,.28); font-weight: 600; transition: transform .15s, filter .15s;
 }
+.st-key-analyze button { min-height: 3.4rem; font-size: 1.15rem; font-weight: 700;
+  box-shadow: 0 8px 22px rgba(42, 120, 214, .35); }
+.st-key-analyze button:disabled { box-shadow: none; }
 [data-testid="stBaseButton-primary"]:hover { filter: brightness(1.07); transform: translateY(-1px); }
 [data-testid="stBaseButton-secondary"] { border-radius: 999px; background: #ffffff; }
 [role="tablist"] { gap: 4px; background: #eaf0f8; padding: 5px; border-radius: 999px; width: fit-content;
@@ -222,6 +231,7 @@ _CSS = """
 .sga-ghost:hover { border-color: #2a78d6; color: #2a78d6 !important; }
 .sga-checks { color: #475467; font-size: .92rem; margin: 6px 0 0; }
 .sga-checks b { color: #0e9f6e; }
+.sga-checks span { white-space: nowrap; }
 .sga-preview { background: #ffffff; border: 1px solid #e6eaf1; border-radius: 22px; padding: 22px 24px;
   box-shadow: 0 24px 60px rgba(28,92,171,.16); }
 .sga-preview-head { display: flex; justify-content: space-between; color: #667085; font-size: .82rem; }
@@ -279,7 +289,7 @@ _PREVIEW = """
 """
 
 _FEATURES = [
-    ("✓", "Explainable, no AI", "Every skill comes from a dictionary rule, and the app shows the exact sentence that matched."),
+    ("✓", "Explainable, no AI", "Skills are recognised with a list of {skills} skills and their synonyms, and the app shows the exact sentence that matched."),
     ("⚖", "Weighted by demand", "Skills that most employers require count more; nice-to-have skills count half."),
     ("🌍", "6 European languages", f"Job posts in {LANGUAGES}."),
     ("🔒", "Private by design", "Your CV is processed in memory for this session only and never stored."),
@@ -327,7 +337,10 @@ see which skills employers ask for, which ones you are missing and what to study
         buttons[1].markdown('<a class="sga-ghost" href="#how-it-works">How it works →</a>',
                             unsafe_allow_html=True)
         st.markdown(
-            '<p class="sga-checks"><b>✓</b> No sign-up &nbsp; <b>✓</b> Nothing stored &nbsp; <b>✓</b> PDF report</p>',
+            '<p class="sga-checks">' + " &nbsp; ".join(
+                f"<span><b>✓</b> {item}</span>"
+                for item in ("No sign-up", "Nothing stored", "PDF report", f"Knows {known_skills_label()} skills")
+            ) + "</p>",
             unsafe_allow_html=True,
         )
     with preview_col:
@@ -337,7 +350,7 @@ see which skills employers ask for, which ones you are missing and what to study
 def render_features() -> None:
     cards = "".join(
         f'<div class="sga-card"><div class="sga-icon">{icon}</div><h4>{title}</h4><p>{text}</p></div>'
-        for icon, title, text in _FEATURES
+        for icon, title, text in ((i, t, x.format(skills=known_skills_label())) for i, t, x in _FEATURES)
     )
     steps = "".join(
         f'<div class="sga-card"><div class="sga-icon">{number}</div><h4>{title}</h4><p>{text}</p></div>'
@@ -351,11 +364,38 @@ def render_features() -> None:
 <div class="sga-section-title" id="how-it-works">How it works</div>
 <p class="sga-section-lead">Three steps, about a minute, no account needed.</p>
 <div class="sga-grid">{steps}</div>
-<div class="sga-section-title" id="analyze">Analyze your CV</div>
-<p class="sga-section-lead">Choose the role, add your CV and the job posts, then click Analyze.</p>
+<div class="sga-section-title" id="limitations">Good to know</div>
 """,
         unsafe_allow_html=True,
     )
+    render_limitations()
+    st.markdown(
+        '<div class="sga-section-title" id="analyze">Analyze your CV</div>'
+        '<p class="sga-section-lead">Choose the role, add your CV and the job posts, then click Analyze.</p>',
+        unsafe_allow_html=True,
+    )
+
+
+def render_limitations() -> None:
+    """What the app cannot do: being upfront about it makes the result easier to trust."""
+    with st.expander(":material/info: Limitations: what the app can and cannot do"):
+        st.markdown(
+            f"""
+- **It only knows the skills in its lists** ({known_skills_label()} skills, with synonyms in {LANGUAGES}),
+  plus, for a role you type yourself, the terms that recur in your job posts. A skill written in an
+  unusual way (an uncommon abbreviation, a typo, a brand-new tool) can be missed.
+- **It reads words, not meaning.** "We don't use Excel" still counts as Excel, and the app cannot
+  judge how good you are at a skill: it only checks whether your CV mentions it.
+- **Levels** ("advanced", "3+ years") are recognised only when written right next to the skill.
+- **Scanned PDFs** are images without text: paste the text of your CV instead. Very creative
+  layouts can mix up lines, but skills are still found.
+- **The result is as good as the posts you paste:** 5 to 10 real posts for the same role give a
+  reliable picture; a single post gives a narrow one.
+- **Soft skills** are listed apart and not scored: they are shown with examples, not studied.
+
+Missing a skill, or found a wrong match? [Tell me on LinkedIn]({LINKEDIN_URL}) and I will add it.
+"""
+        )
 
 
 def render_footer() -> None:
@@ -422,9 +462,10 @@ def render_cv_input() -> str:
             st.error(f":material/error: {exc}")
             return ""
         if not text:
-            st.warning(
-                ":material/warning: No text found in this PDF. It is probably a scanned "
-                "image: export your CV as a text PDF, or paste its text above."
+            st.error(
+                ":material/image_not_supported: **This PDF looks like an image (a scan), so it "
+                "has no text to read.** Paste the text of your CV in the box above "
+                "(\"No PDF at hand? Paste your CV text instead\"), or export it again as a text PDF."
             )
         else:
             st.caption(f":material/check_circle: Read {len(text.split()):,} words from **{uploaded.name}**.")
@@ -453,6 +494,7 @@ def render_custom_skills(posts: list[str], dictionary: SkillDictionary, role: st
 def render_posts_input() -> list[str]:
     """Return the list of job posts, from either input mode."""
     st.markdown("#### :material/work: Job posts")
+    st.caption(f":material/translate: Posts can be in {LANGUAGES}, and you can mix languages freely.")
     mode = st.radio("Input mode", [MODE_SINGLE_BOX, MODE_FIELDS], horizontal=True, key="input_mode")
 
     if mode == MODE_SINGLE_BOX:
@@ -490,6 +532,28 @@ def skill_badges(rows, color: str, icon: str) -> str:
     )
 
 
+def priority_badge(row) -> str:
+    """Required skills and nice-to-have-only skills look different."""
+    return ":red-badge[required]" if row.required_count else ":gray-badge[nice to have]"
+
+
+def render_missing_skills(missing) -> None:
+    """Missing skills by demand (#1 = top study priority), each with a free resource."""
+    if missing.empty:
+        st.markdown("_Nothing missing!_")
+        return
+    resources = get_resources()
+    lines = []
+    for rank, row in enumerate(missing.itertuples(), start=1):
+        title, url = resources_for(row.skill, resources)[0]
+        lines.append(
+            f"`#{rank}` **{row.skill}** · {row.posts_count} post{'s' * (row.posts_count != 1)} "
+            f"{priority_badge(row)} · [{'Learn it' if 'Search' not in title else 'Find a course'} ↗]({url})"
+        )
+    box = st.container(height=420, border=False) if len(lines) > 12 else st.container(border=False)
+    box.markdown("  \n".join(lines))
+
+
 def render_evidence(
     table,
     posts: list[str],
@@ -500,7 +564,7 @@ def render_evidence(
     st.markdown("#### :material/format_quote: Where each skill was found")
     st.caption(
         "Pick a skill to see the exact sentences that matched. Useful to check "
-        "the result, and to spot wrong matches to report."
+        f"the result, and to spot wrong matches to [report on LinkedIn]({LINKEDIN_URL})."
     )
     skill = st.selectbox("Skill", table["skill"], label_visibility="collapsed")
     col_posts, col_cv = st.columns([3, 2], gap="large")
@@ -696,16 +760,24 @@ def render_results(
         )
 
         st.markdown("#### :material/compare_arrows: Your CV vs the market")
-        st.caption("Technical skills. The number next to each skill is how many job posts ask for it.")
+        st.caption(
+            "Technical skills, most requested first: #1 is your top study priority. The number is how "
+            "many job posts ask for the skill; grey skills appear only as nice to have."
+        )
         present = technical[technical["in_cv"]]
         missing = technical[~technical["in_cv"]]
         col_present, col_missing = st.columns(2)
         with col_present.container(border=True):
             st.markdown(f"**:material/check_circle: In your CV ({len(present)})**")
-            st.markdown(skill_badges(present, "green", "check") if not present.empty else "_None yet._")
+            st.markdown(
+                " ".join(
+                    f":{'green' if row.required_count else 'gray'}-badge[:material/check: {row.skill} · {row.posts_count}]"
+                    for row in present.itertuples()
+                ) if not present.empty else "_None yet._"
+            )
         with col_missing.container(border=True):
             st.markdown(f"**:material/cancel: Missing from your CV ({len(missing)})**")
-            st.markdown(skill_badges(missing, "red", "close") if not missing.empty else "_Nothing missing!_")
+            render_missing_skills(missing)
         if extras:
             st.caption("Also in your CV but not requested by these posts: " + ", ".join(extras))
 
@@ -824,11 +896,14 @@ def main() -> None:
     if custom_role and posts:
         dictionary = render_custom_skills(posts, dictionary, role)
 
+    missing_inputs = [label for label, given in (("your CV", cv_text.strip()), ("at least one job post", posts))
+                      if not given]
     st.button(
         "Analyze my skill gap", icon=":material/insights:", type="primary",
-        width="stretch", on_click=start_analysis, disabled=not posts,
-        help=None if posts else "Add at least one job post first.",
+        width="stretch", on_click=start_analysis, disabled=bool(missing_inputs), key="analyze",
     )
+    if missing_inputs:
+        st.caption(":material/info: To analyze, add " + " and ".join(missing_inputs) + ".")
 
     if st.session_state.analyzed and posts:
         st.markdown('<div id="your-results"></div>', unsafe_allow_html=True)
@@ -838,7 +913,8 @@ def main() -> None:
                 "Meanwhile, here is what the job posts ask for.",
                 icon=":material/info:",
             )
-        render_results(cv_text, posts, dictionary, nice_weight)
+        with st.spinner("Analyzing your CV and the job posts…", show_time=True):
+            render_results(cv_text, posts, dictionary, nice_weight)
         scroll_to_results()
     else:
         st.caption(

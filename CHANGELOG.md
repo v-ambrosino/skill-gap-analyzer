@@ -3,6 +3,24 @@
 All notable changes to Skill Gap Analyzer. Versions follow
 [semantic versioning](https://semver.org/); pre-release tags mark the stage.
 
+## 1.5.0 — 2026-10-20
+
+### Added
+- **Limitations** section ("Good to know") in the app, with a link to report a missing
+  skill or a wrong match on LinkedIn (also in the Evidence tab).
+- Skill counter "Knows 300+ skills" (computed from the dictionaries) in the hero and in
+  the "Explainable, no AI" card, which now speaks plain language instead of "dictionary rule".
+- **Missing skills as an action plan:** ranked by demand (#1 = top study priority), each
+  with a required / nice-to-have badge and a free resource to learn it.
+- Skills in the CV that are only nice to have are shown in grey.
+- A loading indicator while the analysis runs.
+
+### Changed
+- **Analyze** is bigger and disabled until both the CV and a job post are given, with a
+  message saying what is missing.
+- The job posts box says that posts can be in any of the six languages, also mixed.
+- A clearer error for scanned PDFs, pointing to the paste-text box.
+
 ## 1.4.1 — 2026-10-20
 
 ### Changed
