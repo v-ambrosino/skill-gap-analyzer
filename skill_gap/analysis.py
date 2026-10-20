@@ -3,11 +3,12 @@
 Everything is built on one pandas DataFrame, the "skill table", with one row
 per skill requested in at least one job post:
 
-    skill | category | posts_count | required_count | nice_count | demand | posts_share | in_cv
+    skill | category | posts_count | required_count | nice_count | demand | posts_share | in_cv | level_count
 
 `demand` is the weight used everywhere else: a post that REQUIRES a skill adds
 1, a post where the skill is only NICE TO HAVE adds `nice_weight` (0.5 by
-default). All other results (coverage score, study priorities, category
+default), and a post that asks for a level ("advanced Excel", "3+ years of
+SQL") adds `LEVEL_BONUS` on top. All other results (coverage score, study priorities, category
 breakdown) are simple aggregations of that table, which keeps the logic easy
 to test and to explain.
 """
@@ -22,6 +23,9 @@ from skill_gap.extractor import NICE_TO_HAVE, REQUIRED, SkillMention
 from skill_gap.skills_dictionary import SkillDictionary
 
 DEFAULT_NICE_WEIGHT = 0.5
+# Extra demand when a post asks for a level ("advanced Excel", "3+ years of SQL"):
+# a skill wanted at a higher level is a bigger gap to close.
+LEVEL_BONUS = 0.5
 
 # Soft skills are reported on their own: they are shown in the CV through
 # examples rather than studied, so they are kept out of the coverage score,
@@ -30,7 +34,7 @@ SOFT_SKILLS_CATEGORY = "Soft Skills"
 
 SKILL_TABLE_COLUMNS = [
     "skill", "category", "posts_count", "required_count", "nice_count",
-    "demand", "posts_share", "in_cv",
+    "demand", "posts_share", "in_cv", "level_count",
 ]
 
 # What one job post contributes: its skills, either as a plain set (all
@@ -70,15 +74,21 @@ def build_skill_table(
     n_posts = len(posts_skills)
     required: dict[str, int] = {}
     nice: dict[str, int] = {}
+    levels: dict[str, int] = {}
     # Each post holds a skill at most once, so this counts posts, not mentions.
     for post in posts_skills:
         for skill, priority in _priorities(post).items():
             target = nice if priority == NICE_TO_HAVE else required
             target[skill] = target.get(skill, 0) + 1
+        if not isinstance(post, (set, frozenset)):
+            for skill, value in post.items():
+                if isinstance(value, SkillMention) and value.level:
+                    levels[skill] = levels.get(skill, 0) + 1
 
     rows = []
     for skill in required.keys() | nice.keys():
         n_required, n_nice = required.get(skill, 0), nice.get(skill, 0)
+        n_level = levels.get(skill, 0)
         rows.append(
             {
                 "skill": skill,
@@ -86,9 +96,10 @@ def build_skill_table(
                 "posts_count": n_required + n_nice,
                 "required_count": n_required,
                 "nice_count": n_nice,
-                "demand": n_required + nice_weight * n_nice,
+                "demand": n_required + nice_weight * n_nice + LEVEL_BONUS * n_level,
                 "posts_share": (n_required + n_nice) / n_posts,
                 "in_cv": skill in cv_skills,
+                "level_count": n_level,
             }
         )
     table = pd.DataFrame(rows, columns=SKILL_TABLE_COLUMNS)

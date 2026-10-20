@@ -150,6 +150,7 @@ class SkillMention:
     skill: str
     priority: str  # REQUIRED or NICE_TO_HAVE
     snippet: str  # the clause of the original text that mentions the skill
+    level: bool = False  # the post asks for an advanced level or years of experience
 
 
 def find_skills(text: str, dictionary: SkillDictionary) -> set[str]:
@@ -208,6 +209,45 @@ def _mention_priority(
         if start <= span[0] and span[1] <= end and _NICE_MARKERS.search(bracket.group()):
             return NICE_TO_HAVE
     return section
+
+
+# Level requirements next to a skill: "advanced Excel", "SQL (3+ years)",
+# "ottima conoscenza di Excel", "Excel avancé", "fundierte SQL-Kenntnisse"...
+# Matched on normalised (accent-free) text, ignoring case.
+_LEVEL_WORDS = re.compile(
+    r"(?<!\w)(?:advanced|expert(?:ise)?|strong|solid|deep|proficient|proficiency|in[\s\-]depth|"
+    r"hands[\s\-]on|extensive|excellent|"
+    r"avanzat[oaie]|ottim[oaie]|approfondit[oaie]|esperto|esperta|comprovata|solida|"
+    r"avance[es]?|confirme[es]?|expert[es]?|maitrise|"
+    r"fortgeschrittene?n?|fundierte?n?|sehr\s+gute?n?|umfassende?n?|"
+    r"avanzad[oa]s?|experto|experta|solid[oa]s?|"
+    r"avancad[oa]s?|especialista|dominio)(?!\w)",
+    re.IGNORECASE,
+)
+_LEVEL_YEARS = re.compile(
+    r"(?<!\w)\d+\s*\+?\s*(?:-\s*\d+\s*)?(?:years?|yrs?|anni|anno|ans?|jahre?n?|anos?|anos?|annees?)(?!\w)",
+    re.IGNORECASE,
+)
+_LEVEL_WINDOW = 35  # characters around the skill name where a level marker counts
+# A list separator ends the window: in "advanced Excel and Power BI" only Excel is advanced.
+_LEVEL_STOP = re.compile(r"[,;/]|(?<!\w)(?:and|or|e|o|et|ou|und|oder|y)(?!\w)", re.IGNORECASE)
+
+
+def _has_level(clause: str, spans: list[tuple[int, int]]) -> bool:
+    """True when a level marker sits close to one of the skill's matches."""
+    for start, end in spans:
+        before = clause[max(0, start - _LEVEL_WINDOW): start]
+        stops = list(_LEVEL_STOP.finditer(before))
+        if stops:
+            before = before[stops[-1].end():]
+        after = clause[end: end + _LEVEL_WINDOW]
+        stop = _LEVEL_STOP.search(after)
+        if stop:
+            after = after[: stop.start()]
+        window = before + clause[start:end] + after
+        if _LEVEL_WORDS.search(window) or _LEVEL_YEARS.search(window):
+            return True
+    return False
 
 
 def _shorten(text: str) -> str:
@@ -281,10 +321,17 @@ def find_skill_mentions(
                     continue
                 priorities = {_mention_priority(normalized_clause, s, section) for s in spans}
                 priority = REQUIRED if REQUIRED in priorities else NICE_TO_HAVE
+                level = _has_level(normalized_clause, spans)
                 previous = mentions.get(skill.name)
                 # Keep the first mention, unless a later one upgrades it to required.
                 if previous is None or (previous.priority != REQUIRED and priority == REQUIRED):
-                    mentions[skill.name] = SkillMention(skill.name, priority, _shorten(clause))
+                    mentions[skill.name] = SkillMention(
+                        skill.name, priority, _shorten(clause), level or (previous is not None and previous.level)
+                    )
+                elif level and not previous.level:
+                    mentions[skill.name] = SkillMention(
+                        previous.skill, previous.priority, previous.snippet, True
+                    )
 
     # A phrase broken across two lines is found in the whole text but in no
     # single clause: count it as required, without a snippet.

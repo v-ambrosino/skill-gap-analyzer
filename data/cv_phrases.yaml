@@ -1,0 +1,42 @@
+# Example CV sentences that make a soft skill visible with a concrete fact.
+# Keys are soft skill names from data/dictionaries/shared/soft_skills.yaml.
+# Replace the bracketed parts with your own numbers and context.
+Communication:
+  - "Presented monthly KPI results to [the sales team / 20 people], turning analysis into clear actions."
+  - "Wrote documentation and short reports for non-technical colleagues."
+Teamwork:
+  - "Worked in a cross-functional team of [5] with marketing and IT to deliver [project]."
+  - "Collaborated with colleagues on shared dashboards, reviewing each other's queries."
+Problem Solving:
+  - "Found the cause of [a 10%] gap between two reports and fixed the data pipeline."
+  - "Solved recurring data quality issues by adding automated checks."
+Analytical Thinking:
+  - "Analysed [sales / customer] data to identify the drivers of [churn / revenue drop]."
+  - "Broke down a vague business question into measurable KPIs."
+Critical Thinking:
+  - "Challenged an assumption in the forecast model, improving accuracy by [x%]."
+  - "Validated data sources before use, flagging inconsistent figures to stakeholders."
+Attention to Detail:
+  - "Reconciled [monthly] figures across systems with zero reporting errors in [period]."
+  - "Reviewed datasets of [100k] rows for anomalies before publication."
+Stakeholder Management:
+  - "Gathered requirements from [3] departments and agreed priorities for the reporting roadmap."
+  - "Kept managers updated with weekly progress meetings and clear timelines."
+Presentation Skills:
+  - "Presented findings to management with slides and dashboards, leading to [decision]."
+  - "Ran a training session on [Power BI / Excel] for [10] colleagues."
+Time Management:
+  - "Delivered [weekly / monthly] reports on time while handling ad hoc requests."
+  - "Managed [3] projects in parallel, meeting every deadline."
+Autonomy:
+  - "Owned the [reporting process] end to end, from data extraction to delivery."
+  - "Built [a dashboard / an automation] on my own initiative, saving [x hours] a week."
+Curiosity & Learning:
+  - "Learned [Python / SQL] on my own through online courses and applied it to [project]."
+  - "Completed [certification] in [year] to strengthen my analytics skills."
+Adaptability:
+  - "Moved to a new [tool / team] in [weeks] and kept delivering reports without delays."
+  - "Adapted analyses quickly when business priorities changed."
+English:
+  - "Professional working proficiency in English (B2/C1): daily meetings and reports in English."
+  - "Collaborated with international colleagues in English."

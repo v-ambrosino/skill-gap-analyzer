@@ -129,6 +129,7 @@ def build_pdf_report(
     version: str,
     generated_on: date | None = None,
     resources: dict[str, list[tuple[str, str]]] | None = None,
+    cv_phrases: dict[str, list[str]] | None = None,
 ) -> bytes:
     """Return the PDF report as bytes.
 
@@ -145,6 +146,7 @@ def build_pdf_report(
         version: app version, printed in the footer.
         generated_on: report date (defaults to today).
         resources: free learning resources per skill (see `resources.py`).
+        cv_phrases: example CV sentences per soft skill (see `resources.py`).
     """
     from skill_gap.resources import resources_for
     generated_on = generated_on or date.today()
@@ -289,6 +291,14 @@ def build_pdf_report(
             "rather than studying them.",
         )
         pdf.chips([f"{r.skill} - {r.posts_count}" for r in soft_missing.itertuples()], _ORANGE, _ORANGE_BG)
+        examples = [(s, (cv_phrases or {})[s][0]) for s in soft_missing["skill"] if (cv_phrases or {}).get(s)]
+        if examples:
+            pdf.set_font("Helvetica", "B", 9)
+            pdf.set_text_color(*_MUTED)
+            pdf.cell(0, 5, "Example sentences for your CV:", new_x="LMARGIN", new_y="NEXT")
+            pdf.set_font("Helvetica", size=9)
+            for skill, phrase in examples:
+                pdf.multi_cell(0, 4.5, _latin1(f"- {skill}: {phrase}"), new_x="LMARGIN", new_y="NEXT")
         if not soft_present.empty:
             pdf.set_font("Helvetica", size=9)
             pdf.set_text_color(*_MUTED)

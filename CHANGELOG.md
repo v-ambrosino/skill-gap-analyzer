@@ -3,9 +3,15 @@
 All notable changes to Skill Gap Analyzer. Versions follow
 [semantic versioning](https://semver.org/); pre-release tags mark the stage.
 
-## Unreleased
+## 1.3.0 — 2026-10-20
 
 ### Added
+- **Example CV sentences for missing soft skills** (`data/cv_phrases.yaml`), in the
+  app and in the PDF report.
+- **Skill levels weigh more:** "advanced Excel", "SQL (3+ years)", "ottima conoscenza
+  di Excel", "Excel avancé", "fundierte SQL-Kenntnisse"… add `LEVEL_BONUS` (0.5) to the
+  skill's demand. A new "Level" column in the study priorities shows how many posts ask
+  for a level.
 - **Browser-only version (experimental):** `web/build.py` builds a static site
   that runs the app in the browser with stlite; published on GitHub Pages by
   `.github/workflows/pages.yml`. The CV never leaves the device.

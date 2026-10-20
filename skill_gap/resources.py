@@ -1,4 +1,5 @@
-"""Free learning resources for each skill (data/learning_resources.yaml).
+"""Free learning resources for each skill (data/learning_resources.yaml)
+and example CV sentences for soft skills (data/cv_phrases.yaml).
 
 Skills without a curated entry get a web search link, so every study
 priority comes with somewhere to start.
@@ -19,6 +20,16 @@ def load_resources(path: str | Path = RESOURCES_PATH) -> dict[str, list[tuple[st
     with Path(path).open(encoding="utf-8") as handle:
         data = yaml.safe_load(handle) or {}
     return {skill: [(str(t), str(u)) for t, u in items] for skill, items in data.items()}
+
+
+CV_PHRASES_PATH = RESOURCES_PATH.with_name("cv_phrases.yaml")
+
+
+def load_cv_phrases(path: str | Path = CV_PHRASES_PATH) -> dict[str, list[str]]:
+    """Soft skill name -> example CV sentences that show it with a concrete fact."""
+    with Path(path).open(encoding="utf-8") as handle:
+        data = yaml.safe_load(handle) or {}
+    return {skill: [str(p) for p in phrases] for skill, phrases in data.items()}
 
 
 def resources_for(skill: str, resources: dict[str, list[tuple[str, str]]]) -> list[tuple[str, str]]:
