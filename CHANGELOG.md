@@ -3,6 +3,17 @@
 All notable changes to Skill Gap Analyzer. Versions follow
 [semantic versioning](https://semver.org/); pre-release tags mark the stage.
 
+## 1.2.0 — 2026-10-20
+
+### Changed
+- **Website-style interface:** a navigation bar instead of Streamlit's toolbar, a
+  two-column hero with a live-looking result preview, "Why Skill Gap Analyzer" and
+  "How it works" sections, soft-shadow cards, pill buttons and tabs, a footer, a
+  soft gradient background and centred content.
+- Target role and the nice-to-have weight (in *Advanced settings*) are chosen on the
+  page; the sidebar starts collapsed.
+- The page scrolls to the results after *Analyze* or *Try with sample data*.
+
 ## 1.1.0 — 2026-10-20
 
 ### Added
