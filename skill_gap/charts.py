@@ -16,7 +16,7 @@ _CATEGORY_PALETTE = {
     "light": ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#6250d6", "#e34948"],
     "dark": ["#3987e5", "#d95926", "#199e70", "#c98500", "#d55181", "#008300", "#9085e9", "#e66767"],
 }
-_SINGLE_SERIES = {"light": "#2a78d6", "dark": "#3987e5"}
+_SINGLE_SERIES = {"light": "#2f6fe4", "dark": "#3987e5"}
 _TEXT_MUTED = {"light": "#52514e", "dark": "#c3c2b7"}
 _GRID = {"light": "rgba(0,0,0,0.08)", "dark": "rgba(255,255,255,0.10)"}
 
@@ -35,6 +35,7 @@ def _base_layout(fig: go.Figure, mode: str, height: int) -> go.Figure:
         plot_bgcolor="rgba(0,0,0,0)",
         bargap=0.25,
         hoverlabel=dict(align="left"),
+        font=dict(family="Inter, system-ui, sans-serif"),
     )
     fig.update_xaxes(gridcolor=_GRID[mode], zeroline=False, tickfont=dict(color=_TEXT_MUTED[mode]))
     fig.update_yaxes(showgrid=False, tickfont=dict(color=_TEXT_MUTED[mode]))
@@ -142,10 +143,11 @@ def demand_bar_chart(
     fig.update_layout(
         barmode="stack",
         barcornerradius=4,
-        legend=dict(orientation="h", yanchor="bottom", y=1.0, xanchor="left", x=0, title_text=""),
+        legend=dict(orientation="h", yref="container", yanchor="top", y=1.0, xanchor="left", x=0, title_text=""),
     )
-    height = max(260, 26 * len(ordered) + 80)
-    return _base_layout(fig, mode, height)
+    height = max(260, 26 * len(ordered) + 120)
+    # Room above the plot for the legend, which can wrap onto two rows.
+    return _base_layout(fig, mode, height).update_layout(margin=dict(t=64))
 
 
 def category_coverage_chart(breakdown: pd.DataFrame, mode: str = "light") -> go.Figure:
@@ -177,7 +179,7 @@ def category_coverage_chart(breakdown: pd.DataFrame, mode: str = "light") -> go.
 
 def coverage_donut(score: float, mode: str = "light") -> go.Figure:
     """A ring showing the weighted coverage, with the percentage in the middle."""
-    track = "#cde2fb" if mode == "light" else "#28456b"
+    track = "#e6edfb" if mode == "light" else "#28456b"
     fig = go.Figure(
         go.Pie(
             values=[score, max(0.0, 100 - score)],
