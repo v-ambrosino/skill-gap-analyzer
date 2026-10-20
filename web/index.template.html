@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Skill Gap Analyzer (offline)</title>
+  <link rel="icon" href="assets/logo.svg" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@stlite/browser@{{STLITE_VERSION}}/build/stlite.css" />
+  <style>
+    body { margin: 0; font-family: Inter, system-ui, sans-serif; background: #f7f8fc; }
+    #loading { max-width: 520px; margin: 18vh auto; padding: 0 16px; text-align: center; color: #334155; }
+    #loading h1 { font-size: 1.4rem; color: #312e81; }
+  </style>
+</head>
+<body>
+  <div id="root">
+    <div id="loading">
+      <h1>Skill Gap Analyzer</h1>
+      <p>Loading Python in your browser… the first visit takes 20–40 seconds.</p>
+      <p><strong>Your CV never leaves this device</strong>: everything runs locally.</p>
+    </div>
+  </div>
+  <script type="module">
+    import { mount } from "https://cdn.jsdelivr.net/npm/@stlite/browser@{{STLITE_VERSION}}/build/stlite.js";
+    mount(
+      {
+        requirements: {{REQUIREMENTS}},
+        entrypoint: "app.py",
+        files: {{FILES}},
+      },
+      document.getElementById("root"),
+    );
+  </script>
+</body>
+</html>

@@ -22,3 +22,4 @@ Thumbs.db
 
 # Personal test files: never commit a real CV
 *.pdf
+_site/

@@ -3,6 +3,14 @@
 All notable changes to Skill Gap Analyzer. Versions follow
 [semantic versioning](https://semver.org/); pre-release tags mark the stage.
 
+## Unreleased
+
+### Added
+- **Browser-only version (experimental):** `web/build.py` builds a static site
+  that runs the app in the browser with stlite; published on GitHub Pages by
+  `.github/workflows/pages.yml`. The CV never leaves the device.
+- PDF reading falls back to `pypdf` when pdfplumber is not available.
+
 ## 1.2.0 — 2026-10-20
 
 ### Changed

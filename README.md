@@ -239,6 +239,28 @@ Every push to `main` redeploys the app automatically. On the free tier an app
 that nobody opens for a while goes to sleep: the next visitor wakes it up with
 one click, in about a minute.
 
+## Browser-only version (stlite, experimental)
+
+The same app can run **entirely inside your browser** thanks to
+[stlite](https://github.com/whitphx/stlite) (Streamlit + Python on WebAssembly):
+the CV is never sent to any server, not even Streamlit's.
+
+- `web/build.py` copies the app, the dictionaries and the assets into `_site/`
+  and writes an `index.html` that mounts the app with stlite.
+- `.github/workflows/pages.yml` publishes `_site/` on GitHub Pages at every push
+  to `main` (enable it once in *Settings → Pages → Source: GitHub Actions*).
+- PDFs are read with `pypdf` there, because pdfplumber needs a compiled
+  library that is not available in the browser.
+- The first load takes 20–40 seconds while Python is downloaded; later visits
+  are faster thanks to the browser cache.
+
+Try it locally:
+
+```bash
+python web/build.py && python -m http.server -d _site 8000
+# then open http://localhost:8000
+```
+
 ## Privacy
 
 - The CV and the job posts are kept **only in memory** (Streamlit session state)
