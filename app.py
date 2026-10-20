@@ -9,6 +9,7 @@ lives in the `skill_gap` package:
 
 from __future__ import annotations
 
+import html
 from dataclasses import replace
 from pathlib import Path
 
@@ -24,7 +25,7 @@ from skill_gap.analysis import (
     split_soft_skills,
     study_priorities,
 )
-from skill_gap.charts import category_coverage_chart, coverage_donut, demand_bar_chart
+from skill_gap.charts import category_coverage_chart, demand_bar_chart
 from skill_gap.extractor import (
     REQUIRED,
     SkillMention,
@@ -277,7 +278,6 @@ h1, h2, h3, h4 { color: var(--ink); letter-spacing: -.015em; }
 .sga-eyebrow .tag { background: var(--grad); color: #fff; border-radius: 999px; padding: 2px 9px; font-weight: 600; font-size: .74rem; }
 .sga-title { font-size: 3.7rem; line-height: 1.02; font-weight: 800; color: var(--ink); margin: 0 0 18px;
   letter-spacing: -0.035em; }
-.sga-title .hl { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .sga-lead { font-size: 1.16rem; color: var(--ink-2); line-height: 1.62; margin: 0 0 24px; max-width: 540px; }
 .sga-ghost { display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: 100%;
   padding: 8px 18px; border-radius: 999px; border: 1px solid var(--line); background: #fff; box-shadow: var(--shadow-sm);
@@ -364,6 +364,109 @@ h1, h2, h3, h4 { color: var(--ink); letter-spacing: -.015em; }
 .sga-assure svg { flex: 0 0 18px; width: 18px; height: 18px; color: var(--brand); margin-top: 2px; }
 .sga-assure b { display: block; color: var(--ink); font-size: .9rem; font-weight: 600; }
 .sga-assure span { color: var(--muted); font-size: .84rem; line-height: 1.45; }
+
+/* --- Motion ------------------------------------------------------------------------- */
+@keyframes sga-shine { to { background-position: 200% center; } }
+@keyframes sga-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes sga-grow { from { width: 0; } }
+@keyframes sga-draw { from { stroke-dasharray: 0 var(--len); } }
+@keyframes sga-scroll { to { transform: translateX(-50%); } }
+@keyframes sga-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(47,111,228,.45); } 50% { box-shadow: 0 0 0 6px rgba(47,111,228,0); } }
+.sga-title .hl { background: linear-gradient(90deg, #2f6fe4, #7048e8, #c246d6, #7048e8, #2f6fe4);
+  background-size: 200% auto; -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: sga-shine 7s linear infinite; }
+.sga-eyebrow .tag { animation: sga-pulse 2.6s ease-in-out infinite; }
+.sga-eyebrow, .sga-title, .sga-lead, .sga-checks { animation: sga-rise .7s cubic-bezier(.2,.7,.2,1) both; }
+.sga-title { animation-delay: .05s; } .sga-lead { animation-delay: .12s; } .sga-checks { animation-delay: .2s; }
+.sga-stage { animation: sga-rise .9s .15s cubic-bezier(.2,.7,.2,1) both; }
+.sga-bar div span, .sga-mini-bars i, .sga-prio .meter span { animation: sga-grow 1.2s .3s cubic-bezier(.2,.7,.2,1) both; }
+.sga-ring .arc { animation: sga-draw 1.4s .1s cubic-bezier(.2,.7,.2,1) both; }
+
+/* --- Marquee -------------------------------------------------------------------------- */
+.sga-marquee-label { text-align: center; color: var(--muted); font-size: .82rem; margin: 30px 0 12px; }
+.sga-marquee { overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); }
+.sga-marquee .track { display: flex; gap: 10px; width: max-content; animation: sga-scroll 45s linear infinite; }
+.sga-marquee span { white-space: nowrap; padding: 8px 16px; border-radius: 999px; background: rgba(255,255,255,.85);
+  border: 1px solid var(--line); color: var(--ink-2); font-size: .88rem; font-weight: 500; box-shadow: var(--shadow-sm); }
+.sga-marquee:hover .track { animation-play-state: paused; }
+
+/* --- Bento ---------------------------------------------------------------------------- */
+.sga-bento { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.sga-bento .span2 { grid-column: span 2; }
+.sga-demo-quote { margin-top: 16px; padding: 14px 16px; border-radius: 14px; background: #f7f9fd; border: 1px solid #edf0f7;
+  color: var(--ink-2); font-size: .92rem; line-height: 1.7; }
+.sga-demo-quote mark { background: rgba(47,111,228,.12); color: #1d4fb8; padding: 1px 6px; border-radius: 6px; font-weight: 600; }
+.sga-demo-quote mark.nice { background: rgba(112,72,232,.10); color: #5b3cc4; border: 1px dashed rgba(112,72,232,.45); }
+.sga-mini-bars { display: grid; gap: 9px; margin-top: 16px; }
+.sga-mini-bars div { display: grid; grid-template-columns: 60px 1fr; align-items: center; gap: 10px; font-size: .78rem; color: var(--ink-2); }
+.sga-mini-bars i { display: block; height: 8px; border-radius: 99px; background: linear-gradient(90deg, #f79009, #ef6820); }
+.sga-mini-bars i.h { background: repeating-linear-gradient(135deg, rgba(239,104,32,.75) 0 4px, rgba(239,104,32,.25) 4px 8px); }
+.sga-langs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.sga-langs span { font-weight: 700; font-size: .8rem; letter-spacing: .04em; color: #067647; background: #e7f6ee;
+  border-radius: 10px; padding: 6px 10px; }
+.sga-card.dark { background: radial-gradient(500px 220px at 90% 0%, rgba(112,72,232,.45), transparent 60%),
+  radial-gradient(400px 220px at 0% 100%, rgba(47,111,228,.35), transparent 60%), #0b1430; border-color: #1b2547; }
+.sga-card.dark h4 { color: #fff; } .sga-card.dark p { color: #b8c2dc; }
+.sga-privacy { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+.sga-privacy span { display: inline-flex; align-items: center; gap: 7px; color: #e3e8f6; font-size: .84rem;
+  padding: 7px 12px; border-radius: 999px; background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12); }
+.sga-privacy svg { width: 15px; height: 15px; color: #6ce9a6; }
+.sga-steps .sga-card:not(:last-child)::after { content: "→"; position: absolute; right: -15px; top: 50%; transform: translateY(-50%);
+  width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: #fff; color: var(--brand);
+  border: 1px solid var(--line); box-shadow: var(--shadow-sm); font-weight: 700; z-index: 2; }
+
+/* --- Results: ring and priorities --------------------------------------------------------- */
+.sga-ring { text-align: center; padding: 6px 4px 0; }
+.sga-ring svg { width: 210px; height: 210px; filter: drop-shadow(0 14px 28px rgba(47,111,228,.18)); }
+.sga-ring .v { font-size: 38px; font-weight: 800; fill: var(--ink); letter-spacing: -.03em; font-family: Inter, sans-serif; }
+.sga-ring .l { font-size: 12px; fill: var(--muted); font-family: Inter, sans-serif; }
+.sga-ring-verdict { display: inline-block; margin-top: 4px; padding: 4px 12px; border-radius: 999px; font-size: .82rem;
+  font-weight: 700; color: var(--brand); background: var(--brand-soft); }
+.sga-ring p { color: var(--muted); font-size: .86rem; line-height: 1.5; margin: 10px auto 0; max-width: 260px; }
+.sga-prio { display: grid; gap: 10px; }
+.sga-prio-item { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto 122px; align-items: center; gap: 14px;
+  padding: 12px 14px; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-sm);
+  transition: border-color .15s, transform .15s, box-shadow .15s; }
+.sga-prio-item:hover { border-color: #cdd9f4; transform: translateX(2px); box-shadow: var(--shadow); }
+.sga-prio-item .rank { width: 36px; height: 36px; border-radius: 11px; display: grid; place-items: center; font-weight: 800;
+  color: #fff; background: var(--grad); }
+.sga-prio-item:nth-child(n+2) .rank { background: #eef2fb; color: var(--brand); }
+.sga-prio-item .info b { display: block; color: var(--ink); font-size: .98rem; }
+.sga-prio-item .info small { color: var(--muted); font-size: .8rem; }
+.sga-prio-item .meter { height: 6px; border-radius: 99px; background: #eef1f7; margin-top: 7px; overflow: hidden; max-width: 260px; }
+.sga-prio-item .meter span { display: block; height: 100%; border-radius: 99px; background: var(--grad); }
+.sga-prio-item .tags { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+.sga-prio-item .t { font-size: .74rem; font-weight: 600; border-radius: 999px; padding: 3px 9px; white-space: nowrap; }
+.sga-prio-item .t.req { background: #fef0ef; color: #b42318; }
+.sga-prio-item .t.nice { background: #f2f4f7; color: #475467; }
+.sga-prio-item .t.lvl { background: #fff4e5; color: #b54708; }
+.sga-prio-item .learn { text-align: center; white-space: nowrap; font-size: .84rem; font-weight: 600; color: var(--brand) !important;
+  text-decoration: none !important; padding: 7px 12px; border-radius: 999px; background: var(--brand-soft); }
+.sga-prio-item .learn:hover { background: var(--brand); color: #fff !important; }
+
+/* --- Closing call to action ---------------------------------------------------------------- */
+.sga-cta { position: relative; overflow: hidden; margin-top: 72px; padding: 38px 40px; border-radius: 26px; display: flex;
+  align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; color: #fff;
+  background: radial-gradient(600px 260px at 85% -20%, rgba(194,70,214,.55), transparent 60%),
+    radial-gradient(520px 260px at 0% 120%, rgba(47,111,228,.6), transparent 60%), #0b1430;
+  box-shadow: 0 30px 70px rgba(11,20,48,.28); }
+.sga-cta h3 { color: #fff; margin: 0 0 8px; padding: 0; font-size: 1.7rem; font-weight: 800; letter-spacing: -.02em; }
+.sga-cta p { color: #c3cbe2; margin: 0; max-width: 560px; }
+.sga-cta-btn { display: inline-block; padding: 13px 24px; border-radius: 999px; background: #fff; color: var(--ink) !important;
+  font-weight: 700; text-decoration: none !important; box-shadow: 0 10px 24px rgba(0,0,0,.25); transition: transform .15s; }
+.sga-cta-btn:hover { transform: translateY(-2px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .sga-title .hl, .sga-eyebrow .tag, .sga-marquee .track, .sga-eyebrow, .sga-title, .sga-lead, .sga-checks, .sga-stage,
+  .sga-bar div span, .sga-mini-bars i, .sga-prio .meter span, .sga-ring .arc { animation: none; }
+}
+@media (max-width: 900px) {
+  .sga-bento { grid-template-columns: 1fr; } .sga-bento .span2 { grid-column: auto; }
+  .sga-steps .sga-card::after { display: none; }
+  .sga-prio-item { grid-template-columns: 36px minmax(0, 1fr) 122px; } .sga-prio-item .tags { display: none; }
+  .sga-cta { padding: 28px 24px; }
+}
 
 /* --- Footer --------------------------------------------------------------------------------- */
 .sga-footer { margin-top: 64px; padding: 26px 26px 22px; background: var(--surface); border: 1px solid var(--line);
@@ -463,12 +566,6 @@ _PREVIEW = f"""
 </div>
 """
 
-_FEATURES = [
-    ("search", "", "Explainable, no AI", "Skills are recognised with a list of {skills} skills and their synonyms, and the app shows the exact sentence that matched."),
-    ("chart", "c2", "Weighted by demand", "Skills that most employers require count more; nice-to-have skills count half."),
-    ("globe", "c3", "6 European languages", f"Job posts in {LANGUAGES}, also mixed together."),
-    ("lock", "c4", "Private by design", "Your CV is processed in memory for this session only and never stored."),
-]
 _STEPS = [
     ("file", "Upload your CV", "A text-based PDF, or paste its text."),
     ("briefcase", "Paste job posts", "One or more posts, separated by a line with ---."),
@@ -534,6 +631,15 @@ see which skills employers ask for, which ones you are missing and what to study
         + "</div>",
         unsafe_allow_html=True,
     )
+    roles = ["Data Analyst", "Software Developer", "Digital Marketing", "Accountant", "HR Specialist",
+             "Project Manager", "Sales Manager", "Data Engineer", "Nurse", "Chef", "Architect", "Teacher",
+             "Customer Success", "Financial Controller", "Recruiter", "Web Developer", "Logistics", "Pharmacist"]
+    chips = "".join(f"<span>{role}</span>" for role in roles)
+    st.markdown(
+        '<div class="sga-marquee-label">Works for every job title, from data to the kitchen</div>'
+        f'<div class="sga-marquee"><div class="track">{chips}{chips}</div></div>',
+        unsafe_allow_html=True,
+    )
 
 
 def _section(kicker: str, title: str, lead: str, anchor: str = "") -> str:
@@ -545,12 +651,36 @@ def _section(kicker: str, title: str, lead: str, anchor: str = "") -> str:
 
 
 def render_features() -> None:
-    cards = "".join(
-        f'<div class="sga-card"><div class="sga-icon {tone}">{_ICONS[icon]}</div><h4>{title}</h4><p>{text}</p></div>'
-        for icon, tone, title, text in (
-            (i, c, t, x.format(skills=known_skills_label())) for i, c, t, x in _FEATURES
-        )
-    )
+    langs = "".join(f"<span>{code}</span>" for code in ("EN", "IT", "FR", "DE", "ES", "PT"))
+    bento = f"""
+<div class="sga-bento">
+  <div class="sga-card span2">
+    <div class="sga-icon">{_ICONS["search"]}</div><h4>Explainable, no AI</h4>
+    <p>Skills are recognised with a list of {known_skills_label()} skills and their synonyms, and the app shows
+    the exact sentence that matched.</p>
+    <div class="sga-demo-quote">“We are looking for an analyst with strong <mark>SQL</mark> and <mark>Power BI</mark>,
+    good <mark>Excel</mark> and a working knowledge of <mark class="nice">Python</mark> (nice to have).”</div>
+  </div>
+  <div class="sga-card">
+    <div class="sga-icon c2">{_ICONS["chart"]}</div><h4>Weighted by demand</h4>
+    <p>Skills most employers require count more; nice-to-have skills count half.</p>
+    <div class="sga-mini-bars"><div><span>SQL</span><i style="width:92%"></i></div>
+      <div><span>Tableau</span><i style="width:60%"></i></div>
+      <div><span>Python</span><i class="h" style="width:38%"></i></div></div>
+  </div>
+  <div class="sga-card">
+    <div class="sga-icon c3">{_ICONS["globe"]}</div><h4>6 European languages</h4>
+    <p>Job posts in {LANGUAGES}, also mixed together.</p>
+    <div class="sga-langs">{langs}</div>
+  </div>
+  <div class="sga-card span2 dark">
+    <div class="sga-icon c4">{_ICONS["lock"]}</div><h4>Private by design</h4>
+    <p>Your CV is processed in memory for this session only. No account, no tracking, no copy kept anywhere.</p>
+    <div class="sga-privacy"><span>{_ICONS["check"]}In memory only</span><span>{_ICONS["check"]}No sign-up</span>
+      <span>{_ICONS["check"]}Gone when you close the page</span><span>{_ICONS["check"]}PDF report built on the fly</span></div>
+  </div>
+</div>
+"""
     steps = "".join(
         f'<div class="sga-card"><span class="sga-step-num">0{number}</span><div class="sga-icon">{_ICONS[icon]}</div>'
         f"<h4>{title}</h4><p>{text}</p></div>"
@@ -560,7 +690,7 @@ def render_features() -> None:
         _section("Why Skill Gap Analyzer", "Read the job market like a recruiter",
                  "A transparent way to read the job market, for any role: ready-made skill lists for the "
                  "most common jobs, automatic detection for all the others.")
-        + f'<div class="sga-grid">{cards}</div>'
+        + bento
         + _section("How it works", "Three steps, about a minute",
                    "No account, no upload to third parties: everything happens in this session.", "how-it-works")
         + f'<div class="sga-grid sga-steps">{steps}</div>'
@@ -572,6 +702,20 @@ def render_features() -> None:
     st.markdown(
         _section("Analyze", "Analyze your CV",
                  "Choose the role, add your CV and the job posts, then click Analyze.", "analyze"),
+        unsafe_allow_html=True,
+    )
+
+
+def render_cta() -> None:
+    """A closing call to action before the footer."""
+    st.markdown(
+        """
+<div class="sga-cta">
+  <div><h3>Your next interview starts with the right skills.</h3>
+  <p>Paste a few job posts, add your CV and get a study plan in under a minute. Free, private, no sign-up.</p></div>
+  <a class="sga-cta-btn" href="#analyze">Analyze my CV →</a>
+</div>
+""",
         unsafe_allow_html=True,
     )
 
@@ -828,6 +972,32 @@ def render_soft_skills(soft) -> None:
             st.caption("Already visible in your CV: " + ", ".join(present["skill"]))
 
 
+def render_coverage_ring(score: float, n_covered: int, n_total: int) -> None:
+    """The coverage score as an animated gradient ring."""
+    circumference = 2 * 3.14159 * 74
+    filled = circumference * max(0.0, min(score, 100.0)) / 100
+    verdict = ("Strong match" if score >= 75 else "Good base" if score >= 50
+               else "Room to grow" if score >= 25 else "Early stage")
+    st.markdown(
+        f"""
+<div class="sga-ring">
+  <svg viewBox="0 0 180 180" aria-label="{score:.0f}% weighted coverage">
+    <defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2f6fe4"/>
+      <stop offset="1" stop-color="#7048e8"/></linearGradient></defs>
+    <circle cx="90" cy="90" r="74" fill="none" stroke="#e3e9f5" stroke-width="16"/>
+    <circle class="arc" cx="90" cy="90" r="74" fill="none" stroke="url(#rg)" stroke-width="16" stroke-linecap="round"
+      stroke-dasharray="{filled:.1f} {circumference:.1f}" style="--len:{circumference:.1f}" transform="rotate(-90 90 90)"/>
+    <text x="90" y="92" text-anchor="middle" class="v">{score:.0f}%</text>
+    <text x="90" y="116" text-anchor="middle" class="l">weighted coverage</text>
+  </svg>
+  <div class="sga-ring-verdict">{verdict}</div>
+  <p>{n_covered} of {n_total} requested technical skills are in your CV, weighted by how often employers ask for them.</p>
+</div>
+""",
+        unsafe_allow_html=True,
+    )
+
+
 def render_priorities(technical) -> None:
     st.markdown(f"#### :material/school: Top {TOP_PRIORITIES} study priorities")
     priorities = study_priorities(technical, TOP_PRIORITIES)
@@ -835,38 +1005,24 @@ def render_priorities(technical) -> None:
         st.success("Your CV covers every requested technical skill. Well done!")
         return
     resources = get_resources()
-    priorities = priorities.assign(
-        rank=range(1, len(priorities) + 1),
-        share=priorities["posts_share"] * 100,
-        learn=[resources_for(skill, resources)[0][1] for skill in priorities["skill"]],
-    )
-    st.dataframe(
-        priorities[["rank", "skill", "required_count", "nice_count", "level_count", "share", "learn"]],
-        hide_index=True,
-        width="stretch",
-        column_config={
-            "rank": st.column_config.NumberColumn("#", width=40),
-            "skill": "Skill",
-            "required_count": st.column_config.NumberColumn(
-                "Required", width=70, help="Posts that require the skill"
-            ),
-            "nice_count": st.column_config.NumberColumn(
-                "Nice", width=60, help="Posts where the skill is nice to have"
-            ),
-            "level_count": st.column_config.NumberColumn(
-                "Level", width=60,
-                help='Posts asking for a level, e.g. "advanced" or "3+ years" (weighs more)',
-            ),
-            "share": st.column_config.NumberColumn(
-                "Share", format="%.0f%%", width=70,
-                help="Share of the job posts that mention the skill",
-            ),
-            "learn": st.column_config.LinkColumn(
-                "Learn it", display_text="Free resource ↗", width=130,
-                help="A free place to start learning the skill",
-            ),
-        },
-    )
+    items = []
+    for rank, row in enumerate(priorities.itertuples(), start=1):
+        title, url = resources_for(row.skill, resources)[0]
+        share = row.posts_share * 100
+        tags = [f'<span class="t req">Required in {row.required_count}</span>' if row.required_count else ""]
+        if row.nice_count:
+            tags.append(f'<span class="t nice">Nice in {row.nice_count}</span>')
+        if getattr(row, "level_count", 0):
+            tags.append(f'<span class="t lvl">Level asked in {row.level_count}</span>')
+        items.append(
+            f'<div class="sga-prio-item"><span class="rank">{rank}</span>'
+            f'<div class="info"><b>{html.escape(row.skill)}</b><small>{html.escape(row.category)} · '
+            f'in {share:.0f}% of the posts</small><div class="meter"><span style="width:{max(share, 4):.0f}%"></span></div></div>'
+            f'<div class="tags">{"".join(tags)}</div>'
+            f'<a class="learn" href="{html.escape(url)}" target="_blank" rel="noopener" title="{html.escape(title)}">'
+            f'{"Learn it" if not title.startswith("Search") else "Find a course"} ↗</a></div>'
+        )
+    st.markdown(f'<div class="sga-prio">{"".join(items)}</div>', unsafe_allow_html=True)
 
 
 def render_results(
@@ -955,8 +1111,7 @@ def render_results(
     with overview:
         col_score, col_priorities = st.columns([1, 2], gap="large")
         with col_score:
-            st.plotly_chart(coverage_donut(score, mode), width="stretch",
-                            config={"displayModeBar": False})
+            render_coverage_ring(score, n_covered, len(technical))
         with col_priorities:
             render_priorities(technical)
         render_soft_skills(soft)
@@ -1137,6 +1292,7 @@ def main() -> None:
             ":material/lock: Your CV and the job posts stay in memory for this session only "
             "and are discarded when you close the page."
         )
+    render_cta()
     render_footer()
 
 
