@@ -51,7 +51,7 @@ MODE_FIELDS = "One field per job post"
 TOP_PRIORITIES = 5
 AUTHOR = "Vincenzo Ambrosino"
 AUTHOR_URL = "https://github.com/v-ambrosino"
-LINKEDIN_URL = "LINKEDIN_URL_TODO"
+LINKEDIN_URL = "https://www.linkedin.com/in/vincenzo-ambrosino/"
 
 st.set_page_config(
     page_title="Skill Gap Analyzer",
