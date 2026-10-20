@@ -20,6 +20,7 @@ from skill_gap.analysis import (
     category_breakdown,
     coverage_score,
     extra_cv_skills,
+    split_soft_skills,
     study_priorities,
 )
 from skill_gap.charts import category_coverage_chart, demand_bar_chart
@@ -28,6 +29,7 @@ from skill_gap.extractor import (
     SkillMention,
     find_skill_mentions,
     find_skills_in_posts,
+    post_title,
     split_job_posts,
 )
 from skill_gap.pdf_reader import PdfReadError, extract_text_from_pdf
@@ -229,14 +231,6 @@ def skill_badges(rows, color: str, icon: str) -> str:
     )
 
 
-def post_title(post: str, number: int) -> str:
-    """'Post #2 · Data Analyst - Acme' from the first line of the post."""
-    first_line = next((line.strip() for line in post.splitlines() if line.strip()), "")
-    if len(first_line) > 60:
-        first_line = first_line[:59].rstrip() + "\u2026"
-    return f"Post #{number} · {first_line}" if first_line else f"Post #{number}"
-
-
 def render_evidence(
     table,
     posts: list[str],
@@ -272,6 +266,27 @@ def render_evidence(
             st.markdown(f"“{mention.snippet}”" if mention.snippet else "_Found (phrase split across lines)._")
 
 
+def render_soft_skills(soft) -> None:
+    """Soft skills the posts ask for, split into missing and already visible."""
+    if soft.empty:
+        return
+    missing = soft[~soft["in_cv"]]
+    present = soft[soft["in_cv"]]
+    st.subheader(":material/record_voice_over: Soft skills to make visible in your CV")
+    if missing.empty:
+        st.success("Every soft skill the posts ask for is already visible in your CV.")
+    else:
+        st.caption(
+            "Employers ask for these soft skills, but your CV does not mention them in words "
+            "the app recognises. They are not counted in the coverage score: rather than "
+            "studying them, show them with a concrete example, e.g. \"presented monthly "
+            "results to the sales team\" for communication."
+        )
+        st.markdown(skill_badges(missing, "orange", "visibility"))
+    if not present.empty:
+        st.caption("Already visible in your CV: " + ", ".join(present["skill"]))
+
+
 def render_results(
     cv_text: str, posts: list[str], dictionary: SkillDictionary, nice_weight: float
 ) -> None:
@@ -288,26 +303,30 @@ def render_results(
         )
         return
 
-    score = coverage_score(table)
+    # Soft skills get their own section: the score, the missing skills and the
+    # study priorities use the technical skills only.
+    technical, soft = split_soft_skills(table)
+    score = coverage_score(technical)
     if score is None:
         st.warning(
-            ":material/info: The posts only list nice-to-have skills and their weight is 0. "
-            "Raise the weight in the sidebar to include them."
+            ":material/info: No technical skills to score: the posts list only soft skills, "
+            "or only nice-to-have skills with a weight of 0 (see the sidebar)."
         )
         return
     n_posts = len(posts)
-    n_covered = int(table["in_cv"].sum())
+    n_covered = int(technical["in_cv"].sum())
     mode = "dark" if st.context.theme.type == "dark" else "light"
 
     # --- Headline numbers ---------------------------------------------------
     st.header("Results")
     kpi = st.columns(4)
     kpi[0].metric("Weighted coverage", f"{score:.0f}%",
-                  help="Requested skills found in your CV, weighted by how many posts ask for each one "
-                       "(nice-to-have skills count less, see the sidebar).")
+                  help="Requested technical skills found in your CV, weighted by how many posts ask "
+                       "for each one (nice-to-have skills count less, see the sidebar). "
+                       "Soft skills are listed separately and not scored.")
     kpi[1].metric("Job posts analysed", n_posts)
-    kpi[2].metric("Skills in your CV", f"{n_covered} of {len(table)}")
-    kpi[3].metric("Missing skills", len(table) - n_covered)
+    kpi[2].metric("Technical skills in your CV", f"{n_covered} of {len(technical)}")
+    kpi[3].metric("Missing technical skills", len(technical) - n_covered)
     st.progress(score / 100)
 
     # --- Demand chart --------------------------------------------------------
@@ -325,9 +344,11 @@ def render_results(
 
     # --- CV comparison -------------------------------------------------------
     st.subheader(":material/compare_arrows: Your CV vs the market")
-    st.caption("The number next to each skill is how many job posts ask for it.")
-    present = table[table["in_cv"]]
-    missing = table[~table["in_cv"]]
+    st.caption(
+        "Technical skills. The number next to each skill is how many job posts ask for it."
+    )
+    present = technical[technical["in_cv"]]
+    missing = technical[~technical["in_cv"]]
     col_present, col_missing = st.columns(2)
     with col_present:
         st.markdown(f"**:material/check_circle: In your CV ({len(present)})**")
@@ -340,13 +361,15 @@ def render_results(
     if extras:
         st.caption("Also in your CV but not requested by these posts: " + ", ".join(extras))
 
+    render_soft_skills(soft)
+
     # --- Study priorities and category coverage -----------------------------
     col_priorities, col_categories = st.columns([3, 2], gap="large")
     with col_priorities:
         st.subheader(f":material/school: Top {TOP_PRIORITIES} study priorities")
-        priorities = study_priorities(table, TOP_PRIORITIES)
+        priorities = study_priorities(technical, TOP_PRIORITIES)
         if priorities.empty:
-            st.success("Your CV covers every requested skill. Well done!")
+            st.success("Your CV covers every requested technical skill. Well done!")
         else:
             priorities = priorities.assign(
                 rank=range(1, len(priorities) + 1), share=priorities["posts_share"] * 100
@@ -374,7 +397,7 @@ def render_results(
     with col_categories:
         st.subheader(":material/category: Coverage by category")
         st.plotly_chart(
-            category_coverage_chart(category_breakdown(table, dictionary), mode=mode),
+            category_coverage_chart(category_breakdown(technical, dictionary), mode=mode),
             width="stretch",
             config={"displayModeBar": False},
         )
@@ -392,9 +415,10 @@ def render_results(
         "names and scores, never the text of your CV or of the job posts."
     )
     report = build_html_report(
-        table,
-        category_breakdown(table, dictionary),
-        study_priorities(table, TOP_PRIORITIES),
+        technical,
+        soft,
+        category_breakdown(technical, dictionary),
+        study_priorities(technical, TOP_PRIORITIES),
         extras,
         role=dictionary.domain,
         n_posts=n_posts,

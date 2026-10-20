@@ -32,6 +32,7 @@ td.num, th.num { text-align: right; }
 .badge { display: inline-block; border-radius: 6px; padding: 2px 8px; margin: 2px; font-size: 13px; }
 .present { background: #e6f4e6; color: #006300; }
 .missing { background: #fbe9e9; color: #a32121; }
+.soft { background: #fdf0e1; color: #8a4a00; }
 .note { color: #52514e; font-size: 12.5px; margin-top: 32px; }
 @media print { body { margin: 0 auto; } h2 { break-after: avoid; } table { break-inside: auto; } }
 """
@@ -48,6 +49,7 @@ def _badges(table: pd.DataFrame, css_class: str, mark: str) -> str:
 
 def build_html_report(
     table: pd.DataFrame,
+    soft: pd.DataFrame,
     breakdown: pd.DataFrame,
     priorities: pd.DataFrame,
     extras: list[str],
@@ -62,7 +64,8 @@ def build_html_report(
     """Return the full HTML document as a string.
 
     Args:
-        table: the skill table from `analysis.build_skill_table`.
+        table: the technical skills of the skill table (see `analysis.split_soft_skills`).
+        soft: the soft skills of the skill table, reported in their own section.
         breakdown: the output of `analysis.category_breakdown`.
         priorities: the output of `analysis.study_priorities`.
         extras: skills in the CV that no post asked for.
@@ -94,6 +97,19 @@ def build_html_report(
         f"<td class='num'>{row.demand:g}</td><td>{'Yes' if row.in_cv else 'No'}</td></tr>"
         for row in table.itertuples()
     )
+    soft_missing = soft[~soft["in_cv"]]
+    soft_present = soft[soft["in_cv"]]
+    soft_html = ""
+    if not soft.empty:
+        soft_html = (
+            "<h2>Soft skills to make visible in your CV</h2>"
+            "<p>Not counted in the coverage score. Show them with a concrete example in your CV "
+            "rather than studying them.</p>"
+            + (_badges(soft_missing, "soft", "&#9675;") if not soft_missing.empty
+               else "<p>Every soft skill the posts ask for is already visible in your CV.</p>")
+            + (f"<p>Already visible in your CV: {escape(', '.join(soft_present['skill']))}.</p>"
+               if not soft_present.empty else "")
+        )
     extras_html = (
         f"<p>Also in your CV but not requested by these posts: {escape(', '.join(extras))}.</p>"
         if extras else ""
@@ -118,9 +134,9 @@ def build_html_report(
 generated on {generated_on.isoformat()}</div>
 
 <div class="kpis">
-  <div class="kpi"><div class="value">{coverage:.0f}%</div><div class="label">Weighted coverage</div></div>
-  <div class="kpi"><div class="value">{len(present)} of {len(table)}</div><div class="label">Requested skills in your CV</div></div>
-  <div class="kpi"><div class="value">{len(missing)}</div><div class="label">Missing skills</div></div>
+  <div class="kpi"><div class="value">{coverage:.0f}%</div><div class="label">Weighted coverage (technical skills)</div></div>
+  <div class="kpi"><div class="value">{len(present)} of {len(table)}</div><div class="label">Technical skills in your CV</div></div>
+  <div class="kpi"><div class="value">{len(missing)}</div><div class="label">Missing technical skills</div></div>
 </div>
 
 <h2>Top {len(priorities)} study priorities</h2>
@@ -130,14 +146,16 @@ generated on {generated_on.isoformat()}</div>
 <table><tr><th>Category</th><th class="num">Skills in CV</th><th class="num">Weighted coverage</th></tr>{category_rows}</table>
 
 <h2>Your CV vs the market</h2>
-<p>The number next to each skill is how many job posts ask for it.</p>
+<p>Technical skills. The number next to each skill is how many job posts ask for it.</p>
 <h3>In your CV ({len(present)})</h3>
 {_badges(present, "present", "&#10003;")}
 <h3>Missing from your CV ({len(missing)})</h3>
 {_badges(missing, "missing", "&#10007;")}
 {extras_html}
 
-<h2>All requested skills</h2>
+{soft_html}
+
+<h2>All requested technical skills</h2>
 <table><tr><th>Skill</th><th>Category</th><th class="num">Required in</th><th class="num">Nice to have in</th>
 <th class="num">Demand</th><th>In CV</th></tr>{skill_rows}</table>
 

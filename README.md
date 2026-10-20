@@ -49,7 +49,8 @@ transparent method you can explain and verify.
 | **CV comparison** | Skills in your CV in green, missing ones in red, each with its demand. Skills you have that the posts did not ask for are listed too. |
 | **Coverage score** | Share of requested skills found in your CV, **weighted by demand** (required = 1, nice to have = 0.5, adjustable). Also shown per category. |
 | **Evidence** | For any skill, the exact sentences where it was found in each post and in your CV, to check the result. |
-| **Study priorities** | The 5 missing skills that most posts ask for. |
+| **Study priorities** | The 5 missing technical skills that most posts ask for. |
+| **Soft skills** | Listed apart in *Soft skills to make visible in your CV*: they are shown with examples rather than studied, so they are not counted as missing, in the score or in the priorities. |
 | **Export** | Download a self-contained **HTML report** (opens in any browser, prints to PDF) and the full skill table as CSV. The report holds skill names and scores only, never the CV text. |
 | **Sample data** | *Load sample data* fills in fictional job posts and a fictional CV for the selected target role. |
 | **Privacy** | Everything stays in memory for the session only. |
@@ -100,6 +101,11 @@ demand   = required_count + nice_weight × nice_count
 coverage = Σ demand (skills in CV) / Σ demand (all requested skills)
 ```
 
+The score, the missing skills and the study priorities use **technical skills
+only**. Soft skills (communication, problem solving…) get their own section: an
+employer checks them through examples in the CV, so "studying" them is not the
+right advice and counting them would bury the technical priorities.
+
 Example: SQL is asked by 4 posts and is in your CV, Tableau is asked by 1 post
 and is missing → coverage = 4 / (4 + 1) = **80%**. An unweighted count would say
 50%, overstating a skill that only one employer wants.
@@ -141,6 +147,11 @@ Matching rules:
     is not a skill, and the Italian adjective "agile" only counts next to
     methodology words.
 - The skill **name is not matched automatically**: only what is listed is matched.
+- `degree_subject: true` marks skills that are also a field of study (Statistics):
+  in a job post, "Laurea in Statistica o affini" is a degree requirement, so it
+  does not count as a request for the skill (in the CV it still counts).
+- Bullets drawn with emoji or symbols (✅, •, ▪, 🔹, common in LinkedIn posts) are
+  read as line breaks, so section headers and clauses are detected correctly.
 
 The loader validates the file at startup (unknown categories, duplicate names,
 a synonym shared by two skills, invalid regex) and shows a clear error.

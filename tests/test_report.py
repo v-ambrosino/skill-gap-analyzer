@@ -7,6 +7,7 @@ from skill_gap.analysis import (
     category_breakdown,
     coverage_score,
     extra_cv_skills,
+    split_soft_skills,
     study_priorities,
 )
 from skill_gap.extractor import NICE_TO_HAVE, REQUIRED
@@ -16,18 +17,20 @@ def make_report(dictionary, cv_skills):
     from skill_gap.report import build_html_report
 
     posts = [
-        {"SQL": REQUIRED, "Excel": REQUIRED, "Tableau": NICE_TO_HAVE},
-        {"SQL": REQUIRED, "Power BI": REQUIRED},
+        {"SQL": REQUIRED, "Excel": REQUIRED, "Tableau": NICE_TO_HAVE, "Teamwork": REQUIRED},
+        {"SQL": REQUIRED, "Power BI": REQUIRED, "Communication": REQUIRED},
     ]
     table = build_skill_table(posts, cv_skills, dictionary)
+    technical, soft = split_soft_skills(table)
     return build_html_report(
-        table,
-        category_breakdown(table, dictionary),
-        study_priorities(table),
+        technical,
+        soft,
+        category_breakdown(technical, dictionary),
+        study_priorities(technical),
         extra_cv_skills(table, cv_skills),
         role="Data <Analyst>",
         n_posts=len(posts),
-        coverage=coverage_score(table),
+        coverage=coverage_score(technical),
         nice_weight=0.5,
         version="0.1.0-alpha",
         generated_on=date(2026, 10, 15),
@@ -44,6 +47,14 @@ def test_report_content(dictionary):
         assert skill in html
     # Skills in the CV that no post asked for.
     assert "not requested by these posts: Git" in html
+    # Soft skills have their own section and are not in the score.
+    assert "Soft skills to make visible in your CV" in html
+    assert "Teamwork" in html and "Communication" in html
+
+
+def test_report_lists_visible_soft_skills(dictionary):
+    html = make_report(dictionary, {"SQL", "Teamwork"})
+    assert "Already visible in your CV: Teamwork." in html
 
 
 def test_report_escapes_text(dictionary):

@@ -63,3 +63,16 @@ def test_category_breakdown(table, dictionary):
 
 def test_extra_cv_skills(table):
     assert extra_cv_skills(table, {"SQL", "Python", "Git"}) == ["Git"]
+
+
+def test_soft_skills_are_split_out(dictionary):
+    from skill_gap.analysis import split_soft_skills
+
+    posts = [{"SQL", "Teamwork"}, {"SQL", "Communication", "Excel"}]
+    table = build_skill_table(posts, {"SQL"}, dictionary)
+    technical, soft = split_soft_skills(table)
+    assert set(technical["skill"]) == {"SQL", "Excel"}
+    assert set(soft["skill"]) == {"Teamwork", "Communication"}
+    # Soft skills do not lower the score: SQL 2 out of SQL 2 + Excel 1.
+    assert coverage_score(technical) == pytest.approx(100 * 2 / 3)
+    assert "Teamwork" not in set(study_priorities(technical)["skill"])

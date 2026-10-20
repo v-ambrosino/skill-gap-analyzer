@@ -23,6 +23,11 @@ from skill_gap.skills_dictionary import SkillDictionary
 
 DEFAULT_NICE_WEIGHT = 0.5
 
+# Soft skills are reported on their own: they are shown in the CV through
+# examples rather than studied, so they are kept out of the coverage score,
+# the missing skills and the study priorities.
+SOFT_SKILLS_CATEGORY = "Soft Skills"
+
 SKILL_TABLE_COLUMNS = [
     "skill", "category", "posts_count", "required_count", "nice_count",
     "demand", "posts_share", "in_cv",
@@ -91,6 +96,17 @@ def build_skill_table(
         return table
     return table.sort_values(
         ["demand", "posts_count", "skill"], ascending=[False, False, True], ignore_index=True
+    )
+
+
+def split_soft_skills(
+    table: pd.DataFrame, category: str = SOFT_SKILLS_CATEGORY
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Split the skill table into (technical skills, soft skills), keeping the order."""
+    is_soft = table["category"] == category
+    return (
+        table[~is_soft].reset_index(drop=True),
+        table[is_soft].reset_index(drop=True),
     )
 
 
