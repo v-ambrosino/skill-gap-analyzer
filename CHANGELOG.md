@@ -3,6 +3,25 @@
 All notable changes to Skill Gap Analyzer. Versions follow
 [semantic versioning](https://semver.org/); pre-release tags mark the stage.
 
+## 1.1.0 — 2026-10-20
+
+### Added
+- **Six languages:** job posts in French, German, Spanish and Portuguese, besides
+  English and Italian. Synonyms for every concept skill and soft skill, plus the
+  words for "nice to have" (*serait un plus*, *von Vorteil*, *se valorará*,
+  *diferencial*), section headers (*Profil recherché*, *Deine Aufgaben*,
+  *Requisitos*, *Atividades*) and degrees (*Bac+5*, *Studium*, *Grado en*, *Formação em*).
+- **PDF report** (fpdf2): header, KPI cards, coverage bar, study priorities, bar
+  charts of the most requested skills and of coverage by category, CV vs market,
+  soft skills and the full table. It replaces the HTML and CSV downloads.
+- **New interface:** landing page with a hero and the three steps, an *Analyze*
+  button, results in tabs (Overview, Skills, Evidence, Report), KPI cards, a
+  coverage ring, logo, Inter font and a refined theme.
+
+### Fixed
+- French "tableau de bord" (dashboard) and "tableau croisé dynamique" (pivot table)
+  no longer count as the Tableau tool.
+
 ## 1.0.0 — 2026-10-20
 
 First stable release, live at [skill-gap.streamlit.app](https://skill-gap.streamlit.app/).

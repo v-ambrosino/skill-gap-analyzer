@@ -23,7 +23,7 @@ from skill_gap.analysis import (
     split_soft_skills,
     study_priorities,
 )
-from skill_gap.charts import category_coverage_chart, demand_bar_chart
+from skill_gap.charts import category_coverage_chart, coverage_donut, demand_bar_chart
 from skill_gap.extractor import (
     REQUIRED,
     SkillMention,
@@ -33,7 +33,7 @@ from skill_gap.extractor import (
     split_job_posts,
 )
 from skill_gap.pdf_reader import PdfReadError, extract_text_from_pdf
-from skill_gap.report import build_html_report
+from skill_gap.report import build_pdf_report
 from skill_gap.skills_dictionary import (
     DictionaryError,
     SkillDictionary,
@@ -42,12 +42,21 @@ from skill_gap.skills_dictionary import (
 )
 
 SAMPLES_DIR = Path(__file__).resolve().parent / "data" / "samples"
+ASSETS_DIR = Path(__file__).resolve().parent / "assets"
 MODE_SINGLE_BOX = "One text box (separate posts with ---)"
 MODE_FIELDS = "One field per job post"
 TOP_PRIORITIES = 5
 ISSUES_URL = "https://github.com/v-ambrosino/skill-gap-analyzer/issues"
 
-st.set_page_config(page_title="Skill Gap Analyzer", page_icon=":material/insights:", layout="wide")
+st.set_page_config(
+    page_title="Skill Gap Analyzer",
+    page_icon=str(ASSETS_DIR / "logo.svg"),
+    layout="wide",
+    menu_items={
+        "Report a bug": ISSUES_URL,
+        "About": "Skill Gap Analyzer: compare your CV with real job posts. No AI, nothing stored.",
+    },
+)
 
 
 # ---------------------------------------------------------------------------
@@ -109,6 +118,7 @@ def load_sample_data(role_folder: str) -> None:
     for post_id, post in enumerate(posts):
         st.session_state[f"post_{post_id}"] = post
     st.session_state.cv_text_manual = read_sample(role_folder, "cv.txt")
+    st.session_state.analyzed = True
 
 
 def clear_all() -> None:
@@ -120,6 +130,69 @@ def clear_all() -> None:
     st.session_state.cv_text_manual = ""
     # Changing the uploader key is the way to reset a st.file_uploader.
     st.session_state.uploader_key = st.session_state.get("uploader_key", 0) + 1
+    st.session_state.analyzed = False
+
+
+# ---------------------------------------------------------------------------
+# Look and feel
+# ---------------------------------------------------------------------------
+LANGUAGES = "English, Italian, French, German, Spanish and Portuguese"
+
+# A little CSS on top of the theme in .streamlit/config.toml: the hero band and
+# the step cards. Colours are fixed on the hero (white on blue), so it reads the
+# same in light and dark mode.
+_CSS = """
+<style>
+.sga-hero {
+  background: linear-gradient(120deg, #1c5cab 0%, #2a78d6 55%, #5b8def 100%);
+  border-radius: 20px; padding: 36px 40px 30px; color: #ffffff; margin-bottom: 8px;
+}
+.sga-hero h1 { color: #ffffff; font-size: 2.6rem; line-height: 1.15; margin: 0 0 10px; padding: 0; }
+.sga-hero p { color: #e8f0fd; font-size: 1.1rem; margin: 0 0 18px; max-width: 760px; }
+.sga-chip {
+  display: inline-block; background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.35);
+  color: #ffffff; border-radius: 999px; padding: 4px 12px; margin: 0 6px 6px 0; font-size: 0.85rem;
+}
+.sga-step-number {
+  display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px;
+  border-radius: 50%; background: #2a78d6; color: #ffffff; font-weight: 700; margin-bottom: 6px;
+}
+@media (max-width: 640px) {
+  .sga-hero { padding: 24px 20px 18px; }
+  .sga-hero h1 { font-size: 1.9rem; }
+}
+</style>
+"""
+
+
+def render_hero(dictionary: SkillDictionary, role: str) -> None:
+    st.markdown(_CSS, unsafe_allow_html=True)
+    st.markdown(
+        f"""
+<div class="sga-hero">
+  <h1>Find your skill gap in 30 seconds</h1>
+  <p>Upload your CV, paste a few job posts for <b>{dictionary.description or role}</b>
+  and see which skills the market asks for, which ones you are missing and what to study first.</p>
+  <span class="sga-chip">No AI, explainable results</span>
+  <span class="sga-chip">Private: nothing is stored</span>
+  <span class="sga-chip">6 European languages</span>
+  <span class="sga-chip">PDF report</span>
+</div>
+""",
+        unsafe_allow_html=True,
+    )
+
+
+def render_steps() -> None:
+    steps = [
+        ("1", "Upload your CV", "A text-based PDF, or paste its text."),
+        ("2", "Paste job posts", f"One or more posts, in {LANGUAGES}."),
+        ("3", "Get your gap", "Coverage, priorities, evidence and a PDF report."),
+    ]
+    for column, (number, title, text) in zip(st.columns(3), steps):
+        with column.container(border=True):
+            st.markdown(f'<span class="sga-step-number">{number}</span>', unsafe_allow_html=True)
+            st.markdown(f"**{title}**  \n{text}")
 
 
 # ---------------------------------------------------------------------------
@@ -136,8 +209,8 @@ def render_sidebar(dictionary: SkillDictionary) -> float:
             format_func=lambda w: f"{w:g}",
             help=(
                 "A post that requires a skill counts 1. A post where the skill is only "
-                "nice to have (\"is a plus\", \"gradita\", \"Nice to have:\") counts this much. "
-                "0 ignores nice-to-have skills, 1 treats them as requirements."
+                "nice to have (\"is a plus\", \"gradita\", \"von Vorteil\", \"se valorará\") "
+                "counts this much. 0 ignores nice-to-have skills, 1 treats them as requirements."
             ),
         )
         st.divider()
@@ -157,19 +230,22 @@ def render_sidebar(dictionary: SkillDictionary) -> float:
         st.header(":material/help: How it works")
         st.markdown(
             "1. Skills are recognised with an editable **dictionary** "
-            f"of **{len(dictionary.skills)} skills** (English and Italian synonyms).\n"
+            f"of **{len(dictionary.skills)} skills**, with synonyms in {LANGUAGES}.\n"
             "2. Each skill counts **once per job post**: 1 if the post **requires** it, "
             "less if it is only **nice to have** (see Settings).\n"
-            "3. **Coverage** = share of the requested skills found in your CV, "
+            "3. **Coverage** = share of the requested technical skills found in your CV, "
             "weighted by that demand."
         )
-        st.caption("Categories: " + ", ".join(dictionary.categories))
+        st.caption(
+            f"v{__version__} · [Source code](https://github.com/v-ambrosino/skill-gap-analyzer) · "
+            f"[Report an issue]({ISSUES_URL})"
+        )
     return nice_weight
 
 
 def render_cv_input() -> str:
     """Return the CV text, from the uploaded PDF or from the text box."""
-    st.subheader("1. Your CV")
+    st.markdown("#### :material/description: Your CV")
     uploaded = st.file_uploader(
         "Upload your CV (PDF)",
         type=["pdf"],
@@ -198,16 +274,16 @@ def render_cv_input() -> str:
 
 def render_posts_input() -> list[str]:
     """Return the list of job posts, from either input mode."""
-    st.subheader("2. Job posts")
+    st.markdown("#### :material/work: Job posts")
     mode = st.radio("Input mode", [MODE_SINGLE_BOX, MODE_FIELDS], horizontal=True, key="input_mode")
 
     if mode == MODE_SINGLE_BOX:
         st.text_area(
-            "Paste one or more job posts (English or Italian)",
+            "Paste one or more job posts",
             key="posts_text",
-            height=320,
+            height=300,
             placeholder="First job post...\n---\nSecond job post...\n---\nThird job post...",
-            help="Put a line with three dashes (---) between two job posts.",
+            help=f"Put a line with three dashes (---) between two job posts. Languages: {LANGUAGES}.",
         )
         return split_job_posts(st.session_state.posts_text)
 
@@ -243,7 +319,7 @@ def render_evidence(
     cv_mentions: dict[str, SkillMention],
 ) -> None:
     """Show the sentences where a chosen skill was found, to check the matching."""
-    st.subheader(":material/format_quote: Where each skill was found")
+    st.markdown("#### :material/format_quote: Where each skill was found")
     st.caption(
         "Pick a skill to see the exact sentences that matched. Useful to check "
         "the result, and to spot wrong matches to report."
@@ -277,19 +353,51 @@ def render_soft_skills(soft) -> None:
         return
     missing = soft[~soft["in_cv"]]
     present = soft[soft["in_cv"]]
-    st.subheader(":material/record_voice_over: Soft skills to make visible in your CV")
-    if missing.empty:
-        st.success("Every soft skill the posts ask for is already visible in your CV.")
-    else:
-        st.caption(
-            "Employers ask for these soft skills, but your CV does not mention them in words "
-            "the app recognises. They are not counted in the coverage score: rather than "
-            "studying them, show them with a concrete example, e.g. \"presented monthly "
-            "results to the sales team\" for communication."
-        )
-        st.markdown(skill_badges(missing, "orange", "visibility"))
-    if not present.empty:
-        st.caption("Already visible in your CV: " + ", ".join(present["skill"]))
+    with st.container(border=True):
+        st.markdown("#### :material/record_voice_over: Soft skills to make visible in your CV")
+        if missing.empty:
+            st.success("Every soft skill the posts ask for is already visible in your CV.")
+        else:
+            st.caption(
+                "Employers ask for these soft skills, but your CV does not mention them in words "
+                "the app recognises. They are not counted in the coverage score: rather than "
+                "studying them, show them with a concrete example, e.g. \"presented monthly "
+                "results to the sales team\" for communication."
+            )
+            st.markdown(skill_badges(missing, "orange", "visibility"))
+        if not present.empty:
+            st.caption("Already visible in your CV: " + ", ".join(present["skill"]))
+
+
+def render_priorities(technical) -> None:
+    st.markdown(f"#### :material/school: Top {TOP_PRIORITIES} study priorities")
+    priorities = study_priorities(technical, TOP_PRIORITIES)
+    if priorities.empty:
+        st.success("Your CV covers every requested technical skill. Well done!")
+        return
+    priorities = priorities.assign(
+        rank=range(1, len(priorities) + 1), share=priorities["posts_share"] * 100
+    )
+    st.dataframe(
+        priorities[["rank", "skill", "category", "required_count", "nice_count", "share"]],
+        hide_index=True,
+        width="stretch",
+        column_config={
+            "rank": st.column_config.NumberColumn("#", width=40),
+            "skill": "Skill",
+            "category": "Category",
+            "required_count": st.column_config.NumberColumn(
+                "Required", width=70, help="Posts that require the skill"
+            ),
+            "nice_count": st.column_config.NumberColumn(
+                "Nice", width=60, help="Posts where the skill is nice to have"
+            ),
+            "share": st.column_config.NumberColumn(
+                "Share", format="%.0f%%", width=70,
+                help="Share of the job posts that mention the skill",
+            ),
+        },
+    )
 
 
 def render_results(
@@ -321,108 +429,13 @@ def render_results(
     n_posts = len(posts)
     n_covered = int(technical["in_cv"].sum())
     mode = "dark" if st.context.theme.type == "dark" else "light"
-
-    # --- Headline numbers ---------------------------------------------------
-    st.header("Results")
-    kpi = st.columns(4)
-    kpi[0].metric("Weighted coverage", f"{score:.0f}%",
-                  help="Requested technical skills found in your CV, weighted by how many posts ask "
-                       "for each one (nice-to-have skills count less, see the sidebar). "
-                       "Soft skills are listed separately and not scored.")
-    kpi[1].metric("Job posts analysed", n_posts)
-    kpi[2].metric("Technical skills in your CV", f"{n_covered} of {len(technical)}")
-    kpi[3].metric("Missing technical skills", len(technical) - n_covered)
-    st.progress(score / 100)
-
-    # --- Demand chart --------------------------------------------------------
-    st.subheader(":material/bar_chart: Most requested skills")
-    controls = st.columns([2, 2, 3], vertical_alignment="bottom")
-    max_bars = len(table)
-    top_n = controls[0].slider("Skills to show", 1, max_bars, min(20, max_bars)) if max_bars > 1 else 1
-    group = controls[1].toggle("Group by category", value=True)
-    shown = table.head(top_n)
-    st.plotly_chart(
-        demand_bar_chart(shown, dictionary.categories, n_posts, group_by_category=group, mode=mode),
-        width="stretch",
-        config={"displayModeBar": False},
-    )
-
-    # --- CV comparison -------------------------------------------------------
-    st.subheader(":material/compare_arrows: Your CV vs the market")
-    st.caption(
-        "Technical skills. The number next to each skill is how many job posts ask for it."
-    )
-    present = technical[technical["in_cv"]]
-    missing = technical[~technical["in_cv"]]
-    col_present, col_missing = st.columns(2)
-    with col_present:
-        st.markdown(f"**:material/check_circle: In your CV ({len(present)})**")
-        st.markdown(skill_badges(present, "green", "check") if not present.empty else "_None yet._")
-    with col_missing:
-        st.markdown(f"**:material/cancel: Missing from your CV ({len(missing)})**")
-        st.markdown(skill_badges(missing, "red", "close") if not missing.empty else "_Nothing missing!_")
-
+    breakdown = category_breakdown(technical, dictionary)
     extras = extra_cv_skills(table, cv_skills)
-    if extras:
-        st.caption("Also in your CV but not requested by these posts: " + ", ".join(extras))
 
-    render_soft_skills(soft)
-
-    # --- Study priorities and category coverage -----------------------------
-    col_priorities, col_categories = st.columns([3, 2], gap="large")
-    with col_priorities:
-        st.subheader(f":material/school: Top {TOP_PRIORITIES} study priorities")
-        priorities = study_priorities(technical, TOP_PRIORITIES)
-        if priorities.empty:
-            st.success("Your CV covers every requested technical skill. Well done!")
-        else:
-            priorities = priorities.assign(
-                rank=range(1, len(priorities) + 1), share=priorities["posts_share"] * 100
-            )
-            st.dataframe(
-                priorities[["rank", "skill", "category", "required_count", "nice_count", "share"]],
-                hide_index=True,
-                width="stretch",
-                column_config={
-                    "rank": st.column_config.NumberColumn("#", width=40),
-                    "skill": "Skill",
-                    "category": "Category",
-                    "required_count": st.column_config.NumberColumn(
-                        "Required", width=70, help="Posts that require the skill"
-                    ),
-                    "nice_count": st.column_config.NumberColumn(
-                        "Nice", width=60, help="Posts where the skill is nice to have"
-                    ),
-                    "share": st.column_config.NumberColumn(
-                        "Share", format="%.0f%%", width=70,
-                        help="Share of the job posts that mention the skill",
-                    ),
-                },
-            )
-    with col_categories:
-        st.subheader(":material/category: Coverage by category")
-        st.plotly_chart(
-            category_coverage_chart(category_breakdown(technical, dictionary), mode=mode),
-            width="stretch",
-            config={"displayModeBar": False},
-        )
-
-    render_evidence(table, posts, posts_mentions, cv_mentions)
-
-    # --- Full table and downloads -------------------------------------------
-    export = table.assign(posts_share=(table["posts_share"] * 100).round(1))
-    with st.expander("Full skill table"):
-        st.dataframe(export, hide_index=True, width="stretch")
-
-    st.subheader(":material/download: Download your results")
-    st.caption(
-        "Files are generated in memory for this session only. The report contains skill "
-        "names and scores, never the text of your CV or of the job posts."
-    )
-    report = build_html_report(
+    report = build_pdf_report(
         technical,
         soft,
-        category_breakdown(technical, dictionary),
+        breakdown,
         study_priorities(technical, TOP_PRIORITIES),
         extras,
         role=dictionary.domain,
@@ -431,32 +444,122 @@ def render_results(
         nice_weight=nice_weight,
         version=__version__,
     )
-    col_report, col_csv, _ = st.columns([2, 2, 3])
-    col_report.download_button(
-        "Report (HTML)",
-        report.encode("utf-8"),
-        file_name="skill_gap_report.html",
-        mime="text/html",
-        icon=":material/description:",
+
+    # --- Header row and headline numbers ------------------------------------
+    title_col, download_col = st.columns([3, 1], vertical_alignment="bottom")
+    title_col.header("Your results")
+    download_col.download_button(
+        "Download PDF report",
+        report,
+        file_name="skill_gap_report.pdf",
+        mime="application/pdf",
+        icon=":material/picture_as_pdf:",
+        type="primary",
         width="stretch",
-        help="Open it in a browser; use Print > Save as PDF to get a PDF.",
+        key="download_top",
     )
-    col_csv.download_button(
-        "Skill table (CSV)",
-        export.to_csv(index=False).encode("utf-8"),
-        file_name="skill_gap_analysis.csv",
-        mime="text/csv",
-        icon=":material/table:",
-        width="stretch",
-        help="The full skill table, to open in Excel or pandas.",
-    )
+    kpi = st.columns(4)
+    kpi[0].metric("Weighted coverage", f"{score:.0f}%", border=True,
+                  help="Requested technical skills found in your CV, weighted by how many posts ask "
+                       "for each one (nice-to-have skills count less, see the sidebar). "
+                       "Soft skills are listed separately and not scored.")
+    kpi[1].metric("Job posts analysed", n_posts, border=True)
+    kpi[2].metric("Technical skills in your CV", f"{n_covered} of {len(technical)}", border=True)
+    kpi[3].metric("Missing technical skills", len(technical) - n_covered, border=True)
+
+    overview, skills_tab, evidence_tab, report_tab = st.tabs([
+        ":material/dashboard: Overview",
+        ":material/bar_chart: Skills",
+        ":material/format_quote: Evidence",
+        ":material/picture_as_pdf: Report",
+    ])
+
+    # --- Overview: score, priorities, soft skills -----------------------------
+    with overview:
+        col_score, col_priorities = st.columns([1, 2], gap="large")
+        with col_score:
+            st.plotly_chart(coverage_donut(score, mode), width="stretch",
+                            config={"displayModeBar": False})
+        with col_priorities:
+            render_priorities(technical)
+        render_soft_skills(soft)
+
+    # --- Skills: demand chart, CV vs market, categories ---------------------------
+    with skills_tab:
+        st.markdown("#### :material/bar_chart: Most requested skills")
+        controls = st.columns([2, 2, 3], vertical_alignment="bottom")
+        max_bars = len(table)
+        top_n = controls[0].slider("Skills to show", 1, max_bars, min(20, max_bars)) if max_bars > 1 else 1
+        group = controls[1].toggle("Group by category", value=True)
+        st.plotly_chart(
+            demand_bar_chart(table.head(top_n), dictionary.categories, n_posts,
+                             group_by_category=group, mode=mode),
+            width="stretch",
+            config={"displayModeBar": False},
+        )
+
+        st.markdown("#### :material/compare_arrows: Your CV vs the market")
+        st.caption("Technical skills. The number next to each skill is how many job posts ask for it.")
+        present = technical[technical["in_cv"]]
+        missing = technical[~technical["in_cv"]]
+        col_present, col_missing = st.columns(2)
+        with col_present.container(border=True):
+            st.markdown(f"**:material/check_circle: In your CV ({len(present)})**")
+            st.markdown(skill_badges(present, "green", "check") if not present.empty else "_None yet._")
+        with col_missing.container(border=True):
+            st.markdown(f"**:material/cancel: Missing from your CV ({len(missing)})**")
+            st.markdown(skill_badges(missing, "red", "close") if not missing.empty else "_Nothing missing!_")
+        if extras:
+            st.caption("Also in your CV but not requested by these posts: " + ", ".join(extras))
+
+        st.markdown("#### :material/category: Coverage by category")
+        st.plotly_chart(category_coverage_chart(breakdown, mode=mode), width="stretch",
+                        config={"displayModeBar": False})
+
+        with st.expander("Full skill table"):
+            st.dataframe(
+                table.assign(posts_share=(table["posts_share"] * 100).round(1)),
+                hide_index=True, width="stretch",
+            )
+
+    # --- Evidence --------------------------------------------------------------------
+    with evidence_tab:
+        render_evidence(table, posts, posts_mentions, cv_mentions)
+
+    # --- Report ------------------------------------------------------------------------
+    with report_tab:
+        st.markdown("#### :material/picture_as_pdf: Your PDF report")
+        st.markdown(
+            "A ready-to-share summary: coverage, the top study priorities, the most requested "
+            "skills, coverage by category, your CV vs the market, the soft skills to show and "
+            "the full skill table."
+        )
+        st.caption(
+            "Generated in memory for this session only. It contains skill names and scores, "
+            "never the text of your CV or of the job posts."
+        )
+        st.download_button(
+            "Download PDF report",
+            report,
+            file_name="skill_gap_report.pdf",
+            mime="application/pdf",
+            icon=":material/download:",
+            type="primary",
+            key="download_tab",
+        )
 
 
 # ---------------------------------------------------------------------------
 # Page
 # ---------------------------------------------------------------------------
+def start_analysis() -> None:
+    st.session_state.analyzed = True
+
+
 def main() -> None:
     init_state()
+    st.session_state.setdefault("analyzed", False)
+    st.logo(str(ASSETS_DIR / "logo_wide.svg"), icon_image=str(ASSETS_DIR / "logo.svg"))
     try:
         dictionary_files = get_dictionary_files()
         with st.sidebar:
@@ -471,45 +574,42 @@ def main() -> None:
         st.stop()
 
     nice_weight = render_sidebar(dictionary)
+    render_hero(dictionary, role)
 
-    st.title("Skill Gap Analyzer")
-    st.badge(f"v{__version__}", icon=":material/verified:", color="green")
-    st.caption(
-        "Skill detection is dictionary-based and tested on real job posts, but some wording "
-        f"can still be missed. Spotted a wrong or missing skill? [Open an issue]({ISSUES_URL})."
+    buttons = st.columns([3, 2, 6])
+    buttons[0].button(
+        "Try with sample data", icon=":material/science:", on_click=load_sample_data,
+        args=(Path(dictionary_files[role]).stem,), type="primary", width="stretch",
+        help="Fictional job posts and CV for the selected target role.",
     )
-    st.markdown(
-        f"Find out which skills the job market asks for in **{dictionary.description or role}**, "
-        "and which ones are missing from your CV. Change the target role in the sidebar."
-    )
-    st.info(
-        "**Privacy:** nothing is saved. Your CV and the job posts stay in memory only "
-        "for this session and are discarded when you close the page.",
-        icon=":material/lock:",
-    )
+    buttons[1].button("Clear all", icon=":material/delete:", on_click=clear_all, width="stretch")
 
-    buttons = st.columns([3, 2, 7])
-    buttons[0].button("Load sample data", icon=":material/science:", on_click=load_sample_data,
-                      args=(Path(dictionary_files[role]).stem,),
-                      help="Fictional job posts and CV for the selected target role.",
-                      width="stretch")
-    buttons[1].button("Clear all", icon=":material/delete:", on_click=clear_all,
-                      width="stretch")
+    render_steps()
 
     col_cv, col_posts = st.columns([2, 3], gap="large")
-    with col_cv:
+    with col_cv.container(border=True):
         cv_text = render_cv_input()
-    with col_posts:
+    with col_posts.container(border=True):
         posts = render_posts_input()
 
-    st.divider()
-    if not posts:
-        st.markdown(":material/arrow_upward: Add at least one job post to see the analysis.")
+    st.button(
+        "Analyze my skill gap", icon=":material/insights:", type="primary",
+        width="stretch", on_click=start_analysis, disabled=not posts,
+        help=None if posts else "Add at least one job post first.",
+    )
+
+    if not st.session_state.analyzed or not posts:
+        st.caption(
+            ":material/lock: Your CV and the job posts stay in memory for this session only "
+            "and are discarded when you close the page."
+        )
         return
+    st.divider()
     if not cv_text.strip():
-        st.markdown(
-            ":material/arrow_upward: Upload your CV (or paste its text) to compare it "
-            "with the market. Meanwhile, here is what the job posts ask for."
+        st.info(
+            "No CV yet: upload it (or paste its text) to compare it with the market. "
+            "Meanwhile, here is what the job posts ask for.",
+            icon=":material/info:",
         )
     render_results(cv_text, posts, dictionary, nice_weight)
 

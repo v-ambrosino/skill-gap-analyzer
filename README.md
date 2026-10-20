@@ -1,13 +1,13 @@
 # Skill Gap Analyzer
 
 [![Live demo](https://img.shields.io/badge/live%20demo-skill--gap.streamlit.app-ff4b4b?logo=streamlit&logoColor=white)](https://skill-gap.streamlit.app/)
-![Version](https://img.shields.io/badge/version-1.0.0-blue)
+![Version](https://img.shields.io/badge/version-1.1.0-blue)
 [![Tests](https://github.com/v-ambrosino/skill-gap-analyzer/actions/workflows/tests.yml/badge.svg)](https://github.com/v-ambrosino/skill-gap-analyzer/actions/workflows/tests.yml)
 
 **Compare your CV with real job posts and see which data skills the market wants — and which ones you are missing.**
 
 Built for people looking for **Data Analyst, BI Analyst and Business Analyst** roles, with a second dictionary for **Data Engineer / Analytics Engineer** roles (pick the target role in the sidebar).
-Upload your CV (PDF), paste a few job posts (English or Italian) and get:
+Upload your CV (PDF), paste a few job posts (English, Italian, French, German, Spanish or Portuguese) and get:
 
 - the most requested skills, grouped by category;
 - the skills in your CV (green) and the missing ones (red);
@@ -46,14 +46,15 @@ transparent method you can explain and verify.
 
 | Feature | Details |
 |---|---|
-| **Input** | CV as PDF (or pasted text). Job posts in **one text box separated by `---`** or **one field per post** (add/remove fields). English and Italian. |
+| **Input** | CV as PDF (or pasted text). Job posts in **one text box separated by `---`** or **one field per post** (add/remove fields), then **Analyze**. Posts in English, Italian, French, German, Spanish or Portuguese. |
 | **Requested skills** | Horizontal bar chart of how many posts ask for each skill, coloured and optionally grouped by category. The solid part counts posts that **require** the skill, the hatched part posts where it is only **nice to have**. |
 | **CV comparison** | Skills in your CV in green, missing ones in red, each with its demand. Skills you have that the posts did not ask for are listed too. |
 | **Coverage score** | Share of requested skills found in your CV, **weighted by demand** (required = 1, nice to have = 0.5, adjustable). Also shown per category. |
 | **Evidence** | For any skill, the exact sentences where it was found in each post and in your CV, to check the result. |
 | **Study priorities** | The 5 missing technical skills that most posts ask for. |
 | **Soft skills** | Listed apart in *Soft skills to make visible in your CV*: they are shown with examples rather than studied, so they are not counted as missing, in the score or in the priorities. |
-| **Export** | Download a self-contained **HTML report** (opens in any browser, prints to PDF) and the full skill table as CSV. The report holds skill names and scores only, never the CV text. |
+| **PDF report** | One click downloads a **PDF report**: coverage, top priorities, bar charts of the most requested skills and of coverage by category, CV vs market, soft skills and the full skill table. It holds skill names and scores only, never the CV text. |
+| **Interface** | A landing page with the three steps, results in tabs (Overview, Skills, Evidence, Report), a coverage ring and KPI cards; works on phones. |
 | **Sample data** | *Load sample data* fills in fictional job posts and a fictional CV for the selected target role. |
 | **Privacy** | Everything stays in memory for the session only. |
 
@@ -115,7 +116,7 @@ and is missing → coverage = 4 / (4 + 1) = **80%**. An unweighted count would s
 ### Skill dictionaries
 
 Each target role has its own dictionary in [`data/dictionaries/`](data/dictionaries/),
-with English and Italian synonyms:
+with synonyms in English, Italian, French, German, Spanish and Portuguese:
 
 | Role | File | Skills | Categories |
 |---|---|---|---|
@@ -175,7 +176,7 @@ skill-gap-analyzer/
 │   ├── extractor.py           # find skills in a text, split job posts
 │   ├── analysis.py            # pandas: skill table, coverage, priorities
 │   ├── charts.py              # Plotly charts
-│   └── report.py              # downloadable HTML report
+│   └── report.py              # downloadable PDF report (fpdf2)
 ├── data/
 │   ├── dictionaries/          # one skill dictionary per role (edit me!)
 │   │   └── shared/            # skills included by several roles (soft skills)
@@ -213,7 +214,7 @@ pytest
 
 The same tests run automatically on GitHub Actions for every pull request and every push to `main` (Python 3.10 and 3.12), see [`.github/workflows/tests.yml`](.github/workflows/tests.yml).
 
-The tests cover whole-word matching, Italian/English synonyms, the tricky `R`,
+The tests cover whole-word matching, synonyms in six languages, the tricky `R`,
 `SAS`, `Excel` and `Agile` cases, the post separator, the weighted coverage
 score, the study priorities, dictionary validation and PDF reading.
 
@@ -257,7 +258,9 @@ one click, in about a minute.
 - **Scanned PDFs** (images without a text layer) cannot be read: there is no OCR.
 - Multi-column PDF layouts may merge lines in an unusual order. This rarely
   matters for skill detection, but a phrase split across columns can be missed.
-- English and Italian only.
+- Six languages (EN, IT, FR, DE, ES, PT). English and Italian have the richest
+  wording, as they were tuned on real posts; the other four cover the common
+  phrasing of data job posts and will improve with feedback.
 - The coverage score measures **keyword overlap**, not proficiency or seniority.
 
 ## Future improvements
@@ -265,9 +268,8 @@ one click, in about a minute.
 - Skill **levels** (e.g. "advanced Excel") and years of experience.
 - Import job posts from a **URL** or a CSV export of a job board.
 - More **dictionaries** (e.g. Data Scientist, Marketing Analyst, Finance).
-- More languages (French, Spanish, German).
+- More languages (Dutch, Polish) and more wording for French, German, Spanish and Portuguese.
 - Optional **OCR** for scanned CVs (e.g. Tesseract).
-- A native **PDF** export (today: HTML report, printed to PDF from the browser).
 - Suggested learning resources for each study priority.
 
 ## License
