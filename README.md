@@ -25,7 +25,13 @@ No paid APIs, no external AI, **no data stored**.
 > the exact sentence, so it can become a new synonym and a regression test.
 > See the [changelog](CHANGELOG.md) for what changed in each version.
 
+![Skill Gap Analyzer demo](assets/demo.gif)
+
+<details><summary>Static screenshot</summary>
+
 ![Skill Gap Analyzer screenshot](assets/screenshot.png)
+
+</details>
 
 ---
 
