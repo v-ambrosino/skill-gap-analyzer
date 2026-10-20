@@ -3,6 +3,19 @@
 All notable changes to Skill Gap Analyzer. Versions follow
 [semantic versioning](https://semver.org/); pre-release tags mark the stage.
 
+## 1.7.0 — 2026-10-20
+
+### Changed
+- **Motion:** the hero fades in, the headline has a moving gradient, the preview bars and
+  the coverage ring draw themselves; everything stops with "reduce motion".
+- **Role marquee** under the stats: a scrolling row of job titles the app works for.
+- **Bento features:** a live example of matched skills, mini demand bars, language tags
+  and a dark "Private by design" card.
+- Steps connected by arrows; a dark closing call to action before the footer.
+- **Results:** a custom gradient coverage ring with a verdict ("Room to grow", "Strong
+  match"…), and study priorities as cards with rank, share bar, required / nice / level
+  tags and a "Learn it" button.
+
 ## 1.6.0 — 2026-10-20
 
 ### Changed
