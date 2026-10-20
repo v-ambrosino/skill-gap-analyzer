@@ -7,4 +7,14 @@ maxUploadSize = 5
 gatherUsageStats = false
 
 [theme]
+base = "light"
 primaryColor = "#2a78d6"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f3f6fb"
+textColor = "#1f1f1e"
+font = "Inter:https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+baseRadius = "0.75rem"
+borderColor = "#e3e6ec"
+
+[theme.sidebar]
+backgroundColor = "#f7f9fc"

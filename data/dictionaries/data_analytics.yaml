@@ -57,7 +57,7 @@ skills:
   # ---------------------------------------------------------------------------
   - name: Excel
     category: Tools
-    synonyms: [ms excel, microsoft excel, excel avanzato, advanced excel, vlookup, xlookup, cerca.vert, index match]
+    synonyms: [ms excel, microsoft excel, excel avanzato, advanced excel, vlookup, xlookup, cerca.vert, index match, recherchev, sverweis, buscarv, procv]
     # "excel" is also an English verb ("excel at", "excel in"): exclude it.
     patterns: ['(?i)(?<![\w&])excel(?!\s+(?:at|in|as)\b)(?![\w&])']
   - name: Microsoft Office
@@ -65,7 +65,7 @@ skills:
     synonyms: [microsoft office, ms office, pacchetto office, office suite, microsoft 365, office 365]
   - name: Pivot Tables
     category: Tools
-    synonyms: [pivot table, pivot tables, tabelle pivot, tabella pivot, pivot]
+    synonyms: [pivot table, pivot tables, tabelle pivot, tabella pivot, pivot, tableaux croises dynamiques, tableau croise dynamique, pivot-tabellen, pivottabellen, tablas dinamicas, tabelas dinamicas]
   - name: Power BI
     category: Tools
     synonyms: [power bi, microsoft power bi, pbi]
@@ -83,7 +83,10 @@ skills:
     synonyms: [power automate, microsoft flow]
   - name: Tableau
     category: Tools
-    synonyms: [tableau, tableau desktop, tableau server, tableau prep]
+    synonyms: [tableau desktop, tableau server, tableau prep, tableau public]
+    # "tableau" alone, but not the French "tableau de bord" (dashboard) or
+    # "tableau croise dynamique" (pivot table).
+    patterns: ['(?i)(?<![\w&])tableau(?!\s+(?:de\s+bord|croise|x\b))(?![\w&])']
   - name: Looker
     category: Tools
     # Plain "looker" but not "Looker Studio" (a different product, see below).
@@ -243,72 +246,72 @@ skills:
     synonyms: [bash, shell scripting, unix shell, linux shell, command line]
   - name: Data Warehousing
     category: Programming & Data
-    synonyms: [data warehouse, data warehousing, dwh, data mart, data lake, lakehouse, data lakehouse]
+    synonyms: [data warehouse, data warehousing, dwh, data mart, data lake, lakehouse, data lakehouse, entrepot de donnees, almacen de datos, armazem de dados]
   - name: ETL / ELT
     category: Programming & Data
     synonyms: [etl, elt, etl pipelines, data pipeline, data pipelines, pipeline di dati, extract transform load]
   - name: Data Modeling
     category: Programming & Data
-    synonyms: [data modeling, data modelling, modellazione dati, modellazione dei dati, star schema, schema a stella, dimensional modeling, modello dati, data model]
+    synonyms: [data modeling, data modelling, modellazione dati, modellazione dei dati, star schema, schema a stella, dimensional modeling, modello dati, data model, modelisation des donnees, modelisation de donnees, datenmodellierung, modelado de datos, modelagem de dados]
   - name: Relational Databases
     category: Programming & Data
-    synonyms: [relational database, relational databases, database relazionali, database relazionale, rdbms]
+    synonyms: [relational database, relational databases, database relazionali, database relazionale, rdbms, bases de donnees relationnelles, relationale datenbanken, bases de datos relacionales, bancos de dados relacionais, bases de dados relacionais]
 
   # ---------------------------------------------------------------------------
   # Analytics & Statistics
   # ---------------------------------------------------------------------------
   - name: Data Analysis
     category: Analytics & Statistics
-    synonyms: [data analysis, analisi dei dati, analisi dati, data analytics, analisi di dati]
+    synonyms: [data analysis, analisi dei dati, analisi dati, data analytics, analisi di dati, analyse de donnees, analyse des donnees, datenanalyse, datenanalysen, analisis de datos, analise de dados]
   - name: Data Visualization
     category: Analytics & Statistics
-    synonyms: [data visualization, data visualisation, data viz, dataviz, visualizzazione dati, visualizzazione dei dati, visualizzazioni]
+    synonyms: [data visualization, data visualisation, data viz, dataviz, visualizzazione dati, visualizzazione dei dati, visualizzazioni, visualisation de donnees, visualisation des donnees, datavisualisation, datenvisualisierung, visualizacion de datos, visualização de dados]
   - name: Dashboarding
     category: Analytics & Statistics
-    synonyms: [dashboard, dashboarding, cruscotti, cruscotto]
+    synonyms: [dashboard, dashboarding, cruscotti, cruscotto, tableau de bord, tableaux de bord, cuadro de mando, cuadros de mando, paineis, painel de controle]
   - name: Reporting
     category: Analytics & Statistics
-    synonyms: [reportistica, business reporting, report automation, automazione report, creazione di report, creazione report]
+    synonyms: [reportistica, business reporting, report automation, automazione report, creazione di report, creazione report, berichtswesen, elaboracion de informes, informes, relatorios]
     # "reporting"/"report(s)" but not "reporting to the CFO" / "report directly to".
     patterns: ['(?i)(?<![\w&])(?:reporting|reports?)(?!\s+(?:to|directly|into)\b)(?![\w&])']
   - name: Statistics
     category: Analytics & Statistics
     # "Laurea in Statistica" in a job post is a degree, not a skill request.
     degree_subject: true
-    synonyms: [statistics, statistical analysis, statistica, statistiche, analisi statistica, analisi statistiche, descriptive statistics, statistica descrittiva, inferential statistics, statistica inferenziale]
+    synonyms: [statistics, statistical analysis, statistica, statistiche, analisi statistica, analisi statistiche, descriptive statistics, statistica descrittiva, inferential statistics, statistica inferenziale, statistiques, analyse statistique, statistik, statistische analyse, statistische methoden, estadistica, estadisticas, analisis estadistico, estatistica, analise estatistica]
   - name: Hypothesis Testing
     category: Analytics & Statistics
-    synonyms: [hypothesis testing, statistical testing, test di ipotesi, test statistici, significance testing, statistical significance, significativita statistica, t-test, chi-square]
+    synonyms: [hypothesis testing, statistical testing, test di ipotesi, test statistici, significance testing, statistical significance, significativita statistica, t-test, chi-square, tests d'hypotheses, hypothesentests, statistische tests, pruebas de hipotesis, contraste de hipotesis, testes de hipoteses]
   - name: A/B Testing
     category: Analytics & Statistics
     synonyms: [a/b testing, a/b test, ab testing, split testing, experimentation, sperimentazione]
   - name: Regression Analysis
     category: Analytics & Statistics
-    synonyms: [regression, regression analysis, linear regression, logistic regression, regressione, regressione lineare, regressione logistica]
+    synonyms: [regression, regression analysis, linear regression, logistic regression, regressione, regressione lineare, regressione logistica, regression lineaire, regressionsanalyse, regresion, regresion lineal, regressão]
   - name: Forecasting
     category: Analytics & Statistics
-    synonyms: [forecasting, forecast, demand forecasting, sales forecasting, previsioni di vendita, modelli previsionali, previsione della domanda]
+    synonyms: [forecasting, forecast, demand forecasting, sales forecasting, previsioni di vendita, modelli previsionali, previsione della domanda, previsions, prevision des ventes, prognose, prognosen, absatzprognose, prevision, previsiones, pronostico, previsão, previsões]
   - name: Time Series Analysis
     category: Analytics & Statistics
-    synonyms: [time series, time-series analysis, serie storiche, serie temporali, arima]
+    synonyms: [time series, time-series analysis, serie storiche, serie temporali, arima, series temporelles, zeitreihen, zeitreihenanalyse, series temporales, series temporais]
   - name: Machine Learning
     category: Analytics & Statistics
-    synonyms: [machine learning, apprendimento automatico, ml models, modelli di machine learning, random forest, decision trees, gradient boosting, xgboost, alberi decisionali]
+    synonyms: [machine learning, apprendimento automatico, ml models, modelli di machine learning, random forest, decision trees, gradient boosting, xgboost, alberi decisionali, apprentissage automatique, maschinelles lernen, aprendizaje automatico, aprendizado de maquina, aprendizagem automatica]
   - name: Predictive Modeling
     category: Analytics & Statistics
-    synonyms: [predictive modeling, predictive modelling, predictive model, predictive models, predictive analytics, analisi predittiva, modelli predittivi, modellazione predittiva]
+    synonyms: [predictive modeling, predictive modelling, predictive model, predictive models, predictive analytics, analisi predittiva, modelli predittivi, modellazione predittiva, modeles predictifs, analyse predictive, pradiktive modelle, modelos predictivos, analisis predictivo, modelos preditivos, analise preditiva]
   - name: Clustering & Segmentation
     category: Analytics & Statistics
-    synonyms: [clustering, segmentation, customer segmentation, segmentazione, segmentazione clienti, segmentazione della clientela, k-means]
+    synonyms: [clustering, segmentation, customer segmentation, segmentazione, segmentazione clienti, segmentazione della clientela, k-means, segmentierung, kundensegmentierung, segmentacion, segmentação]
   - name: Data Mining
     category: Analytics & Statistics
     synonyms: [data mining]
   - name: Exploratory Data Analysis
     category: Analytics & Statistics
-    synonyms: [exploratory data analysis, eda, analisi esplorativa, analisi esplorativa dei dati]
+    synonyms: [exploratory data analysis, eda, analisi esplorativa, analisi esplorativa dei dati, analyse exploratoire, explorative datenanalyse, analisis exploratorio, analise exploratoria]
   - name: Data Cleaning
     category: Analytics & Statistics
-    synonyms: [data cleaning, data cleansing, data wrangling, data preparation, data prep, pulizia dei dati, pulizia dati, preparazione dei dati, data munging, clean data]
+    synonyms: [data cleaning, data cleansing, data wrangling, data preparation, data prep, pulizia dei dati, pulizia dati, preparazione dei dati, data munging, clean data, nettoyage des donnees, nettoyage de donnees, preparation des donnees, datenbereinigung, datenaufbereitung, limpieza de datos, preparacion de datos, limpeza de dados, preparação de dados]
     # "clean"/"cleaning"/"cleaned" followed within a few words by data/dataset(s),
     # and the Italian "pulizia ... dati".
     patterns:
@@ -319,16 +322,16 @@ skills:
     synonyms: [cohort analysis, funnel analysis, analisi di coorte, analisi delle coorti, analisi del funnel, retention analysis, churn analysis, analisi del churn]
   - name: KPI Definition
     category: Analytics & Statistics
-    synonyms: [kpi, kpis, key performance indicators, key performance indicator, metrics definition, indicatori di performance, definizione kpi]
+    synonyms: [kpi, kpis, key performance indicators, key performance indicator, metrics definition, indicatori di performance, definizione kpi, indicateurs de performance, kennzahlen, indicadores clave, indicadores de desempenho]
   - name: Root Cause Analysis
     category: Analytics & Statistics
-    synonyms: [root cause analysis, analisi delle cause, analisi della causa radice]
+    synonyms: [root cause analysis, analisi delle cause, analisi della causa radice, analyse des causes, ursachenanalyse, analisis de causa raiz, analise de causa raiz]
   - name: Data Storytelling
     category: Analytics & Statistics
     synonyms: [data storytelling, storytelling, storytelling con i dati, storytelling with data]
   - name: Natural Language Processing
     category: Analytics & Statistics
-    synonyms: [natural language processing, nlp, text mining, text analytics, sentiment analysis, analisi del sentiment]
+    synonyms: [natural language processing, nlp, text mining, text analytics, sentiment analysis, analisi del sentiment, traitement du langage naturel, verarbeitung naturlicher sprache, procesamiento del lenguaje natural, processamento de linguagem natural]
 
   # ---------------------------------------------------------------------------
   # Methodologies & ways of working
@@ -337,7 +340,7 @@ skills:
     category: Methodologies
     # In Italian "agile" is also an adjective ("ambiente dinamico e agile"),
     # so lowercase "agile" counts only next to methodology words.
-    synonyms: [agile methodology, agile methodologies, metodologia agile, metodologie agile, metodologie agili, metodologia agili, agile framework, agile development, agile environment, agile team, agile teams, approccio agile, agile/scrum, agile practices]
+    synonyms: [agile methodology, agile methodologies, metodologia agile, metodologie agile, metodologie agili, metodologia agili, agile framework, agile development, agile environment, agile team, agile teams, approccio agile, agile/scrum, agile practices, methodologie agile, methodes agiles, agile methoden, agile methodik, agiles arbeiten, metodologias agiles, metodologia agil, metodologias ageis]
     case_sensitive_synonyms: [Agile]
   - name: Scrum
     category: Methodologies
@@ -353,22 +356,22 @@ skills:
     synonyms: [crisp-dm, crisp dm]
   - name: Requirements Gathering
     category: Methodologies
-    synonyms: [requirements gathering, requirement gathering, requirements analysis, requirements elicitation, raccolta dei requisiti, raccolta requisiti, analisi dei requisiti, analisi requisiti, business requirements, requisiti di business, user stories, user story]
+    synonyms: [requirements gathering, requirement gathering, requirements analysis, requirements elicitation, raccolta dei requisiti, raccolta requisiti, analisi dei requisiti, analisi requisiti, business requirements, requisiti di business, user stories, user story, recueil des besoins, expression des besoins, analyse des besoins, cahier des charges, anforderungsanalyse, anforderungsmanagement, levantamiento de requisitos, toma de requisitos, analisis de requisitos, levantamento de requisitos]
   - name: Process Modeling (BPMN)
     category: Methodologies
-    synonyms: [bpmn, process modeling, process modelling, process mapping, mappatura dei processi, modellazione dei processi, business process modeling, analisi dei processi, process analysis]
+    synonyms: [bpmn, process modeling, process modelling, process mapping, mappatura dei processi, modellazione dei processi, business process modeling, analisi dei processi, process analysis, modelisation des processus, cartographie des processus, prozessmodellierung, prozessanalyse, modelado de procesos, mapeo de procesos, modelagem de processos, mapeamento de processos]
   - name: Data Governance
     category: Methodologies
-    synonyms: [data governance, governance dei dati, master data management, mdm, data catalog, data lineage]
+    synonyms: [data governance, governance dei dati, master data management, mdm, data catalog, data lineage, gouvernance des donnees, datengovernance, gobierno de datos, gobernanza de datos, governança de dados]
   - name: Data Quality
     category: Methodologies
-    synonyms: [data quality, qualita dei dati, qualita del dato, data validation, validazione dei dati, data integrity, integrita dei dati]
+    synonyms: [data quality, qualita dei dati, qualita del dato, data validation, validazione dei dati, data integrity, integrita dei dati, qualite des donnees, datenqualitat, calidad de datos, calidad de los datos, qualidade de dados, qualidade dos dados]
   - name: Project Management
     category: Methodologies
-    synonyms: [project management, gestione progetti, gestione dei progetti, project manager, pmp, prince2]
+    synonyms: [project management, gestione progetti, gestione dei progetti, project manager, pmp, prince2, gestion de projet, gestion de projets, projektmanagement, gestion de proyectos, gestão de projetos]
   - name: Documentation
     category: Methodologies
-    synonyms: [documentation, technical documentation, technical specifications, specifiche tecniche, documentazione tecnica, documentazione funzionale, functional documentation, functional specifications, specifiche funzionali, analisi funzionale, functional analysis]
+    synonyms: [documentation, technical documentation, technical specifications, specifiche tecniche, documentazione tecnica, documentazione funzionale, functional documentation, functional specifications, specifiche funzionali, analisi funzionale, functional analysis, dokumentation, documentacion, documentação]
   - name: User Acceptance Testing
     category: Methodologies
     synonyms: [uat, user acceptance testing, user acceptance test, test di accettazione, collaudo utente]
@@ -381,10 +384,10 @@ skills:
   # ---------------------------------------------------------------------------
   - name: Financial Analysis
     category: Business & Domain
-    synonyms: [financial analysis, analisi finanziaria, financial modeling, financial modelling, modellazione finanziaria, budgeting, controllo di gestione, controlling, fp&a, financial planning]
+    synonyms: [financial analysis, analisi finanziaria, financial modeling, financial modelling, modellazione finanziaria, budgeting, controllo di gestione, controlling, fp&a, financial planning, analyse financiere, controle de gestion, finanzanalyse, analisis financiero, control de gestion, analise financeira]
   - name: Marketing Analytics
     category: Business & Domain
-    synonyms: [marketing analytics, digital marketing, marketing digitale, campaign analysis, analisi delle campagne, marketing performance, attribution modeling, marketing attribution, seo, roas, customer lifetime value, ltv, customer acquisition cost, paid media]
+    synonyms: [marketing analytics, digital marketing, marketing digitale, campaign analysis, analisi delle campagne, marketing performance, attribution modeling, marketing attribution, seo, roas, customer lifetime value, ltv, customer acquisition cost, paid media, marketing digital]
     case_sensitive_synonyms: [SEM]
   - name: Web Analytics
     category: Business & Domain
@@ -400,19 +403,19 @@ skills:
     synonyms: [erp, enterprise resource planning, gestionale aziendale]
   - name: Supply Chain
     category: Business & Domain
-    synonyms: [supply chain, logistica, logistics, inventory management, gestione del magazzino, gestione delle scorte, procurement]
+    synonyms: [supply chain, logistica, logistics, inventory management, gestione del magazzino, gestione delle scorte, procurement, chaine d'approvisionnement, logistique, lieferkette, logistik, cadena de suministro, cadeia de suprimentos, cadeia de abastecimento]
   - name: E-commerce
     category: Business & Domain
     synonyms: [e-commerce, ecommerce, commercio elettronico, online retail]
   - name: Sales Analysis
     category: Business & Domain
-    synonyms: [sales analysis, sales analytics, analisi delle vendite, analisi vendite, sales reporting, sales operations]
+    synonyms: [sales analysis, sales analytics, analisi delle vendite, analisi vendite, sales reporting, sales operations, analyse des ventes, vertriebsanalyse, analisis de ventas, analise de vendas]
   - name: Business Intelligence
     category: Business & Domain
     synonyms: [business intelligence]
   - name: GDPR & Data Privacy
     category: Business & Domain
-    synonyms: [gdpr, data privacy, data protection, protezione dei dati, privacy dei dati, trattamento dei dati personali]
+    synonyms: [gdpr, data privacy, data protection, protezione dei dati, privacy dei dati, trattamento dei dati personali, rgpd, dsgvo, lgpd, protection des donnees, datenschutz, proteccion de datos, proteção de dados]
   - name: Business Acumen
     category: Business & Domain
     synonyms: [business acumen, business understanding, conoscenza del business, visione di business, business sense, commercial awareness]

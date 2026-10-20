@@ -1,7 +1,8 @@
-"""Build a self-contained HTML report of the results, to download.
+"""Build the downloadable PDF report of the results.
 
-The report is a single HTML file with inline CSS: it opens in any browser
-and prints cleanly to PDF ("Print > Save as PDF"), with no extra dependency.
+The PDF is drawn with fpdf2 (pure Python, no system dependency, works on
+Streamlit Community Cloud). It is generated in memory and returned as bytes:
+nothing is written to disk.
 
 Privacy: the report lists skill names, counts and scores only. It never
 contains the text of the CV or of the job posts.
@@ -10,44 +11,111 @@ contains the text of the CV or of the job posts.
 from __future__ import annotations
 
 from datetime import date
-from html import escape
 
 import pandas as pd
+from fpdf import FPDF
+from fpdf.fonts import FontFace
 
-_STYLE = """
-body { font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-       color: #1f1f1e; background: #ffffff; max-width: 820px; margin: 32px auto; padding: 0 16px;
-       line-height: 1.45; }
-h1 { font-size: 26px; margin-bottom: 4px; }
-h2 { font-size: 18px; margin-top: 32px; border-bottom: 1px solid #e3e2de; padding-bottom: 4px; }
-.meta { color: #52514e; font-size: 13px; }
-.kpis { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 20px; }
-.kpi { border: 1px solid #e3e2de; border-radius: 8px; padding: 12px 16px; min-width: 150px; }
-.kpi .value { font-size: 26px; font-weight: 600; }
-.kpi .label { color: #52514e; font-size: 13px; }
-table { border-collapse: collapse; width: 100%; font-size: 14px; }
-th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #ecebe8; }
-th { color: #52514e; font-weight: 600; }
-td.num, th.num { text-align: right; }
-.badge { display: inline-block; border-radius: 6px; padding: 2px 8px; margin: 2px; font-size: 13px; }
-.present { background: #e6f4e6; color: #006300; }
-.missing { background: #fbe9e9; color: #a32121; }
-.soft { background: #fdf0e1; color: #8a4a00; }
-.note { color: #52514e; font-size: 12.5px; margin-top: 32px; }
-@media print { body { margin: 0 auto; } h2 { break-after: avoid; } table { break-inside: auto; } }
-"""
+# Colours (RGB) from the app's palette.
+_BLUE = (42, 120, 214)
+_BLUE_LIGHT = (205, 226, 251)
+_INK = (31, 31, 30)
+_MUTED = (82, 81, 78)
+_RULE = (227, 226, 222)
+_GREEN = (0, 99, 0)
+_GREEN_BG = (230, 244, 230)
+_RED = (163, 33, 33)
+_RED_BG = (251, 233, 233)
+_ORANGE = (138, 74, 0)
+_ORANGE_BG = (253, 240, 225)
+
+_MAX_BARS = 12
+_HEADING = FontFace(emphasis="BOLD", color=_MUTED)
 
 
-def _badges(table: pd.DataFrame, css_class: str, mark: str) -> str:
-    if table.empty:
-        return "<p><em>None.</em></p>"
-    return "<p>" + "".join(
-        f'<span class="badge {css_class}">{mark} {escape(row.skill)} &middot; {row.posts_count}</span>'
-        for row in table.itertuples()
-    ) + "</p>"
+def _latin1(text: str) -> str:
+    """The core PDF fonts cover Latin-1: replace anything outside it."""
+    text = text.replace("–", "-").replace("—", "-").replace("…", "...")
+    return text.encode("latin-1", "replace").decode("latin-1")
 
 
-def build_html_report(
+class _Report(FPDF):
+    def __init__(self, footer_text: str):
+        super().__init__(orientation="P", unit="mm", format="A4")
+        self.footer_text = footer_text
+        self.set_margins(18, 18, 18)
+        self.set_auto_page_break(auto=True, margin=20)
+
+    def footer(self) -> None:
+        self.set_y(-14)
+        self.set_font("Helvetica", size=8)
+        self.set_text_color(*_MUTED)
+        self.cell(0, 5, _latin1(self.footer_text), align="L")
+        self.cell(0, 5, f"Page {self.page_no()}/{{nb}}", align="R")
+
+    # --- small building blocks ------------------------------------------------
+    def section(self, title: str, subtitle: str = "") -> None:
+        if self.get_y() > 245:
+            self.add_page()
+        self.ln(4)
+        self.set_font("Helvetica", "B", 13)
+        self.set_text_color(*_INK)
+        self.cell(0, 8, _latin1(title), new_x="LMARGIN", new_y="NEXT")
+        self.set_draw_color(*_RULE)
+        self.line(self.l_margin, self.get_y(), self.w - self.r_margin, self.get_y())
+        self.ln(2)
+        if subtitle:
+            self.set_font("Helvetica", size=9)
+            self.set_text_color(*_MUTED)
+            self.multi_cell(0, 4.5, _latin1(subtitle), new_x="LMARGIN", new_y="NEXT")
+            self.ln(1)
+
+    def chips(self, names: list[str], fg, bg) -> None:
+        """Skill names as small rounded labels that wrap across lines."""
+        if not names:
+            self.set_font("Helvetica", "I", 9)
+            self.set_text_color(*_MUTED)
+            self.cell(0, 6, "None.", new_x="LMARGIN", new_y="NEXT")
+            return
+        self.set_font("Helvetica", size=8.5)
+        x0, right, h, gap = self.l_margin, self.w - self.r_margin, 6, 1.6
+        x, y = x0, self.get_y()
+        for name in names:
+            label = _latin1(name)
+            w = self.get_string_width(label) + 5
+            if x + w > right:
+                x, y = x0, y + h + gap
+            self.set_fill_color(*bg)
+            self.set_text_color(*fg)
+            self.rect(x, y, w, h, style="F", round_corners=True, corner_radius=1.5)
+            self.set_xy(x, y)
+            self.cell(w, h, label, align="C")
+            x += w + gap
+        self.set_xy(x0, y + h + 3)
+
+    def bars(self, rows: list[tuple[str, float, str, tuple]], max_value: float) -> None:
+        """Horizontal bars: (label, value, text at the end, colour)."""
+        label_w, bar_x = 52, self.l_margin + 54
+        bar_w_max = self.w - self.r_margin - bar_x - 22
+        for label, value, end_text, colour in rows:
+            if self.get_y() > 270:
+                self.add_page()
+            y = self.get_y()
+            self.set_font("Helvetica", size=8.5)
+            self.set_text_color(*_INK)
+            self.set_xy(self.l_margin, y)
+            self.cell(label_w, 5.5, _latin1(label), align="R")
+            width = bar_w_max * (value / max_value) if max_value else 0
+            self.set_fill_color(*colour)
+            if width > 0:
+                self.rect(bar_x, y + 1, max(width, 0.8), 3.6, style="F", round_corners=True, corner_radius=1)
+            self.set_xy(bar_x + width + 1.5, y)
+            self.set_text_color(*_MUTED)
+            self.cell(20, 5.5, _latin1(end_text))
+            self.set_xy(self.l_margin, y + 6)
+
+
+def build_pdf_report(
     table: pd.DataFrame,
     soft: pd.DataFrame,
     breakdown: pd.DataFrame,
@@ -60,8 +128,8 @@ def build_html_report(
     nice_weight: float,
     version: str,
     generated_on: date | None = None,
-) -> str:
-    """Return the full HTML document as a string.
+) -> bytes:
+    """Return the PDF report as bytes.
 
     Args:
         table: the technical skills of the skill table (see `analysis.split_soft_skills`).
@@ -80,90 +148,172 @@ def build_html_report(
     present = table[table["in_cv"]]
     missing = table[~table["in_cv"]]
 
-    priority_rows = "".join(
-        f"<tr><td class='num'>{i}</td><td>{escape(row.skill)}</td><td>{escape(row.category)}</td>"
-        f"<td class='num'>{row.required_count}</td><td class='num'>{row.nice_count}</td>"
-        f"<td class='num'>{row.posts_share * 100:.0f}%</td></tr>"
-        for i, row in enumerate(priorities.itertuples(), start=1)
+    pdf = _Report(footer_text=f"Skill Gap Analyzer v{version} - skill-gap.streamlit.app")
+    pdf.alias_nb_pages()
+    pdf.add_page()
+
+    # --- Header band ------------------------------------------------------------
+    pdf.set_fill_color(*_BLUE)
+    pdf.rect(0, 0, pdf.w, 38, style="F")
+    pdf.set_xy(18, 10)
+    pdf.set_text_color(255, 255, 255)
+    pdf.set_font("Helvetica", "B", 22)
+    pdf.cell(0, 10, "Skill Gap Report", new_x="LMARGIN", new_y="NEXT")
+    pdf.set_font("Helvetica", size=10)
+    pdf.cell(
+        0, 6,
+        _latin1(f"Target role: {role}  |  {n_posts} job posts analysed  |  {generated_on.isoformat()}"),
+        new_x="LMARGIN", new_y="NEXT",
     )
-    category_rows = "".join(
-        f"<tr><td>{escape(row.category)}</td><td class='num'>{row.covered} of {row.requested}</td>"
-        f"<td class='num'>{row.coverage_pct:.0f}%</td></tr>"
-        for row in breakdown.itertuples()
+    pdf.set_y(46)
+
+    # --- KPI cards ----------------------------------------------------------------
+    cards = [
+        (f"{coverage:.0f}%", "Weighted coverage", "technical skills"),
+        (f"{len(present)} of {len(table)}", "Technical skills", "in your CV"),
+        (str(len(missing)), "Missing", "technical skills"),
+    ]
+    card_w, gap, y = (pdf.w - 36 - 2 * 6) / 3, 6, pdf.get_y()
+    for i, (value, label, sub) in enumerate(cards):
+        x = 18 + i * (card_w + gap)
+        pdf.set_draw_color(*_RULE)
+        pdf.set_fill_color(248, 248, 247)
+        pdf.rect(x, y, card_w, 24, style="DF", round_corners=True, corner_radius=2.5)
+        pdf.set_xy(x + 4, y + 3)
+        pdf.set_font("Helvetica", "B", 18)
+        pdf.set_text_color(*(_BLUE if i == 0 else _INK))
+        pdf.cell(card_w - 8, 9, _latin1(value))
+        pdf.set_xy(x + 4, y + 13)
+        pdf.set_font("Helvetica", size=8.5)
+        pdf.set_text_color(*_MUTED)
+        pdf.cell(card_w - 8, 4.5, _latin1(label))
+        pdf.set_xy(x + 4, y + 17.5)
+        pdf.cell(card_w - 8, 4.5, _latin1(sub))
+    # Coverage progress bar under the cards.
+    pdf.set_y(y + 28)
+    bar_w = pdf.w - 36
+    pdf.set_fill_color(*_BLUE_LIGHT)
+    pdf.rect(18, pdf.get_y(), bar_w, 2.5, style="F", round_corners=True, corner_radius=1)
+    pdf.set_fill_color(*_BLUE)
+    pdf.rect(18, pdf.get_y(), max(bar_w * coverage / 100, 1), 2.5, style="F", round_corners=True, corner_radius=1)
+    pdf.ln(5)
+
+    # --- Study priorities ------------------------------------------------------------
+    pdf.section(f"Top {len(priorities)} study priorities" if not priorities.empty else "Study priorities",
+                "Missing technical skills, most requested first.")
+    if priorities.empty:
+        pdf.set_font("Helvetica", size=10)
+        pdf.set_text_color(*_GREEN)
+        pdf.cell(0, 7, "Your CV covers every requested technical skill.", new_x="LMARGIN", new_y="NEXT")
+    else:
+        pdf.set_font("Helvetica", size=9)
+        pdf.set_text_color(*_INK)
+        pdf.set_draw_color(*_RULE)
+        pdf.set_fill_color(255, 255, 255)
+        with pdf.table(
+            col_widths=(8, 52, 48, 22, 22, 22),
+            text_align=("RIGHT", "LEFT", "LEFT", "RIGHT", "RIGHT", "RIGHT"),
+            headings_style=_HEADING,
+            line_height=6,
+            borders_layout="HORIZONTAL_LINES",
+            cell_fill_mode="NONE",
+        ) as t:
+            header = t.row()
+            for h in ("#", "Skill", "Category", "Required", "Nice", "Share"):
+                header.cell(h)
+            for i, row in enumerate(priorities.itertuples(), start=1):
+                r = t.row()
+                for value in (str(i), row.skill, row.category, str(row.required_count),
+                              str(row.nice_count), f"{row.posts_share * 100:.0f}%"):
+                    r.cell(_latin1(value))
+
+    # --- Most requested skills ---------------------------------------------------------
+    top = table.head(_MAX_BARS)
+    pdf.section(
+        "Most requested technical skills",
+        "Number of job posts asking for each skill. Dark bar = in your CV, light bar = missing.",
     )
-    skill_rows = "".join(
-        f"<tr><td>{escape(row.skill)}</td><td>{escape(row.category)}</td>"
-        f"<td class='num'>{row.required_count}</td><td class='num'>{row.nice_count}</td>"
-        f"<td class='num'>{row.demand:g}</td><td>{'Yes' if row.in_cv else 'No'}</td></tr>"
-        for row in table.itertuples()
+    pdf.bars(
+        [(r.skill, r.posts_count, str(r.posts_count), _BLUE if r.in_cv else _BLUE_LIGHT)
+         for r in top.itertuples()],
+        max_value=max(1, int(top["posts_count"].max())) if not top.empty else 1,
     )
-    soft_missing = soft[~soft["in_cv"]]
-    soft_present = soft[soft["in_cv"]]
-    soft_html = ""
+
+    # --- Coverage by category --------------------------------------------------------------
+    pdf.section("Coverage by category", "Weighted coverage of the technical skills in each category.")
+    pdf.bars(
+        [(r.category, r.coverage_pct, f"{r.coverage_pct:.0f}%  ({r.covered}/{r.requested})", _BLUE)
+         for r in breakdown.itertuples()],
+        max_value=100,
+    )
+
+    # --- CV vs market ------------------------------------------------------------------------
+    pdf.section("Your CV vs the market", "Technical skills requested by the posts.")
+    pdf.set_font("Helvetica", "B", 10)
+    pdf.set_text_color(*_GREEN)
+    pdf.cell(0, 6, f"In your CV ({len(present)})", new_x="LMARGIN", new_y="NEXT")
+    pdf.chips([f"{r.skill} - {r.posts_count}" for r in present.itertuples()], _GREEN, _GREEN_BG)
+    pdf.set_font("Helvetica", "B", 10)
+    pdf.set_text_color(*_RED)
+    pdf.cell(0, 6, f"Missing from your CV ({len(missing)})", new_x="LMARGIN", new_y="NEXT")
+    pdf.chips([f"{r.skill} - {r.posts_count}" for r in missing.itertuples()], _RED, _RED_BG)
+    if extras:
+        pdf.set_font("Helvetica", size=9)
+        pdf.set_text_color(*_MUTED)
+        pdf.multi_cell(0, 4.5, _latin1("Also in your CV but not requested: " + ", ".join(extras) + "."),
+                       new_x="LMARGIN", new_y="NEXT")
+
+    # --- Soft skills ----------------------------------------------------------------------------
     if not soft.empty:
-        soft_html = (
-            "<h2>Soft skills to make visible in your CV</h2>"
-            "<p>Not counted in the coverage score. Show them with a concrete example in your CV "
-            "rather than studying them.</p>"
-            + (_badges(soft_missing, "soft", "&#9675;") if not soft_missing.empty
-               else "<p>Every soft skill the posts ask for is already visible in your CV.</p>")
-            + (f"<p>Already visible in your CV: {escape(', '.join(soft_present['skill']))}.</p>"
-               if not soft_present.empty else "")
+        soft_missing = soft[~soft["in_cv"]]
+        soft_present = soft[soft["in_cv"]]
+        pdf.section(
+            "Soft skills to make visible in your CV",
+            "Not counted in the coverage score. Show them with a concrete example in your CV "
+            "rather than studying them.",
         )
-    extras_html = (
-        f"<p>Also in your CV but not requested by these posts: {escape(', '.join(extras))}.</p>"
-        if extras else ""
+        pdf.chips([f"{r.skill} - {r.posts_count}" for r in soft_missing.itertuples()], _ORANGE, _ORANGE_BG)
+        if not soft_present.empty:
+            pdf.set_font("Helvetica", size=9)
+            pdf.set_text_color(*_MUTED)
+            pdf.multi_cell(0, 4.5, _latin1("Already visible in your CV: " + ", ".join(soft_present["skill"]) + "."),
+                           new_x="LMARGIN", new_y="NEXT")
+
+    # --- Full table ---------------------------------------------------------------------------------
+    pdf.section("All requested technical skills")
+    pdf.set_font("Helvetica", size=8.5)
+    pdf.set_text_color(*_INK)
+    pdf.set_fill_color(255, 255, 255)
+    with pdf.table(
+        col_widths=(50, 46, 20, 22, 18, 18),
+        text_align=("LEFT", "LEFT", "RIGHT", "RIGHT", "RIGHT", "CENTER"),
+        headings_style=_HEADING,
+        line_height=5.5,
+        borders_layout="HORIZONTAL_LINES",
+            cell_fill_mode="NONE",
+    ) as t:
+        header = t.row()
+        for h in ("Skill", "Category", "Required", "Nice to have", "Demand", "In CV"):
+            header.cell(h)
+        for r in table.itertuples():
+            row = t.row()
+            for value in (r.skill, r.category, str(r.required_count), str(r.nice_count),
+                          f"{r.demand:g}", "Yes" if r.in_cv else "No"):
+                row.cell(_latin1(value))
+
+    # --- Method note -------------------------------------------------------------------------------------
+    pdf.ln(4)
+    pdf.set_font("Helvetica", size=8)
+    pdf.set_text_color(*_MUTED)
+    pdf.multi_cell(
+        0, 4,
+        _latin1(
+            f"How to read it: demand = posts that require the skill + {nice_weight:g} x posts where it is "
+            "only nice to have. Weighted coverage = demand of the technical skills in your CV / total "
+            "demand. Skills are recognised with a dictionary (no AI), so wording outside the dictionary "
+            "can be missed. This report contains skill names and scores only, never the text of your CV "
+            "or of the job posts."
+        ),
+        new_x="LMARGIN", new_y="NEXT",
     )
-    priorities_html = (
-        "<table><tr><th class='num'>#</th><th>Skill</th><th>Category</th><th class='num'>Required</th>"
-        f"<th class='num'>Nice</th><th class='num'>Share of posts</th></tr>{priority_rows}</table>"
-        if not priorities.empty else "<p>Your CV covers every requested skill.</p>"
-    )
-
-    return f"""<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Skill Gap Report</title>
-<style>{_STYLE}</style>
-</head>
-<body>
-<h1>Skill Gap Report</h1>
-<div class="meta">Target role: <strong>{escape(role)}</strong> &middot; {n_posts} job posts analysed &middot;
-generated on {generated_on.isoformat()}</div>
-
-<div class="kpis">
-  <div class="kpi"><div class="value">{coverage:.0f}%</div><div class="label">Weighted coverage (technical skills)</div></div>
-  <div class="kpi"><div class="value">{len(present)} of {len(table)}</div><div class="label">Technical skills in your CV</div></div>
-  <div class="kpi"><div class="value">{len(missing)}</div><div class="label">Missing technical skills</div></div>
-</div>
-
-<h2>Top {len(priorities)} study priorities</h2>
-{priorities_html}
-
-<h2>Coverage by category</h2>
-<table><tr><th>Category</th><th class="num">Skills in CV</th><th class="num">Weighted coverage</th></tr>{category_rows}</table>
-
-<h2>Your CV vs the market</h2>
-<p>Technical skills. The number next to each skill is how many job posts ask for it.</p>
-<h3>In your CV ({len(present)})</h3>
-{_badges(present, "present", "&#10003;")}
-<h3>Missing from your CV ({len(missing)})</h3>
-{_badges(missing, "missing", "&#10007;")}
-{extras_html}
-
-{soft_html}
-
-<h2>All requested technical skills</h2>
-<table><tr><th>Skill</th><th>Category</th><th class="num">Required in</th><th class="num">Nice to have in</th>
-<th class="num">Demand</th><th>In CV</th></tr>{skill_rows}</table>
-
-<p class="note">How to read it: demand = posts that require the skill + {nice_weight:g} &times; posts where it
-is only nice to have. Weighted coverage = demand of the skills in your CV / total demand. Skills are
-recognised with a dictionary (no AI), so wording outside the dictionary can be missed.
-This report contains skill names and scores only, never the text of your CV or of the job posts.
-Generated by Skill Gap Analyzer v{escape(version)}.</p>
-</body>
-</html>
-"""
+    return bytes(pdf.output())

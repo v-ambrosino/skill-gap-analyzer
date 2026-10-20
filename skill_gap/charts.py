@@ -173,3 +173,32 @@ def category_coverage_chart(breakdown: pd.DataFrame, mode: str = "light") -> go.
     fig.update_yaxes(autorange="reversed")
     height = max(200, 44 * len(breakdown) + 70)
     return _base_layout(fig, mode, height)
+
+
+def coverage_donut(score: float, mode: str = "light") -> go.Figure:
+    """A ring showing the weighted coverage, with the percentage in the middle."""
+    track = "#cde2fb" if mode == "light" else "#28456b"
+    fig = go.Figure(
+        go.Pie(
+            values=[score, max(0.0, 100 - score)],
+            hole=0.74,
+            sort=False,
+            direction="clockwise",
+            marker=dict(colors=[_SINGLE_SERIES[mode], track], line=dict(width=0)),
+            textinfo="none",
+            hoverinfo="skip",
+        )
+    )
+    fig.update_layout(
+        height=220,
+        margin=dict(l=0, r=0, t=0, b=0),
+        showlegend=False,
+        paper_bgcolor="rgba(0,0,0,0)",
+        annotations=[
+            dict(text=f"<b>{score:.0f}%</b>", x=0.5, y=0.55, showarrow=False,
+                 font=dict(size=34, color=_SINGLE_SERIES[mode])),
+            dict(text="weighted coverage", x=0.5, y=0.36, showarrow=False,
+                 font=dict(size=12, color=_TEXT_MUTED[mode])),
+        ],
+    )
+    return fig

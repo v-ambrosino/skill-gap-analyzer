@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 64" role="img" aria-label="Skill Gap Analyzer">
+  <rect width="64" height="64" rx="14" fill="#2a78d6"/>
+  <rect x="13" y="34" width="9" height="17" rx="3" fill="#ffffff"/>
+  <rect x="27.5" y="24" width="9" height="27" rx="3" fill="#ffffff"/>
+  <rect x="42" y="13" width="9" height="38" rx="3" fill="#ffffff" fill-opacity="0.45"/>
+  <path d="M42 13h9v12h-9z" fill="#ffffff"/>
+  <text x="78" y="41" font-family="Inter, Helvetica, Arial, sans-serif" font-size="25" font-weight="700" fill="#2a78d6">Skill Gap</text>
+</svg>

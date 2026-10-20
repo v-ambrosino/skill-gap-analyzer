@@ -44,16 +44,28 @@ NICE_TO_HAVE = "nice_to_have"
 # A separator line made only of three or more dashes, e.g. "---".
 _POST_SEPARATOR = re.compile(r"^[ \t]*-{3,}[ \t]*$", re.MULTILINE)
 
-# Words that turn a requirement into a "nice to have". They are matched on the
-# normalised text, so accents are already removed ("gradita", "preferenziale").
+# Words that turn a requirement into a "nice to have", in English, Italian,
+# French, German, Spanish and Portuguese. They are matched on the normalised
+# text, so accents are already removed ("gradita", "souhaite", "valorara").
 _NICE_MARKERS = re.compile(
     r"(?i)(?<![\w&])(?:"
+    # English
     r"nice[\s-]*to[\s-]*haves?|bonus(?:\s+points?)?|preferred|preferabl[ey]|"
-    r"desirable|desired|ideally|advantageous|an\s+advantage|"
-    r"(?:is|are|would\s+be|will\s+be|as|a|un|e|sara|rappresenta|costituisce|"
-    r"costituira|considerato|considerata)\s+(?:a\s+|un\s+)?(?:big\s+|grande\s+|forte\s+)?plus|"
-    r"gradit[aoie]|preferenzial[ei]|preferibil\w*|apprezzat[aoie]|"
-    r"optional|facoltativ[aoie]"
+    r"desirable|desired|ideally|advantageous|an\s+advantage|optional|"
+    # "a plus" in every language: is a plus, un plus, ein Plus, um plus, e un plus...
+    r"(?:is|are|would\s+be|will\s+be|as|a|un|une|ein|um|e|sara|serait|est|es|sera|seria|"
+    r"rappresenta|costituisce|costituira|considerato|considerata)\s+"
+    r"(?:a\s+|un\s+)?(?:big\s+|grande\s+|forte\s+|gros\s+|großes\s+)?plus|"
+    # Italian
+    r"gradit[aoie]|preferenzial[ei]|preferibil\w*|apprezzat[aoie]|facoltativ[aoie]|"
+    # French
+    r"souhaite(?:e|s|es)?|apprecie(?:e|s|es)?|atouts?|idealement|de\s+preference|"
+    # German
+    r"von\s+vorteil|wunschenswert|idealerweise|pluspunkte?|vorteilhaft|"
+    # Spanish
+    r"se\s+valorara|valorable|valoraremos|deseables?|preferiblemente|preferentemente|"
+    # Portuguese
+    r"diferencia(?:l|is)|desejave(?:l|is)|preferencialmente|sera\s+valorizad[oa]|valorizad[oa]"
     r")(?![\w&])"
 )
 
@@ -66,7 +78,18 @@ _REQUIRED_HEADER = re.compile(
     r"qualifications?|required|essential|competenze(?:\s+richieste)?|cosa\s+cerchiamo|"
     r"responsibilities|responsabilita(?:\s+principali)?|attivita(?:\s+principali)?|mansioni|"
     r"what\s+you(?:'ll|\s+will)\s+be\s+doing|cosa\s+farai|"
-    r"key\s+skills|skills|about\s+you|chi\s+cerchiamo)\b"
+    r"key\s+skills|skills|about\s+you|chi\s+cerchiamo|"
+    # French
+    r"profil(?:\s+recherche)?|votre\s+profil|ton\s+profil|competences(?:\s+requises)?|"
+    r"(?:vos\s+|tes\s+)?missions|prerequis|exigences|qualifications\s+requises|"
+    # German
+    r"anforderungen|(?:ihr|dein)\s+profil|(?:ihre|deine)\s+aufgaben|aufgaben|"
+    r"qualifikationen|was\s+du\s+mitbringst|das\s+bringst\s+du\s+mit|was\s+sie\s+mitbringen|"
+    # Spanish
+    r"requisitos(?:\s+minimos)?|(?:tu\s+)?perfil|funciones|responsabilidades|"
+    r"(?:lo\s+)?que\s+buscamos|que\s+haras|"
+    # Portuguese
+    r"atividades|o\s+que\s+procuramos|o\s+que\s+voce\s+(?:vai\s+fazer|precisa\s+ter))\b"
 )
 
 # Symbols and emoji used as bullets in copy-pasted posts (\u2022 \u25aa \u25b6 \u2713 \u2705 \U0001F539 ...).
@@ -88,7 +111,16 @@ _EDUCATION = re.compile(
     r"degrees?|bachelor'?s?|master'?s|msc|bsc|phd|(?:under|post)?graduat\w*|studies|"
     r"education(?:al)?|disciplines?|majors?\s+in|field\s+of\s+study|"
     r"(?:related|quantitative|similar|scientific|technical)\s+(?:field|discipline)s?|"
-    r"(?:academic|educational|quantitative|scientific)\s+background"
+    r"(?:academic|educational|quantitative|scientific)\s+background|"
+    # French: diplome, licence, master, bac+5, formation superieure, ecole d'ingenieur, etudes
+    r"diplomee?s?|licence|bac\s*\+\s*\d|formation\s+(?:superieure|universitaire|en)|"
+    r"ecole\s+d'ingenieurs?|etudes|"
+    # German: Studium, Hochschulabschluss, Studiengang, Abschluss in ...
+    r"studium|studiengang|hochschulabschluss|(?:universitats|hochschul)?abschluss|"
+    # Spanish: titulacion, grado en, licenciatura, carrera universitaria, estudios
+    r"titulacion|titulad[oa]s?|licenciatura|licenciad[oa]s?|grado\s+en|carrera|estudios|"
+    # Portuguese: formacao em, graduacao, bacharelado, curso superior
+    r"formacao(?:\s+superior)?|graduacao|graduad[oa]s?|bacharelado|curso\s+superior"
     r")(?![\w&])"
 )
 
@@ -97,7 +129,8 @@ _EDUCATION = re.compile(
 # degree that ends with a colon ("Laurea in una delle seguenti discipline:").
 _EDUCATION_HEADER = re.compile(
     r"(?i)^(?:formazione|istruzione|titol[oi]\s+di\s+studio|education|"
-    r"educational\s+background|academic\s+background)\W*$"
+    r"educational\s+background|academic\s+background|formation|ausbildung|"
+    r"formacion(?:\s+academica)?|formacao(?:\s+academica)?)\W*$"
 )
 _EDUCATION_LIST_MAX_WORDS = 8
 
@@ -266,7 +299,12 @@ def find_skill_mentions(
 _GENERIC_HEADING = re.compile(
     r"(?i)^(?:about\s+the\s+(?:job|role|company)|about\s+us|job\s+description|the\s+role|"
     r"overview|informazioni\s+sull'offerta(?:\s+di\s+lavoro)?|descrizione\s+(?:del\s+ruolo|"
-    r"dell'offerta|della\s+posizione)|il\s+ruolo|chi\s+siamo|cosa\s+farai|what\s+you'll\s+do)\W*$"
+    r"dell'offerta|della\s+posizione)|il\s+ruolo|chi\s+siamo|cosa\s+farai|what\s+you'll\s+do|"
+    # French, German, Spanish, Portuguese job-board headings
+    r"a\s+propos(?:\s+de\s+l'offre(?:\s+d'emploi)?)?|description\s+du\s+poste|le\s+poste|"
+    r"uber\s+uns|uber\s+den\s+job|stellenbeschreibung|info|"
+    r"acerca\s+del\s+empleo|descripcion\s+(?:del\s+puesto|de\s+la\s+oferta)|sobre\s+nosotros|"
+    r"sobre\s+a\s+vaga|descricao\s+da\s+vaga|sobre\s+nos)\W*$"
 )
 _TITLE_LENGTH = 60
 

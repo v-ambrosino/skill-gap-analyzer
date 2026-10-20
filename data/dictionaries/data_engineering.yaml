@@ -151,7 +151,7 @@ skills:
     synonyms: [etl, elt, etl pipelines, extract transform load, pipeline etl]
   - name: Data Pipelines
     category: Pipelines & Processing
-    synonyms: [data pipeline, data pipelines, pipeline di dati, pipeline dati, data ingestion, ingestion dei dati, ingestione dei dati]
+    synonyms: [data pipeline, data pipelines, pipeline di dati, pipeline dati, data ingestion, ingestion dei dati, ingestione dei dati, pipelines de donnees, datenpipelines, pipelines de datos, pipelines de dados]
   - name: Apache Spark
     category: Pipelines & Processing
     synonyms: [spark, apache spark, pyspark, spark sql, spark streaming, structured streaming]
@@ -184,7 +184,7 @@ skills:
     synonyms: [change data capture, cdc, debezium]
   - name: Stream Processing
     category: Pipelines & Processing
-    synonyms: [stream processing, streaming data, real-time data, real time data, dati in tempo reale, event streaming, event-driven]
+    synonyms: [stream processing, streaming data, real-time data, real time data, dati in tempo reale, event streaming, event-driven, donnees en temps reel, echtzeitdaten, datos en tiempo real, dados em tempo real]
   - name: Batch Processing
     category: Pipelines & Processing
     synonyms: [batch, batch processing, batch jobs, elaborazioni batch, batch pipelines]
@@ -200,13 +200,13 @@ skills:
   # ---------------------------------------------------------------------------
   - name: Data Warehousing
     category: Data Architecture
-    synonyms: [data warehouse, data warehousing, dwh, data mart, enterprise data warehouse]
+    synonyms: [data warehouse, data warehousing, dwh, data mart, enterprise data warehouse, entrepot de donnees, almacen de datos, armazem de dados]
   - name: Data Lake / Lakehouse
     category: Data Architecture
     synonyms: [data lake, data lakes, lakehouse, data lakehouse, medallion architecture]
   - name: Data Modeling
     category: Data Architecture
-    synonyms: [data modeling, data modelling, modellazione dati, modellazione dei dati, dimensional modeling, dimensional modelling, star schema, schema a stella, kimball]
+    synonyms: [data modeling, data modelling, modellazione dati, modellazione dei dati, dimensional modeling, dimensional modelling, star schema, schema a stella, kimball, modelisation des donnees, modelisation de donnees, datenmodellierung, modelado de datos, modelagem de dados]
   - name: Data Vault
     category: Data Architecture
     synonyms: [data vault, data vault 2.0]
@@ -218,19 +218,19 @@ skills:
     synonyms: [parquet, avro, orc files]
   - name: Distributed Systems
     category: Data Architecture
-    synonyms: [distributed systems, distributed computing, sistemi distribuiti]
+    synonyms: [distributed systems, distributed computing, sistemi distribuiti, systemes distribues, verteilte systeme, sistemas distribuidos]
   - name: Data Governance
     category: Data Architecture
-    synonyms: [data governance, governance dei dati, data catalog, data lineage, metadata management, master data management]
+    synonyms: [data governance, governance dei dati, data catalog, data lineage, metadata management, master data management, gouvernance des donnees, datengovernance, gobierno de datos, gobernanza de datos, governança de dados]
   - name: Data Quality
     category: Data Architecture
-    synonyms: [data quality, qualita dei dati, qualita del dato, data validation, great expectations, data contracts, data observability]
+    synonyms: [data quality, qualita dei dati, qualita del dato, data validation, great expectations, data contracts, data observability, qualite des donnees, datenqualitat, calidad de datos, calidad de los datos, qualidade de dados, qualidade dos dados]
   - name: Data Security
     category: Data Architecture
-    synonyms: [data security, sicurezza dei dati, encryption, iam, access control, row-level security]
+    synonyms: [data security, sicurezza dei dati, encryption, iam, access control, row-level security, securite des donnees, datensicherheit, seguridad de datos, segurança de dados]
   - name: GDPR & Data Privacy
     category: Data Architecture
-    synonyms: [gdpr, data privacy, data protection, protezione dei dati, pii]
+    synonyms: [gdpr, data privacy, data protection, protezione dei dati, pii, rgpd, dsgvo, lgpd, protection des donnees, datenschutz, proteccion de datos, proteção de dados]
 
   # ---------------------------------------------------------------------------
   # Engineering Practices
@@ -252,22 +252,22 @@ skills:
     synonyms: [infrastructure as code, terraform, cloudformation, pulumi, bicep]
   - name: Testing
     category: Engineering Practices
-    synonyms: [unit testing, unit tests, integration tests, integration testing, pytest, test automation, automated tests, automated testing, data testing, dbt tests, test automatici]
+    synonyms: [unit testing, unit tests, integration tests, integration testing, pytest, test automation, automated tests, automated testing, data testing, dbt tests, test automatici, tests unitaires, unit-tests, pruebas unitarias, testes unitarios]
   - name: Monitoring & Observability
     category: Engineering Practices
     synonyms: [monitoring, monitor pipelines, observability, alerting, datadog, prometheus, grafana, monitoraggio delle pipeline]
   - name: Performance Tuning
     category: Engineering Practices
-    synonyms: [performance tuning, query optimization, query optimisation, ottimizzazione delle query, ottimizzazione delle performance, cost optimization, cost optimisation]
+    synonyms: [performance tuning, query optimization, query optimisation, ottimizzazione delle query, ottimizzazione delle performance, cost optimization, cost optimisation, optimisation des requetes, performance-optimierung, optimizacion de consultas, otimização de consultas]
   - name: Code Review
     category: Engineering Practices
-    synonyms: [code review, code reviews, revisione del codice, pull requests]
+    synonyms: [code review, code reviews, revisione del codice, pull requests, revue de code, code-reviews, revision de codigo, revisão de codigo]
   - name: Documentation
     category: Engineering Practices
-    synonyms: [documentation, technical documentation, documentazione tecnica, technical specifications, specifiche tecniche]
+    synonyms: [documentation, technical documentation, documentazione tecnica, technical specifications, specifiche tecniche, dokumentation, documentacion, documentação]
   - name: Agile
     category: Engineering Practices
-    synonyms: [agile methodology, agile methodologies, metodologia agile, metodologie agile, metodologie agili, agile framework, agile development, agile environment, agile team, agile teams, approccio agile, agile/scrum, agile practices, scrum, kanban]
+    synonyms: [agile methodology, agile methodologies, metodologia agile, metodologie agile, metodologie agili, agile framework, agile development, agile environment, agile team, agile teams, approccio agile, agile/scrum, agile practices, scrum, kanban, methodologie agile, methodes agiles, agile methoden, agile methodik, agiles arbeiten, metodologias agiles, metodologia agil, metodologias ageis]
     case_sensitive_synonyms: [Agile]
   - name: DataOps / MLOps
     category: Engineering Practices
