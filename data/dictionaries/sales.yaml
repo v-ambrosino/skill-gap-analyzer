@@ -1,0 +1,37 @@
+# Skill dictionary: Sales and Customer roles. Same format as data_analytics.yaml.
+version: 1
+domain: Sales / Account Manager / Customer Success
+description: Sales, Account Manager, Business Developer and Customer Success roles
+include: [shared/soft_skills.yaml, shared/office.yaml]
+categories: [Sales Skills, Tools, Business & Market, Office & General, Soft Skills]
+skills:
+  - {name: B2B Sales, category: Sales Skills, synonyms: [b2b, b2b sales, vendita b2b, business to business]}
+  - {name: B2C Sales, category: Sales Skills, synonyms: [b2c, b2c sales, vendita b2c, business to consumer, vendita al dettaglio]}
+  - {name: Lead Generation, category: Sales Skills, synonyms: [lead generation, lead gen, prospecting, prospezione, acquisizione clienti, acquisizione nuovi clienti, new business, generazione lead, prospection]}
+  - {name: Cold Calling, category: Sales Skills, synonyms: [cold calling, cold call, outbound calls, chiamate a freddo, telemarketing, teleselling, outbound]}
+  - {name: Negotiation, category: Sales Skills, synonyms: [negotiation, negotiation skills, negoziazione, trattativa, trattative commerciali, capacita negoziali, negociation, verhandlungsgeschick, negociacion, negociacao]}
+  - {name: Closing, category: Sales Skills, synonyms: [closing, deal closing, chiusura contratti, chiusura delle trattative, close deals]}
+  - {name: Account Management, category: Sales Skills, synonyms: [account management, account manager, gestione clienti, gestione del portafoglio clienti, portfolio management, client management]}
+  - {name: Key Account Management, category: Sales Skills, synonyms: [key account, key account management, key account manager, kam, grandi clienti]}
+  - {name: Business Development, category: Sales Skills, synonyms: [business development, business developer, sviluppo commerciale, sviluppo del business, developpement commercial]}
+  - {name: Upselling & Cross-selling, category: Sales Skills, synonyms: [upselling, up-selling, cross-selling, cross selling]}
+  - {name: Customer Success, category: Sales Skills, synonyms: [customer success, customer retention, fidelizzazione, fidelizzazione clienti, churn reduction, customer satisfaction, soddisfazione del cliente]}
+  - {name: Customer Service, category: Sales Skills, synonyms: [customer service, customer care, assistenza clienti, servizio clienti, help desk, supporto clienti, service client, kundenservice, atencion al cliente]}
+  - {name: Sales Presentations, category: Sales Skills, synonyms: [sales presentations, product demo, product demos, demo di prodotto, sales pitch, pitch]}
+  - {name: Field Sales, category: Sales Skills, synonyms: [field sales, agente di commercio, venditore esterno, visite clienti, door to door, porta a porta]}
+  - {name: Retail Sales, category: Sales Skills, synonyms: [retail, punto vendita, negozio, visual merchandising, sales assistant, addetto vendite, commessa, commesso]}
+  - {name: Tenders, category: Sales Skills, synonyms: [tender, tenders, gare d'appalto, gare pubbliche, bandi di gara, rfp, rfq]}
+  - {name: CRM, category: Tools, synonyms: [crm, customer relationship management]}
+  - {name: Salesforce, category: Tools, synonyms: [salesforce, sfdc, salesforce crm]}
+  - {name: HubSpot, category: Tools, synonyms: [hubspot, hubspot crm]}
+  - {name: Microsoft Dynamics, category: Tools, synonyms: [microsoft dynamics, dynamics 365, dynamics crm]}
+  - {name: LinkedIn Sales Navigator, category: Tools, synonyms: [sales navigator, linkedin sales navigator, social selling]}
+  - {name: Pipedrive, category: Tools, synonyms: [pipedrive, zoho, zoho crm]}
+  - {name: Sales Forecasting, category: Business & Market, synonyms: [sales forecasting, sales forecast, forecast vendite, previsioni di vendita, forecasting]}
+  - {name: Pipeline Management, category: Business & Market, synonyms: [pipeline management, sales pipeline, pipeline commerciale, gestione della pipeline, sales funnel, funnel di vendita]}
+  - {name: Sales Targets, category: Business & Market, synonyms: [sales targets, sales target, obiettivi di vendita, obiettivi commerciali, quota, budget di vendita, target commerciali]}
+  - {name: Pricing, category: Business & Market, synonyms: [pricing, price negotiation, politiche di prezzo, listini, offerte commerciali, preventivi, quotations]}
+  - {name: Market Analysis, category: Business & Market, synonyms: [market analysis, analisi di mercato, market research, ricerche di mercato, competitor analysis, analisi della concorrenza]}
+  - {name: Sales Reporting, category: Business & Market, synonyms: [sales reporting, sales kpi, kpi commerciali, reportistica commerciale, sales analytics]}
+  - {name: Contract Management, category: Business & Market, synonyms: [contract management, gestione contratti, contracts, contrattualistica]}
+  - {name: Export Sales, category: Business & Market, synonyms: [export, export manager, area manager estero, mercati esteri, international sales, vendite internazionali]}

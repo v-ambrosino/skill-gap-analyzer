@@ -1,0 +1,35 @@
+# Skill dictionary: Project and Operations Management. Same format as data_analytics.yaml.
+version: 1
+domain: Project Manager / Operations
+description: Project Manager, Product Owner, PMO and Operations roles
+include: [shared/soft_skills.yaml, shared/office.yaml]
+categories: [Methods, Certifications, Management, Tools, Office & General, Soft Skills]
+skills:
+  - {name: Project Management, category: Management, synonyms: [project management, gestione progetti, gestione dei progetti, project manager, gestion de projet, projektmanagement, gestion de proyectos, gestao de projetos]}
+  - {name: Agile, category: Methods, synonyms: [agile, metodologia agile, metodologie agile, agile methodologies, scaled agile, safe framework]}
+  - {name: Scrum, category: Methods, synonyms: [scrum, scrum master, sprint planning, product owner]}
+  - {name: Kanban, category: Methods, synonyms: [kanban]}
+  - {name: Waterfall, category: Methods, synonyms: [waterfall, a cascata, traditional project management]}
+  - {name: Lean, category: Methods, synonyms: [lean, lean management, lean manufacturing, kaizen, continuous improvement, miglioramento continuo, 5s]}
+  - {name: Six Sigma, category: Methods, synonyms: [six sigma, 6 sigma, lean six sigma, dmaic, green belt, black belt]}
+  - {name: PMP, category: Certifications, synonyms: [pmp, project management professional, capm]}
+  - {name: PRINCE2, category: Certifications, synonyms: [prince2, prince 2]}
+  - {name: IPMA, category: Certifications, synonyms: [ipma, isipm]}
+  - {name: Scrum Certification, category: Certifications, synonyms: [psm, csm, certified scrum master, professional scrum master, pspo]}
+  - {name: ITIL, category: Certifications, synonyms: [itil, it service management, itsm]}
+  - {name: Project Planning, category: Management, synonyms: [project planning, planning, pianificazione, scheduling, gantt, work breakdown structure, wbs, milestones, cronoprogramma]}
+  - {name: Risk Management, category: Management, synonyms: [risk management, gestione dei rischi, risk assessment, risk analysis, analisi dei rischi, issue management]}
+  - {name: Budget Management, category: Management, synonyms: [budget management, gestione del budget, cost control, controllo dei costi, project budget, cost management]}
+  - {name: Resource Management, category: Management, synonyms: [resource management, resource planning, gestione delle risorse, capacity planning, allocazione delle risorse]}
+  - {name: Change Management, category: Management, synonyms: [change management, gestione del cambiamento, change request, change requests]}
+  - {name: Requirements Gathering, category: Management, synonyms: [requirements gathering, raccolta dei requisiti, analisi dei requisiti, requirements analysis, user stories, business requirements]}
+  - {name: Vendor Management, category: Management, synonyms: [vendor management, supplier management, gestione fornitori, procurement, acquisti, purchasing]}
+  - {name: Process Improvement, category: Management, synonyms: [process improvement, process optimization, ottimizzazione dei processi, reingegnerizzazione dei processi, bpm, business process management, process mapping]}
+  - {name: Supply Chain, category: Management, synonyms: [supply chain, logistica, logistics, inventory management, gestione magazzino, demand planning, operations management]}
+  - {name: PMO, category: Management, synonyms: [pmo, project management office, portfolio management, program management, programme management]}
+  - {name: Quality Management, category: Management, synonyms: [quality management, gestione qualita, iso 9001, quality assurance, sistemi di gestione qualita]}
+  - {name: Jira, category: Tools, synonyms: [jira, jira software]}
+  - {name: Confluence, category: Tools, synonyms: [confluence]}
+  - {name: MS Project, category: Tools, synonyms: [ms project, microsoft project, project libre]}
+  - {name: Asana / Trello / Monday, category: Tools, synonyms: [asana, trello, monday.com, clickup, smartsheet, wrike]}
+  - {name: Miro, category: Tools, synonyms: [miro]}

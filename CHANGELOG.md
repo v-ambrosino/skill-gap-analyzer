@@ -3,6 +3,16 @@
 All notable changes to Skill Gap Analyzer. Versions follow
 [semantic versioning](https://semver.org/); pre-release tags mark the stage.
 
+## 1.4.0 — 2026-10-20
+
+### Added
+- **Any target role:** type any job title in "Target role". The app uses every known
+  skill plus the terms that recur in the job posts (`skill_gap/keywords.py`, no AI),
+  shown in an editable list before the analysis.
+- **Six new ready-made roles:** Software Developer, Digital Marketing, Sales, Finance &
+  Accounting, Human Resources, Project Manager (plus `shared/office.yaml`).
+- Roles without sample data load the Data Analyst sample.
+
 ## 1.3.1 — 2026-10-20
 
 ### Changed
