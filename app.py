@@ -34,7 +34,7 @@ from skill_gap.extractor import (
 )
 from skill_gap.pdf_reader import PdfReadError, extract_text_from_pdf
 from skill_gap.report import build_pdf_report
-from skill_gap.resources import load_resources, resources_for
+from skill_gap.resources import load_cv_phrases, load_resources, resources_for
 from skill_gap.skills_dictionary import (
     DictionaryError,
     SkillDictionary,
@@ -77,6 +77,11 @@ def get_dictionary(path: str) -> SkillDictionary:
 @st.cache_resource
 def get_resources() -> dict[str, list[tuple[str, str]]]:
     return load_resources()
+
+
+@st.cache_resource
+def get_cv_phrases() -> dict[str, list[str]]:
+    return load_cv_phrases()
 
 
 @st.cache_resource
@@ -506,6 +511,12 @@ def render_soft_skills(soft) -> None:
                 "results to the sales team\" for communication."
             )
             st.markdown(skill_badges(missing, "orange", "visibility"))
+            phrases = get_cv_phrases()
+            with st.expander(":material/edit_note: Example sentences to add to your CV"):
+                st.caption("Adapt them to your experience: replace the [bracketed] parts with real facts.")
+                for skill in missing["skill"]:
+                    for phrase in phrases.get(skill, []):
+                        st.markdown(f"- **{skill}:** {phrase}")
         if not present.empty:
             st.caption("Already visible in your CV: " + ", ".join(present["skill"]))
 
@@ -523,7 +534,7 @@ def render_priorities(technical) -> None:
         learn=[resources_for(skill, resources)[0][1] for skill in priorities["skill"]],
     )
     st.dataframe(
-        priorities[["rank", "skill", "category", "required_count", "nice_count", "share", "learn"]],
+        priorities[["rank", "skill", "category", "required_count", "nice_count", "level_count", "share", "learn"]],
         hide_index=True,
         width="stretch",
         column_config={
@@ -535,6 +546,10 @@ def render_priorities(technical) -> None:
             ),
             "nice_count": st.column_config.NumberColumn(
                 "Nice", width=60, help="Posts where the skill is nice to have"
+            ),
+            "level_count": st.column_config.NumberColumn(
+                "Level", width=60,
+                help='Posts asking for a level, e.g. "advanced" or "3+ years" (weighs more)',
             ),
             "share": st.column_config.NumberColumn(
                 "Share", format="%.0f%%", width=70,
@@ -592,6 +607,7 @@ def render_results(
         nice_weight=nice_weight,
         version=__version__,
         resources=get_resources(),
+        cv_phrases=get_cv_phrases(),
     )
 
     # --- Header row and headline numbers ------------------------------------

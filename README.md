@@ -1,7 +1,7 @@
 # Skill Gap Analyzer
 
 [![Live demo](https://img.shields.io/badge/live%20demo-skill--gap.streamlit.app-ff4b4b?logo=streamlit&logoColor=white)](https://skill-gap.streamlit.app/)
-![Version](https://img.shields.io/badge/version-1.2.0-blue)
+![Version](https://img.shields.io/badge/version-1.3.0-blue)
 [![Tests](https://github.com/v-ambrosino/skill-gap-analyzer/actions/workflows/tests.yml/badge.svg)](https://github.com/v-ambrosino/skill-gap-analyzer/actions/workflows/tests.yml)
 
 **Compare your CV with real job posts and see which data skills the market wants — and which ones you are missing.**
@@ -55,10 +55,10 @@ transparent method you can explain and verify.
 | **Input** | CV as PDF (or pasted text). Job posts in **one text box separated by `---`** or **one field per post** (add/remove fields), then **Analyze**. Posts in English, Italian, French, German, Spanish or Portuguese. |
 | **Requested skills** | Horizontal bar chart of how many posts ask for each skill, coloured and optionally grouped by category. The solid part counts posts that **require** the skill, the hatched part posts where it is only **nice to have**. |
 | **CV comparison** | Skills in your CV in green, missing ones in red, each with its demand. Skills you have that the posts did not ask for are listed too. |
-| **Coverage score** | Share of requested skills found in your CV, **weighted by demand** (required = 1, nice to have = 0.5, adjustable). Also shown per category. |
+| **Coverage score** | Share of requested skills found in your CV, **weighted by demand** (required = 1, nice to have = 0.5, adjustable; +0.5 when the post asks for a level such as "advanced Excel" or "3+ years of SQL"). Also shown per category. |
 | **Evidence** | For any skill, the exact sentences where it was found in each post and in your CV, to check the result. |
 | **Study priorities** | The 5 missing technical skills that most posts ask for, each with a **free resource to learn it** (Kaggle Learn, Microsoft Learn, official docs…), also as clickable links in the PDF. |
-| **Soft skills** | Listed apart in *Soft skills to make visible in your CV*: they are shown with examples rather than studied, so they are not counted as missing, in the score or in the priorities. |
+| **Soft skills** | Listed apart in *Soft skills to make visible in your CV*: they are shown with examples rather than studied, so they are not counted as missing, in the score or in the priorities. Each missing one comes with **example CV sentences** to adapt. |
 | **PDF report** | One click downloads a **PDF report**: coverage, top priorities, bar charts of the most requested skills and of coverage by category, CV vs market, soft skills and the full skill table. It holds skill names and scores only, never the CV text. |
 | **Interface** | A landing page with the three steps, results in tabs (Overview, Skills, Evidence, Report), a coverage ring and KPI cards; works on phones. |
 | **Sample data** | *Load sample data* fills in fictional job posts and a fictional CV for the selected target role. |

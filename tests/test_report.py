@@ -36,6 +36,7 @@ def make_report(dictionary, cv_skills) -> bytes:
         nice_weight=0.5,
         version="1.1.0",
         generated_on=date(2026, 10, 20),
+        cv_phrases={"Teamwork": ["Worked in a cross-functional team of 5."]},
     )
 
 
@@ -69,3 +70,9 @@ def test_report_full_coverage(dictionary):
 def test_report_links_learning_resources(dictionary):
     text = pdf_text(make_report(dictionary, {"SQL"}))
     assert "Where to start learning (free):" in text
+
+
+def test_report_suggests_cv_sentences_for_missing_soft_skills(dictionary):
+    text = pdf_text(make_report(dictionary, {"SQL"}))
+    assert "Example sentences for your CV:" in text
+    assert "Teamwork: Worked in a cross-functional team of 5." in text
