@@ -3,6 +3,13 @@
 All notable changes to Skill Gap Analyzer. Versions follow
 [semantic versioning](https://semver.org/); pre-release tags mark the stage.
 
+## 1.3.1 — 2026-10-20
+
+### Changed
+- Header shows "Published by: Vincenzo Ambrosino · GitHub profile" instead of the
+  navigation links; the "Free · open source" badge and the source code links are gone.
+- **License:** MIT replaced by "All rights reserved" (free use of the hosted app only).
+
 ## 1.3.0 — 2026-10-20
 
 ### Added

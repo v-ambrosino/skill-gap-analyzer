@@ -47,7 +47,8 @@ ASSETS_DIR = Path(__file__).resolve().parent / "assets"
 MODE_SINGLE_BOX = "One text box (separate posts with ---)"
 MODE_FIELDS = "One field per job post"
 TOP_PRIORITIES = 5
-ISSUES_URL = "https://github.com/v-ambrosino/skill-gap-analyzer/issues"
+AUTHOR = "Vincenzo Ambrosino"
+AUTHOR_URL = "https://github.com/v-ambrosino"
 
 st.set_page_config(
     page_title="Skill Gap Analyzer",
@@ -55,8 +56,8 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="collapsed",
     menu_items={
-        "Report a bug": ISSUES_URL,
-        "About": "Skill Gap Analyzer: compare your CV with real job posts. No AI, nothing stored.",
+        "About": "Skill Gap Analyzer: compare your CV with real job posts. No AI, nothing stored. "
+        "© 2026 Vincenzo Ambrosino. All rights reserved.",
     },
 )
 
@@ -154,7 +155,6 @@ def clear_all() -> None:
 # Look and feel
 # ---------------------------------------------------------------------------
 LANGUAGES = "English, Italian, French, German, Spanish and Portuguese"
-REPO_URL = "https://github.com/v-ambrosino/skill-gap-analyzer"
 
 # The page is styled like a product website on top of the theme in
 # .streamlit/config.toml: Streamlit's own toolbar is hidden, the content is
@@ -194,7 +194,8 @@ _CSS = """
 
 .sga-nav { display: flex; align-items: center; justify-content: space-between; padding: 6px 2px 18px; }
 .sga-brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.15rem; color: #14213d; }
-.sga-links a { color: #475467; text-decoration: none; margin-left: 22px; font-size: .95rem; font-weight: 500; }
+.sga-links { color: #475467; font-size: .95rem; }
+.sga-links a { color: #475467; text-decoration: none; margin-left: 4px; font-size: .95rem; font-weight: 500; }
 .sga-links a:hover { color: #2a78d6; }
 .sga-eyebrow { display: inline-block; background: #e3eefc; color: #1c5cab; border-radius: 999px;
   padding: 4px 12px; font-size: .82rem; font-weight: 600; margin-bottom: 14px; }
@@ -232,7 +233,7 @@ _CSS = """
 .sga-footer a { color: #475467; text-decoration: none; margin-left: 16px; }
 @media (max-width: 760px) {
   .sga-title { font-size: 2.2rem; }
-  .sga-links a { margin-left: 12px; font-size: .85rem; }
+  .sga-links, .sga-links a { font-size: .85rem; }
   .sga-links a.hide-sm { display: none; }
 }
 </style>
@@ -283,8 +284,8 @@ def render_header() -> None:
         f"""
 <div class="sga-nav">
   <div class="sga-brand">{_LOGO_SVG}<span>Skill Gap Analyzer</span></div>
-  <div class="sga-links"><a href="#how-it-works" class="hide-sm">How it works</a>
-  <a href="#analyze">Try it</a><a href="{REPO_URL}" target="_blank">GitHub</a></div>
+  <div class="sga-links">Published by: {AUTHOR} ·
+  <a href="{AUTHOR_URL}" target="_blank">GitHub profile</a></div>
 </div>
 """,
         unsafe_allow_html=True,
@@ -296,7 +297,6 @@ def render_hero(dictionary: SkillDictionary, role: str, sample_folder: str) -> N
     with text_col:
         st.markdown(
             f"""
-<div class="sga-eyebrow">Free · open source · v{__version__}</div>
 <h1 class="sga-title">Find your <span>skill gap</span> in 30 seconds</h1>
 <p class="sga-lead">Compare your CV with real job posts for <b>{dictionary.description or role}</b>:
 see which skills employers ask for, which ones you are missing and what to study first.</p>
@@ -348,7 +348,7 @@ def render_footer() -> None:
         f"""
 <div class="sga-footer">
   <span>Skill Gap Analyzer v{__version__} · No AI, nothing stored · Made with Python and Streamlit</span>
-  <span><a href="{REPO_URL}" target="_blank">Source code</a><a href="{ISSUES_URL}" target="_blank">Report an issue</a></span>
+  <span>© 2026 {AUTHOR}. All rights reserved.</span>
 </div>
 """,
         unsafe_allow_html=True,
@@ -384,8 +384,7 @@ def render_sidebar(dictionary: SkillDictionary) -> None:
             "weighted by that demand."
         )
         st.caption(
-            f"v{__version__} · [Source code](https://github.com/v-ambrosino/skill-gap-analyzer) · "
-            f"[Report an issue]({ISSUES_URL})"
+            f"v{__version__} · © 2026 {AUTHOR}. All rights reserved."
         )
 
 

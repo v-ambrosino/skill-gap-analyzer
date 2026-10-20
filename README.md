@@ -1,7 +1,7 @@
 # Skill Gap Analyzer
 
 [![Live demo](https://img.shields.io/badge/live%20demo-skill--gap.streamlit.app-ff4b4b?logo=streamlit&logoColor=white)](https://skill-gap.streamlit.app/)
-![Version](https://img.shields.io/badge/version-1.3.0-blue)
+![Version](https://img.shields.io/badge/version-1.3.1-blue)
 [![Tests](https://github.com/v-ambrosino/skill-gap-analyzer/actions/workflows/tests.yml/badge.svg)](https://github.com/v-ambrosino/skill-gap-analyzer/actions/workflows/tests.yml)
 
 **Compare your CV with real job posts and see which data skills the market wants — and which ones you are missing.**
@@ -293,13 +293,13 @@ python web/build.py && python -m http.server -d _site 8000
 
 ## Future improvements
 
-- Skill **levels** (e.g. "advanced Excel") and years of experience.
 - Import job posts from a **URL** or a CSV export of a job board.
 - More **dictionaries** (e.g. Data Scientist, Marketing Analyst, Finance).
 - More languages (Dutch, Polish) and more wording for French, German, Spanish and Portuguese.
 - Optional **OCR** for scanned CVs (e.g. Tesseract).
-- Suggested learning resources for each study priority.
 
 ## License
 
-[MIT](LICENSE)
+© 2026 Vincenzo Ambrosino. **All rights reserved.** The app is free to use at
+[skill-gap.streamlit.app](https://skill-gap.streamlit.app/); copying, modifying,
+redistributing or deploying the code requires written permission. See [LICENSE](LICENSE).
