@@ -3,6 +3,12 @@
 All notable changes to Skill Gap Analyzer. Versions follow
 [semantic versioning](https://semver.org/); pre-release tags mark the stage.
 
+## 1.4.1 — 2026-10-20
+
+### Changed
+- The hero text no longer changes with the selected role.
+- Header: "Built by Vincenzo Ambrosino · GitHub · LinkedIn".
+
 ## 1.4.0 — 2026-10-20
 
 ### Added

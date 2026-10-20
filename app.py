@@ -51,6 +51,7 @@ MODE_FIELDS = "One field per job post"
 TOP_PRIORITIES = 5
 AUTHOR = "Vincenzo Ambrosino"
 AUTHOR_URL = "https://github.com/v-ambrosino"
+LINKEDIN_URL = "https://www.linkedin.com/in/vincenzo-ambrosino/"
 
 st.set_page_config(
     page_title="Skill Gap Analyzer",
@@ -296,8 +297,9 @@ def render_header() -> None:
         f"""
 <div class="sga-nav">
   <div class="sga-brand">{_LOGO_SVG}<span>Skill Gap Analyzer</span></div>
-  <div class="sga-links">Published by: {AUTHOR} ·
-  <a href="{AUTHOR_URL}" target="_blank">GitHub profile</a></div>
+  <div class="sga-links">Built by {AUTHOR} ·
+  <a href="{AUTHOR_URL}" target="_blank">GitHub</a> ·
+  <a href="{LINKEDIN_URL}" target="_blank">LinkedIn</a></div>
 </div>
 """,
         unsafe_allow_html=True,
@@ -310,7 +312,7 @@ def render_hero(dictionary: SkillDictionary, role: str, sample_folder: str) -> N
         st.markdown(
             f"""
 <h1 class="sga-title">Find your <span>skill gap</span> in 30 seconds</h1>
-<p class="sga-lead">Compare your CV with real job posts for <b>{dictionary.description or role}</b>:
+<p class="sga-lead">Compare your CV with real job posts:
 see which skills employers ask for, which ones you are missing and what to study first.</p>
 """,
             unsafe_allow_html=True,
