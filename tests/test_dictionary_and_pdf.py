@@ -77,3 +77,12 @@ def test_invalid_pdf_raises():
         extract_text_from_pdf(b"this is not a pdf")
     with pytest.raises(PdfReadError):
         extract_text_from_pdf(b"")
+
+
+def test_pypdf_fallback(monkeypatch):
+    """The in-browser version has no pdfplumber and reads PDFs with pypdf."""
+    import skill_gap.pdf_reader as reader
+
+    monkeypatch.setattr(reader, "pdfplumber", None)
+    text = reader.extract_text_from_pdf(_make_pdf("Skills: SQL, Python, Power BI"))
+    assert "SQL, Python, Power BI" in text

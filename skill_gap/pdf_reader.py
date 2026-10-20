@@ -9,7 +9,10 @@ from __future__ import annotations
 
 from io import BytesIO
 
-import pdfplumber
+try:  # pdfplumber is the best reader for multi-column CVs...
+    import pdfplumber
+except ImportError:  # ...but it needs a compiled library that the in-browser version lacks
+    pdfplumber = None
 
 
 class PdfReadError(Exception):
@@ -31,11 +34,16 @@ def extract_text_from_pdf(file_bytes: bytes) -> str:
 
     try:
         pages_text = []
-        with pdfplumber.open(BytesIO(file_bytes)) as pdf:
-            for page in pdf.pages:
-                # extract_text() returns None for pages without a text layer.
-                pages_text.append(page.extract_text() or "")
-    except Exception as exc:  # pdfplumber raises several low-level error types
+        if pdfplumber is not None:
+            with pdfplumber.open(BytesIO(file_bytes)) as pdf:
+                for page in pdf.pages:
+                    # extract_text() returns None for pages without a text layer.
+                    pages_text.append(page.extract_text() or "")
+        else:
+            from pypdf import PdfReader  # pure Python, works in the browser
+
+            pages_text = [page.extract_text() or "" for page in PdfReader(BytesIO(file_bytes)).pages]
+    except Exception as exc:  # PDF libraries raise several low-level error types
         raise PdfReadError(f"Could not read the PDF: {exc}") from exc
 
     return "\n".join(pages_text).strip()
