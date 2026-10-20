@@ -128,6 +128,7 @@ def build_pdf_report(
     nice_weight: float,
     version: str,
     generated_on: date | None = None,
+    resources: dict[str, list[tuple[str, str]]] | None = None,
 ) -> bytes:
     """Return the PDF report as bytes.
 
@@ -143,7 +144,9 @@ def build_pdf_report(
         nice_weight: weight used for nice-to-have skills.
         version: app version, printed in the footer.
         generated_on: report date (defaults to today).
+        resources: free learning resources per skill (see `resources.py`).
     """
+    from skill_gap.resources import resources_for
     generated_on = generated_on or date.today()
     present = table[table["in_cv"]]
     missing = table[~table["in_cv"]]
@@ -226,6 +229,19 @@ def build_pdf_report(
                 for value in (str(i), row.skill, row.category, str(row.required_count),
                               str(row.nice_count), f"{row.posts_share * 100:.0f}%"):
                     r.cell(_latin1(value))
+
+        # Where to learn each priority, as clickable links.
+        pdf.ln(2)
+        pdf.set_font("Helvetica", "B", 9)
+        pdf.set_text_color(*_INK)
+        pdf.cell(0, 5, "Where to start learning (free):", new_x="LMARGIN", new_y="NEXT")
+        for row in priorities.itertuples():
+            title, url = resources_for(row.skill, resources or {})[0]
+            pdf.set_font("Helvetica", size=8.5)
+            pdf.set_text_color(*_INK)
+            pdf.cell(42, 5, _latin1(row.skill))
+            pdf.set_text_color(*_BLUE)
+            pdf.cell(0, 5, _latin1(title), link=url, new_x="LMARGIN", new_y="NEXT")
 
     # --- Most requested skills ---------------------------------------------------------
     top = table.head(_MAX_BARS)
