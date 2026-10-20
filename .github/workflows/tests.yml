@@ -19,7 +19,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: pip
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: pip install -r requirements-dev.txt
       - name: Check the skill dictionary loads
         run: python -c "from skill_gap.skills_dictionary import load_dictionary; print(len(load_dictionary().skills), 'skills')"
       - name: Run tests
