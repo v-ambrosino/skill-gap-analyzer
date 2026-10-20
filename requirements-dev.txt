@@ -1,3 +1,4 @@
 # Development tools on top of the app's own dependencies.
 -r requirements.txt
 pytest>=8.0
+pypdf>=4.0  # PDF reader of the in-browser version (tested as a fallback)
