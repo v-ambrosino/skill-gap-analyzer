@@ -64,3 +64,8 @@ def test_report_full_coverage(dictionary):
     assert "100%" in text
     assert "Your CV covers every requested technical skill." in text
     assert "Already visible in your CV: Teamwork." in text
+
+
+def test_report_links_learning_resources(dictionary):
+    text = pdf_text(make_report(dictionary, {"SQL"}))
+    assert "Where to start learning (free):" in text

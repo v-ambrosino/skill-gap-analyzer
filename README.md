@@ -51,7 +51,7 @@ transparent method you can explain and verify.
 | **CV comparison** | Skills in your CV in green, missing ones in red, each with its demand. Skills you have that the posts did not ask for are listed too. |
 | **Coverage score** | Share of requested skills found in your CV, **weighted by demand** (required = 1, nice to have = 0.5, adjustable). Also shown per category. |
 | **Evidence** | For any skill, the exact sentences where it was found in each post and in your CV, to check the result. |
-| **Study priorities** | The 5 missing technical skills that most posts ask for. |
+| **Study priorities** | The 5 missing technical skills that most posts ask for, each with a **free resource to learn it** (Kaggle Learn, Microsoft Learn, official docs…), also as clickable links in the PDF. |
 | **Soft skills** | Listed apart in *Soft skills to make visible in your CV*: they are shown with examples rather than studied, so they are not counted as missing, in the score or in the priorities. |
 | **PDF report** | One click downloads a **PDF report**: coverage, top priorities, bar charts of the most requested skills and of coverage by category, CV vs market, soft skills and the full skill table. It holds skill names and scores only, never the CV text. |
 | **Interface** | A landing page with the three steps, results in tabs (Overview, Skills, Evidence, Report), a coverage ring and KPI cards; works on phones. |

@@ -34,6 +34,7 @@ from skill_gap.extractor import (
 )
 from skill_gap.pdf_reader import PdfReadError, extract_text_from_pdf
 from skill_gap.report import build_pdf_report
+from skill_gap.resources import load_resources, resources_for
 from skill_gap.skills_dictionary import (
     DictionaryError,
     SkillDictionary,
@@ -71,6 +72,11 @@ def get_dictionary(path: str) -> SkillDictionary:
     cached, so they cannot leak between users or outlive the session.
     """
     return load_dictionary(path)
+
+
+@st.cache_resource
+def get_resources() -> dict[str, list[tuple[str, str]]]:
+    return load_resources()
 
 
 @st.cache_resource
@@ -510,11 +516,14 @@ def render_priorities(technical) -> None:
     if priorities.empty:
         st.success("Your CV covers every requested technical skill. Well done!")
         return
+    resources = get_resources()
     priorities = priorities.assign(
-        rank=range(1, len(priorities) + 1), share=priorities["posts_share"] * 100
+        rank=range(1, len(priorities) + 1),
+        share=priorities["posts_share"] * 100,
+        learn=[resources_for(skill, resources)[0][1] for skill in priorities["skill"]],
     )
     st.dataframe(
-        priorities[["rank", "skill", "category", "required_count", "nice_count", "share"]],
+        priorities[["rank", "skill", "category", "required_count", "nice_count", "share", "learn"]],
         hide_index=True,
         width="stretch",
         column_config={
@@ -530,6 +539,10 @@ def render_priorities(technical) -> None:
             "share": st.column_config.NumberColumn(
                 "Share", format="%.0f%%", width=70,
                 help="Share of the job posts that mention the skill",
+            ),
+            "learn": st.column_config.LinkColumn(
+                "Learn it", display_text="Free resource ↗", width=130,
+                help="A free place to start learning the skill",
             ),
         },
     )
@@ -578,6 +591,7 @@ def render_results(
         coverage=score,
         nice_weight=nice_weight,
         version=__version__,
+        resources=get_resources(),
     )
 
     # --- Header row and headline numbers ------------------------------------
