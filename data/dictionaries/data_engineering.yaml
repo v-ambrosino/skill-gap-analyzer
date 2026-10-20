@@ -263,7 +263,7 @@ skills:
     category: Engineering Practices
     synonyms: [code review, code reviews, revisione del codice, pull requests, revue de code, code-reviews, revision de codigo, revisão de codigo]
   - name: Documentation
-    category: Engineering Practices
+    category: Soft Skills
     synonyms: [documentation, technical documentation, documentazione tecnica, technical specifications, specifiche tecniche, dokumentation, documentacion, documentação]
   - name: Agile
     # Agile is a way of working: shown with examples in the CV, not studied.

@@ -3,6 +3,15 @@
 All notable changes to Skill Gap Analyzer. Versions follow
 [semantic versioning](https://semver.org/); pre-release tags mark the stage.
 
+## 1.7.2 — 2026-10-20
+
+### Fixed
+- More **ways of working and people skills move to soft skills**, so they are shown with
+  examples in the CV instead of being listed as things to study: Scrum, Kanban, Waterfall,
+  Documentation, Business Acumen, Requirements Gathering, Data Storytelling, Negotiation,
+  Customer Service, Closing, Cold Calling, Sales Presentations, Employee Relations,
+  Diversity & Inclusion and the driving licence. Each one has example CV sentences.
+
 ## 1.7.1 — 2026-10-20
 
 ### Fixed

@@ -103,9 +103,19 @@ def test_sample_data_matches_its_role():
         assert find_skills(cv, dictionary), path.stem
 
 
-def test_agile_is_a_soft_skill_everywhere():
-    """Agile is a way of working: it must never become a study priority."""
+def test_ways_of_working_are_soft_skills_everywhere():
+    """They are shown with examples in the CV, so they must never become study priorities."""
+    from skill_gap.resources import load_cv_phrases
+
+    soft = {
+        "Agile", "Scrum", "Kanban", "Waterfall", "Documentation", "Business Acumen", "Requirements Gathering",
+        "Data Storytelling", "Negotiation", "Customer Service", "Closing", "Cold Calling", "Sales Presentations",
+        "Employee Relations", "Diversity & Inclusion", "Driving Licence",
+    }
+    phrases = load_cv_phrases()
     for path in list_dictionaries().values():
         for skill in load_dictionary(path).skills:
-            if skill.name == "Agile":
-                assert skill.category == "Soft Skills", path.name
+            if skill.name in soft:
+                assert skill.category == "Soft Skills", (path.name, skill.name)
+            if skill.category == "Soft Skills":
+                assert phrases.get(skill.name), (path.name, skill.name)
