@@ -206,6 +206,7 @@ with fictional posts and a fictional CV for the selected target role.
 ### Run the tests
 
 ```bash
+pip install -r requirements-dev.txt   # adds pytest
 pytest
 ```
 
@@ -217,22 +218,28 @@ score, the study priorities, dictionary validation and PDF reading.
 
 ## Deploy on Streamlit Community Cloud (free)
 
-1. Push the repository to GitHub (public or private).
+1. Push the repository to GitHub (a public repository is best for a portfolio).
 2. Go to [share.streamlit.io](https://share.streamlit.io) and sign in with GitHub.
 3. Click **Create app** → **Deploy a public app from GitHub**.
 4. Pick the repository, branch `main` and main file path `app.py`.
 5. (Optional) choose a custom subdomain, e.g. `skill-gap-analyzer`.
-6. Click **Deploy**. Dependencies are installed from `requirements.txt`.
+6. In **Advanced settings**, pick Python **3.12** (the version tested in CI).
+7. Click **Deploy**. Dependencies are installed from `requirements.txt`
+   (`requirements-dev.txt` only adds the test tools and is not needed online).
 
-Every push to `main` redeploys the app automatically. Add the public link at the
-top of this README.
+Every push to `main` redeploys the app automatically. On the free tier an app
+that nobody opens for a while goes to sleep: the next visitor wakes it up with
+one click, in about a minute.
 
 ## Privacy
 
 - The CV and the job posts are kept **only in memory** (Streamlit session state)
-  for the current browser session.
-- Nothing is written to disk, cached, logged or sent to third-party services.
+  for the current browser session, and are discarded when the tab is closed.
+- Nothing is written to disk, cached, logged or sent to third-party services or AI.
   Only the skill dictionary is cached.
+- **Hosted version:** on Streamlit Community Cloud the app runs on Streamlit's
+  servers, so the uploaded CV travels there (over HTTPS) and is processed in that
+  server's memory, never stored by the app. For full control, run it locally.
 - Usage statistics are disabled in `.streamlit/config.toml`.
 - The `.gitignore` excludes `*.pdf`, so a real CV is never committed by mistake.
 

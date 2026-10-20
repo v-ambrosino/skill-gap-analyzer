@@ -148,6 +148,11 @@ def render_sidebar(dictionary: SkillDictionary) -> float:
             "logged, cached or sent to external services or AI. Close the tab "
             "and everything is gone."
         )
+        st.caption(
+            "The online version runs on Streamlit Community Cloud: files are processed in "
+            "that server's memory and never stored. For full control, run the app locally "
+            "(see the README)."
+        )
         st.divider()
         st.header(":material/help: How it works")
         st.markdown(
