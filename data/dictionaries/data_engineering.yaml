@@ -1,0 +1,274 @@
+# =============================================================================
+# Skill dictionary: Data Engineer, Analytics Engineer
+# =============================================================================
+#
+# Same format as data_analytics.yaml (see the field reference at the top of
+# that file). Soft skills come from shared/soft_skills.yaml via `include`.
+# =============================================================================
+
+version: 1
+domain: Data Engineer / Analytics Engineer
+description: Data Engineer and Analytics Engineer roles
+
+include:
+  - shared/soft_skills.yaml
+
+categories:
+  - Cloud & Platforms
+  - Programming & Databases
+  - Pipelines & Processing
+  - Data Architecture
+  - Engineering Practices
+  - Soft Skills
+
+skills:
+  # ---------------------------------------------------------------------------
+  # Cloud & Platforms
+  # ---------------------------------------------------------------------------
+  - name: AWS
+    category: Cloud & Platforms
+    synonyms: [aws, amazon web services]
+  - name: Amazon S3
+    category: Cloud & Platforms
+    synonyms: [amazon s3, aws s3]
+    case_sensitive_synonyms: [S3]
+  - name: AWS Glue
+    category: Cloud & Platforms
+    synonyms: [aws glue, glue jobs, glue catalog]
+    case_sensitive_synonyms: [Glue]
+  - name: AWS Lambda
+    category: Cloud & Platforms
+    synonyms: [aws lambda, lambda functions]
+    case_sensitive_synonyms: [Lambda]
+  - name: Amazon EMR
+    category: Cloud & Platforms
+    synonyms: [amazon emr, aws emr]
+  - name: Amazon Kinesis
+    category: Cloud & Platforms
+    synonyms: [kinesis, amazon kinesis, kinesis firehose]
+  - name: Amazon Redshift
+    category: Cloud & Platforms
+    synonyms: [redshift, amazon redshift, aws redshift]
+  - name: Microsoft Azure
+    category: Cloud & Platforms
+    synonyms: [azure, microsoft azure]
+  - name: Azure Data Factory
+    category: Cloud & Platforms
+    synonyms: [azure data factory, adf]
+  - name: Azure Synapse
+    category: Cloud & Platforms
+    synonyms: [azure synapse, synapse analytics]
+  - name: Microsoft Fabric
+    category: Cloud & Platforms
+    synonyms: [microsoft fabric, ms fabric]
+  - name: Google Cloud Platform
+    category: Cloud & Platforms
+    synonyms: [gcp, google cloud, google cloud platform]
+  - name: BigQuery
+    category: Cloud & Platforms
+    synonyms: [bigquery, google bigquery, big query]
+  - name: Google Pub/Sub
+    category: Cloud & Platforms
+    synonyms: [pub/sub, google pub/sub, pubsub]
+  - name: Dataflow
+    category: Cloud & Platforms
+    synonyms: [google dataflow, cloud dataflow, dataflow]
+  - name: Snowflake
+    category: Cloud & Platforms
+    synonyms: [snowflake]
+  - name: Databricks
+    category: Cloud & Platforms
+    synonyms: [databricks, unity catalog]
+
+  # ---------------------------------------------------------------------------
+  # Programming & Databases
+  # ---------------------------------------------------------------------------
+  - name: SQL
+    category: Programming & Databases
+    synonyms: [sql, t-sql, pl/sql, ansi sql, sql queries, sql query]
+  - name: Python
+    category: Programming & Databases
+    synonyms: [python, python3]
+  - name: Scala
+    category: Programming & Databases
+    # Lowercase "scala" is a common Italian word ("su larga scala").
+    case_sensitive_synonyms: [Scala]
+  - name: Java
+    category: Programming & Databases
+    case_sensitive_synonyms: [Java, JAVA]
+  - name: Go
+    category: Programming & Databases
+    # Plain "go" is far too common: only unambiguous names.
+    synonyms: [golang, go programming, go language, linguaggio go]
+    # Capitalised "Go" inside a list or after a preposition: "Python, Go and Rust",
+    # "(Go)", "Java/Go", "experience with Go.", "conoscenza di Go".
+    patterns: ['(?:(?<=, )|(?<=and )|(?<=or )|(?<=\()|(?<=/)|(?<=with )|(?<=in )|(?<=di ))Go(?=[,.;)/]|\s+(?:and|or|e|o|is|are|would|will)\b|$)']
+  - name: Bash / Shell
+    category: Programming & Databases
+    synonyms: [bash, shell scripting, shell scripts, unix shell, linux shell]
+  - name: Linux
+    category: Programming & Databases
+    synonyms: [linux, unix]
+  - name: PostgreSQL
+    category: Programming & Databases
+    synonyms: [postgresql, postgres]
+  - name: MySQL
+    category: Programming & Databases
+    synonyms: [mysql, mariadb]
+  - name: SQL Server
+    category: Programming & Databases
+    synonyms: [sql server, microsoft sql server, ms sql server, mssql]
+  - name: Oracle Database
+    category: Programming & Databases
+    synonyms: [oracle, oracle database, oracle db]
+  - name: MongoDB
+    category: Programming & Databases
+    synonyms: [mongodb, mongo db]
+  - name: Cassandra
+    category: Programming & Databases
+    synonyms: [cassandra, apache cassandra, scylladb]
+  - name: Redis
+    category: Programming & Databases
+    synonyms: [redis]
+  - name: Elasticsearch
+    category: Programming & Databases
+    synonyms: [elasticsearch, elastic search, opensearch, elk stack]
+  - name: NoSQL
+    category: Programming & Databases
+    synonyms: [nosql, dynamodb, cosmos db, cosmosdb]
+  - name: pandas
+    category: Programming & Databases
+    synonyms: [pandas, polars]
+  - name: APIs
+    category: Programming & Databases
+    synonyms: [api, apis, rest api, rest apis, restful api, api rest, fastapi, graphql]
+
+  # ---------------------------------------------------------------------------
+  # Pipelines & Processing
+  # ---------------------------------------------------------------------------
+  - name: ETL / ELT
+    category: Pipelines & Processing
+    synonyms: [etl, elt, etl pipelines, extract transform load, pipeline etl]
+  - name: Data Pipelines
+    category: Pipelines & Processing
+    synonyms: [data pipeline, data pipelines, pipeline di dati, pipeline dati, data ingestion, ingestion dei dati, ingestione dei dati]
+  - name: Apache Spark
+    category: Pipelines & Processing
+    synonyms: [spark, apache spark, pyspark, spark sql, spark streaming, structured streaming]
+  - name: Hadoop
+    category: Pipelines & Processing
+    synonyms: [hadoop, hdfs, hive, apache hive, mapreduce]
+  - name: Apache Kafka
+    category: Pipelines & Processing
+    synonyms: [kafka, apache kafka, confluent kafka, kafka streams]
+  - name: Apache Flink
+    category: Pipelines & Processing
+    synonyms: [flink, apache flink]
+  - name: Apache Beam
+    category: Pipelines & Processing
+    synonyms: [apache beam]
+  - name: Apache Airflow
+    category: Pipelines & Processing
+    synonyms: [airflow, apache airflow, cloud composer, mwaa]
+  - name: Dagster / Prefect
+    category: Pipelines & Processing
+    synonyms: [dagster, prefect]
+  - name: dbt
+    category: Pipelines & Processing
+    synonyms: [dbt, data build tool, dbt core, dbt cloud]
+  - name: Fivetran / Airbyte
+    category: Pipelines & Processing
+    synonyms: [fivetran, airbyte, stitch data]
+  - name: Change Data Capture
+    category: Pipelines & Processing
+    synonyms: [change data capture, cdc, debezium]
+  - name: Stream Processing
+    category: Pipelines & Processing
+    synonyms: [stream processing, streaming data, real-time data, real time data, dati in tempo reale, event streaming, event-driven]
+  - name: Batch Processing
+    category: Pipelines & Processing
+    synonyms: [batch, batch processing, batch jobs, elaborazioni batch, batch pipelines]
+  - name: SSIS
+    category: Pipelines & Processing
+    synonyms: [ssis, sql server integration services]
+  - name: Talend / Informatica
+    category: Pipelines & Processing
+    synonyms: [talend, informatica, informatica powercenter]
+
+  # ---------------------------------------------------------------------------
+  # Data Architecture
+  # ---------------------------------------------------------------------------
+  - name: Data Warehousing
+    category: Data Architecture
+    synonyms: [data warehouse, data warehousing, dwh, data mart, enterprise data warehouse]
+  - name: Data Lake / Lakehouse
+    category: Data Architecture
+    synonyms: [data lake, data lakes, lakehouse, data lakehouse, medallion architecture]
+  - name: Data Modeling
+    category: Data Architecture
+    synonyms: [data modeling, data modelling, modellazione dati, modellazione dei dati, dimensional modeling, dimensional modelling, star schema, schema a stella, kimball]
+  - name: Data Vault
+    category: Data Architecture
+    synonyms: [data vault, data vault 2.0]
+  - name: Delta Lake / Iceberg
+    category: Data Architecture
+    synonyms: [delta lake, apache iceberg, iceberg tables, apache hudi, delta tables]
+  - name: File Formats
+    category: Data Architecture
+    synonyms: [parquet, avro, orc files]
+  - name: Distributed Systems
+    category: Data Architecture
+    synonyms: [distributed systems, distributed computing, sistemi distribuiti]
+  - name: Data Governance
+    category: Data Architecture
+    synonyms: [data governance, governance dei dati, data catalog, data lineage, metadata management, master data management]
+  - name: Data Quality
+    category: Data Architecture
+    synonyms: [data quality, qualita dei dati, qualita del dato, data validation, great expectations, data contracts, data observability]
+  - name: Data Security
+    category: Data Architecture
+    synonyms: [data security, sicurezza dei dati, encryption, iam, access control, row-level security]
+  - name: GDPR & Data Privacy
+    category: Data Architecture
+    synonyms: [gdpr, data privacy, data protection, protezione dei dati, pii]
+
+  # ---------------------------------------------------------------------------
+  # Engineering Practices
+  # ---------------------------------------------------------------------------
+  - name: Git
+    category: Engineering Practices
+    synonyms: [git, github, gitlab, bitbucket, version control, controllo di versione]
+  - name: CI/CD
+    category: Engineering Practices
+    synonyms: [ci/cd, continuous integration, continuous delivery, continuous deployment, github actions, gitlab ci, jenkins, azure devops]
+  - name: Docker
+    category: Engineering Practices
+    synonyms: [docker, containers, containerization, container docker]
+  - name: Kubernetes
+    category: Engineering Practices
+    synonyms: [kubernetes, k8s, helm, eks, aks, gke]
+  - name: Infrastructure as Code
+    category: Engineering Practices
+    synonyms: [infrastructure as code, terraform, cloudformation, pulumi, bicep]
+  - name: Testing
+    category: Engineering Practices
+    synonyms: [unit testing, unit tests, integration tests, integration testing, pytest, test automation, automated tests, automated testing, data testing, dbt tests, test automatici]
+  - name: Monitoring & Observability
+    category: Engineering Practices
+    synonyms: [monitoring, monitor pipelines, observability, alerting, datadog, prometheus, grafana, monitoraggio delle pipeline]
+  - name: Performance Tuning
+    category: Engineering Practices
+    synonyms: [performance tuning, query optimization, query optimisation, ottimizzazione delle query, ottimizzazione delle performance, cost optimization, cost optimisation]
+  - name: Code Review
+    category: Engineering Practices
+    synonyms: [code review, code reviews, revisione del codice, pull requests]
+  - name: Documentation
+    category: Engineering Practices
+    synonyms: [documentation, technical documentation, documentazione tecnica, technical specifications, specifiche tecniche]
+  - name: Agile
+    category: Engineering Practices
+    synonyms: [agile methodology, agile methodologies, metodologia agile, metodologie agile, metodologie agili, agile framework, agile development, agile environment, agile team, agile teams, approccio agile, agile/scrum, agile practices, scrum, kanban]
+    case_sensitive_synonyms: [Agile]
+  - name: DataOps / MLOps
+    category: Engineering Practices
+    synonyms: [dataops, mlops, ml pipelines, model deployment, mlflow]

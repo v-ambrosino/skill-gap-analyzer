@@ -1,5 +1,5 @@
 # =============================================================================
-# Skill dictionary for data roles (Data Analyst, BI Analyst, Business Analyst)
+# Skill dictionary: Data Analyst, BI Analyst, Business Analyst
 # =============================================================================
 #
 # Each entry describes ONE skill. Fields:
@@ -15,6 +15,10 @@
 #               Phrases matched as whole words with EXACT casing. Use them for
 #               short or ambiguous names ("SAS" must not match the Italian
 #               company type "Sas").
+#   degree_subject
+#               Optional, true for skills that are also a field of study
+#               (Statistics). In a job post, a mention inside a sentence about
+#               a degree ("Laurea in Statistica o affini") is not counted.
 #   patterns    Raw Python regular expressions for the hardest cases
 #               (e.g. the one-letter language "R"). They run on the normalised
 #               text (accents removed, original casing kept). Add (?i) at the
@@ -24,12 +28,20 @@
 # patterns. The skill name itself is NOT matched automatically, so tricky
 # names like "R" are never matched by accident.
 #
-# To support another industry, copy this file, change `domain` and the skills,
-# and point the app to the new file.
+# To support another role or industry, copy this file into data/dictionaries/,
+# change `domain`, `description`, `categories` and the skills: the app lists
+# every dictionary in that folder automatically. Shared skills (e.g. soft
+# skills) can be reused with `include`.
 # =============================================================================
 
 version: 1
-domain: Data roles
+domain: Data Analyst / BI / Business Analyst
+description: Data Analyst, BI Analyst and Business Analyst roles
+
+# Other files whose skills are added to this dictionary (paths are relative
+# to this file).
+include:
+  - shared/soft_skills.yaml
 
 categories:
   - Tools
@@ -45,9 +57,12 @@ skills:
   # ---------------------------------------------------------------------------
   - name: Excel
     category: Tools
-    synonyms: [ms excel, microsoft excel, excel avanzato, advanced excel]
+    synonyms: [ms excel, microsoft excel, excel avanzato, advanced excel, vlookup, xlookup, cerca.vert, index match]
     # "excel" is also an English verb ("excel at", "excel in"): exclude it.
     patterns: ['(?i)(?<![\w&])excel(?!\s+(?:at|in|as)\b)(?![\w&])']
+  - name: Microsoft Office
+    category: Tools
+    synonyms: [microsoft office, ms office, pacchetto office, office suite, microsoft 365, office 365]
   - name: Pivot Tables
     category: Tools
     synonyms: [pivot table, pivot tables, tabelle pivot, tabella pivot, pivot]
@@ -79,12 +94,9 @@ skills:
   - name: Qlik
     category: Tools
     synonyms: [qlik, qlik sense, qlikview, qlik view]
-  - name: SSRS
+  - name: SSIS / SSRS / SSAS
     category: Tools
-    synonyms: [ssrs, sql server reporting services]
-  - name: SSIS
-    category: Tools
-    synonyms: [ssis, sql server integration services]
+    synonyms: [ssis, ssrs, ssas, sql server integration services, sql server reporting services, sql server analysis services]
   - name: Google Sheets
     category: Tools
     synonyms: [google sheets, google sheet, fogli google, google spreadsheet]
@@ -261,6 +273,8 @@ skills:
     patterns: ['(?i)(?<![\w&])(?:reporting|reports?)(?!\s+(?:to|directly|into)\b)(?![\w&])']
   - name: Statistics
     category: Analytics & Statistics
+    # "Laurea in Statistica" in a job post is a degree, not a skill request.
+    degree_subject: true
     synonyms: [statistics, statistical analysis, statistica, statistiche, analisi statistica, analisi statistiche, descriptive statistics, statistica descrittiva, inferential statistics, statistica inferenziale]
   - name: Hypothesis Testing
     category: Analytics & Statistics
@@ -279,10 +293,10 @@ skills:
     synonyms: [time series, time-series analysis, serie storiche, serie temporali, arima]
   - name: Machine Learning
     category: Analytics & Statistics
-    synonyms: [machine learning, apprendimento automatico, ml models, modelli di machine learning]
+    synonyms: [machine learning, apprendimento automatico, ml models, modelli di machine learning, random forest, decision trees, gradient boosting, xgboost, alberi decisionali]
   - name: Predictive Modeling
     category: Analytics & Statistics
-    synonyms: [predictive modeling, predictive modelling, predictive analytics, analisi predittiva, modelli predittivi, modellazione predittiva]
+    synonyms: [predictive modeling, predictive modelling, predictive model, predictive models, predictive analytics, analisi predittiva, modelli predittivi, modellazione predittiva]
   - name: Clustering & Segmentation
     category: Analytics & Statistics
     synonyms: [clustering, segmentation, customer segmentation, segmentazione, segmentazione clienti, segmentazione della clientela, k-means]
@@ -294,7 +308,12 @@ skills:
     synonyms: [exploratory data analysis, eda, analisi esplorativa, analisi esplorativa dei dati]
   - name: Data Cleaning
     category: Analytics & Statistics
-    synonyms: [data cleaning, data cleansing, data wrangling, data preparation, data prep, pulizia dei dati, pulizia dati, preparazione dei dati, data munging]
+    synonyms: [data cleaning, data cleansing, data wrangling, data preparation, data prep, pulizia dei dati, pulizia dati, preparazione dei dati, data munging, clean data]
+    # "clean"/"cleaning"/"cleaned" followed within a few words by data/dataset(s),
+    # and the Italian "pulizia ... dati".
+    patterns:
+      - '(?i)(?<![\w&])clean(?:s|ed|ing|se|sed|sing)?(?:\s+[\w,]+){0,4}?\s+(?:data|datasets?)(?![\w&])'
+      - '(?i)(?<![\w&])pulizia(?:\s+\w+){0,3}?\s+(?:dati|dataset)(?![\w&])'
   - name: Cohort & Funnel Analysis
     category: Analytics & Statistics
     synonyms: [cohort analysis, funnel analysis, analisi di coorte, analisi delle coorti, analisi del funnel, retention analysis, churn analysis, analisi del churn]
@@ -349,7 +368,10 @@ skills:
     synonyms: [project management, gestione progetti, gestione dei progetti, project manager, pmp, prince2]
   - name: Documentation
     category: Methodologies
-    synonyms: [technical documentation, documentazione tecnica, documentazione funzionale, functional documentation, functional specifications, specifiche funzionali, analisi funzionale, functional analysis]
+    synonyms: [documentation, technical documentation, technical specifications, specifiche tecniche, documentazione tecnica, documentazione funzionale, functional documentation, functional specifications, specifiche funzionali, analisi funzionale, functional analysis]
+  - name: User Acceptance Testing
+    category: Methodologies
+    synonyms: [uat, user acceptance testing, user acceptance test, test di accettazione, collaudo utente]
   - name: Gap Analysis
     category: Methodologies
     synonyms: [gap analysis, analisi dei gap, swot analysis, analisi swot]
@@ -362,10 +384,11 @@ skills:
     synonyms: [financial analysis, analisi finanziaria, financial modeling, financial modelling, modellazione finanziaria, budgeting, controllo di gestione, controlling, fp&a, financial planning]
   - name: Marketing Analytics
     category: Business & Domain
-    synonyms: [marketing analytics, digital marketing, marketing digitale, campaign analysis, analisi delle campagne, marketing performance, attribution modeling, seo, sem]
+    synonyms: [marketing analytics, digital marketing, marketing digitale, campaign analysis, analisi delle campagne, marketing performance, attribution modeling, marketing attribution, seo, roas, customer lifetime value, ltv, customer acquisition cost, paid media]
+    case_sensitive_synonyms: [SEM]
   - name: Web Analytics
     category: Business & Domain
-    synonyms: [web analytics, digital analytics, analisi web]
+    synonyms: [web analytics, digital analytics, analisi web, google tag manager, tag management]
   - name: Product Analytics
     category: Business & Domain
     synonyms: [product analytics, analisi di prodotto, product metrics, mixpanel, amplitude]
@@ -393,46 +416,3 @@ skills:
   - name: Business Acumen
     category: Business & Domain
     synonyms: [business acumen, business understanding, conoscenza del business, visione di business, business sense, commercial awareness]
-
-  # ---------------------------------------------------------------------------
-  # Soft skills & languages
-  # ---------------------------------------------------------------------------
-  - name: Communication
-    category: Soft Skills
-    synonyms: [communication skills, communication, comunicazione, capacita comunicative, capacita di comunicazione, doti comunicative, competenze comunicative, abilita comunicative]
-  - name: Teamwork
-    category: Soft Skills
-    synonyms: [teamwork, team work, team working, team player, lavoro di squadra, lavoro in team, lavorare in team, lavorare in squadra, collaboration, collaborazione, spirito di squadra, working in teams, working in a team, work in a team, cross-functional teams, team cross-funzionali]
-  - name: Problem Solving
-    category: Soft Skills
-    synonyms: [problem solving, problem-solving, risoluzione dei problemi, risoluzione di problemi]
-  - name: Analytical Thinking
-    category: Soft Skills
-    synonyms: [analytical thinking, analytical skills, analytical mindset, capacita analitiche, capacita di analisi, spirito analitico, mentalita analitica, attitudine analitica, approccio analitico, doti analitiche]
-  - name: Critical Thinking
-    category: Soft Skills
-    synonyms: [critical thinking, pensiero critico, spirito critico]
-  - name: Attention to Detail
-    category: Soft Skills
-    synonyms: [attention to detail, detail-oriented, detail oriented, attenzione ai dettagli, attenzione al dettaglio, precisione, cura del dettaglio]
-  - name: Stakeholder Management
-    category: Soft Skills
-    synonyms: [stakeholder management, stakeholder engagement, gestione degli stakeholder, gestione stakeholder, working with stakeholders, relazione con gli stakeholder, stakeholders, stakeholder]
-  - name: Presentation Skills
-    category: Soft Skills
-    synonyms: [presentation skills, presenting, public speaking, capacita di presentazione, presentazione dei risultati, presentare i risultati, present findings, presenting insights]
-  - name: Time Management
-    category: Soft Skills
-    synonyms: [time management, gestione del tempo, organizzazione del lavoro, prioritization, prioritisation, gestione delle priorita, organizational skills, capacita organizzative, doti organizzative]
-  - name: Autonomy
-    category: Soft Skills
-    synonyms: [autonomia, autonomy, work independently, working independently, ability to work independently, self-starter, proattivita, proactive, proactivity, proattivo, proattiva]
-  - name: Curiosity & Learning
-    category: Soft Skills
-    synonyms: [curiosity, curious, curiosita, curioso, curiosa, eagerness to learn, willingness to learn, voglia di imparare, desire to learn, continuous learning, growth mindset]
-  - name: Adaptability
-    category: Soft Skills
-    synonyms: [adaptability, adattabilita, capacita di adattamento, adaptable]
-  - name: English
-    category: Soft Skills
-    synonyms: [english, inglese, fluent english, inglese fluente, business english]

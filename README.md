@@ -1,8 +1,12 @@
 # Skill Gap Analyzer
 
+![Status: beta](https://img.shields.io/badge/status-beta-blue)
+![Version](https://img.shields.io/badge/version-0.2.0--beta-blue)
+[![Tests](https://github.com/v-ambrosino/skill-gap-analyzer/actions/workflows/tests.yml/badge.svg)](https://github.com/v-ambrosino/skill-gap-analyzer/actions/workflows/tests.yml)
+
 **Compare your CV with real job posts and see which data skills the market wants — and which ones you are missing.**
 
-Built for people looking for **Data Analyst, BI Analyst and Business Analyst** roles.
+Built for people looking for **Data Analyst, BI Analyst and Business Analyst** roles, with a second dictionary for **Data Engineer / Analytics Engineer** roles (pick the target role in the sidebar).
 Upload your CV (PDF), paste a few job posts (English or Italian) and get:
 
 - the most requested skills, grouped by category;
@@ -11,6 +15,12 @@ Upload your CV (PDF), paste a few job posts (English or Italian) and get:
 - your **top 5 study priorities**.
 
 No paid APIs, no external AI, **no data stored**.
+
+> **Beta:** tested on real Italian and English job posts and a real CV. Skill
+> detection is dictionary-based, so some wording can still be missed: please
+> [open an issue](https://github.com/v-ambrosino/skill-gap-analyzer/issues) with
+> the exact sentence, so it can become a new synonym and a regression test.
+> See the [changelog](CHANGELOG.md) for what changed in each version.
 
 ![Skill Gap Analyzer screenshot](assets/screenshot.png)
 
@@ -36,11 +46,14 @@ transparent method you can explain and verify.
 | Feature | Details |
 |---|---|
 | **Input** | CV as PDF (or pasted text). Job posts in **one text box separated by `---`** or **one field per post** (add/remove fields). English and Italian. |
-| **Requested skills** | Horizontal bar chart of how many posts ask for each skill, coloured and optionally grouped by category. |
+| **Requested skills** | Horizontal bar chart of how many posts ask for each skill, coloured and optionally grouped by category. The solid part counts posts that **require** the skill, the hatched part posts where it is only **nice to have**. |
 | **CV comparison** | Skills in your CV in green, missing ones in red, each with its demand. Skills you have that the posts did not ask for are listed too. |
-| **Coverage score** | Share of requested skills found in your CV, **weighted by demand**. Also shown per category. |
-| **Study priorities** | The 5 missing skills that most posts ask for. |
-| **Export** | Download the full skill table as CSV. |
+| **Coverage score** | Share of requested skills found in your CV, **weighted by demand** (required = 1, nice to have = 0.5, adjustable). Also shown per category. |
+| **Evidence** | For any skill, the exact sentences where it was found in each post and in your CV, to check the result. |
+| **Study priorities** | The 5 missing technical skills that most posts ask for. |
+| **Soft skills** | Listed apart in *Soft skills to make visible in your CV*: they are shown with examples rather than studied, so they are not counted as missing, in the score or in the priorities. |
+| **Export** | Download a self-contained **HTML report** (opens in any browser, prints to PDF) and the full skill table as CSV. The report holds skill names and scores only, never the CV text. |
+| **Sample data** | *Load sample data* fills in fictional job posts and a fictional CV for the selected target role. |
 | **Privacy** | Everything stays in memory for the session only. |
 
 ## How it works
@@ -50,7 +63,7 @@ CV (PDF) ──► pdf_reader ──┐
                           ├─► extractor ──► analysis ──► charts / UI
 Job posts ──► split "---" ┘       ▲
                                   │
-                       data/skills.yaml (dictionary)
+                 data/dictionaries/*.yaml (one per role)
 ```
 
 1. **PDF reading** – `pdfplumber` extracts the text of the CV directly from the
@@ -63,23 +76,53 @@ Job posts ──► split "---" ┘       ▲
    `skill | category | posts_count | posts_share | in_cv`. Every result is an
    aggregation of this table.
 
+### Required vs nice to have
+
+For job posts, the context of each mention is checked:
+
+- **Section headers**: skills under `Nice to have:`, `Bonus:`, `Titoli preferenziali:`…
+  are nice to have, until a header like `Requirements:`, `Requisiti:` or
+  `Responsibilities:` starts a new section.
+- **Markers in the same clause**: "Python *is a plus*", "*gradita* la conoscenza di
+  Tableau", "*costituisce titolo preferenziale* la conoscenza di R". Clauses are split
+  on `;` and on sentence ends, so in "Fluent English; German is a plus" English stays required.
+- **Markers inside brackets** apply only to the brackets: in "SQL (BigQuery preferred)"
+  SQL is required and BigQuery is nice to have.
+
+If a skill is required anywhere in a post, it counts as required for that post.
+
 ### The coverage score
 
-Each requested skill weighs as much as the number of job posts that ask for it:
+Each requested skill weighs as much as its **demand**: +1 for every post that
+requires it, +0.5 for every post where it is only nice to have (the 0.5 can be
+changed in the sidebar, from 0 = ignore to 1 = same as required):
 
 ```
-coverage = Σ posts_count (skills in CV) / Σ posts_count (all requested skills)
+demand   = required_count + nice_weight × nice_count
+coverage = Σ demand (skills in CV) / Σ demand (all requested skills)
 ```
+
+The score, the missing skills and the study priorities use **technical skills
+only**. Soft skills (communication, problem solving…) get their own section: an
+employer checks them through examples in the CV, so "studying" them is not the
+right advice and counting them would bury the technical priorities.
 
 Example: SQL is asked by 4 posts and is in your CV, Tableau is asked by 1 post
 and is missing → coverage = 4 / (4 + 1) = **80%**. An unweighted count would say
 50%, overstating a skill that only one employer wants.
 
-### Skill dictionary
+### Skill dictionaries
 
-The dictionary lives in [`data/skills.yaml`](data/skills.yaml): **118 skills** in
-six categories (Tools, Programming & Data, Analytics & Statistics, Methodologies,
-Business & Domain, Soft Skills), each with English and Italian synonyms.
+Each target role has its own dictionary in [`data/dictionaries/`](data/dictionaries/),
+with English and Italian synonyms:
+
+| Role | File | Skills | Categories |
+|---|---|---|---|
+| Data Analyst / BI / Business Analyst (default) | [`data_analytics.yaml`](data/dictionaries/data_analytics.yaml) | 119 | Tools, Programming & Data, Analytics & Statistics, Methodologies, Business & Domain, Soft Skills |
+| Data Engineer / Analytics Engineer | [`data_engineering.yaml`](data/dictionaries/data_engineering.yaml) | 87 | Cloud & Platforms, Programming & Databases, Pipelines & Processing, Data Architecture, Engineering Practices, Soft Skills |
+
+Soft skills and languages live in [`shared/soft_skills.yaml`](data/dictionaries/shared/soft_skills.yaml)
+and are pulled into both dictionaries with `include`, so they are maintained once.
 
 ```yaml
 - name: Power BI
@@ -105,12 +148,19 @@ Matching rules:
     is not a skill, and the Italian adjective "agile" only counts next to
     methodology words.
 - The skill **name is not matched automatically**: only what is listed is matched.
+- `degree_subject: true` marks skills that are also a field of study (Statistics):
+  in a job post, "Laurea in Statistica o affini" is a degree requirement, so it
+  does not count as a request for the skill (in the CV it still counts).
+- Bullets drawn with emoji or symbols (✅, •, ▪, 🔹, common in LinkedIn posts) are
+  read as line breaks, so section headers and clauses are detected correctly.
 
 The loader validates the file at startup (unknown categories, duplicate names,
 a synonym shared by two skills, invalid regex) and shows a clear error.
 
-**Extending it to other industries:** copy `skills.yaml`, change `domain`,
-`categories` and `skills`, and pass the new path to `load_dictionary()`.
+**Adding a role or an industry:** copy a file into `data/dictionaries/`, change
+`domain`, `description`, `categories` and `skills` (and keep
+`include: [shared/soft_skills.yaml]` if the soft skills fit). The app lists every
+`*.yaml` file in that folder automatically, and the tests check that each one is valid.
 
 ## Project structure
 
@@ -123,10 +173,12 @@ skill-gap-analyzer/
 │   ├── skills_dictionary.py   # load + validate YAML, compile regexes
 │   ├── extractor.py           # find skills in a text, split job posts
 │   ├── analysis.py            # pandas: skill table, coverage, priorities
-│   └── charts.py              # Plotly charts
+│   ├── charts.py              # Plotly charts
+│   └── report.py              # downloadable HTML report
 ├── data/
-│   ├── skills.yaml            # the skill dictionary (edit me!)
-│   └── samples/               # fictional job posts and CV for the demo
+│   ├── dictionaries/          # one skill dictionary per role (edit me!)
+│   │   └── shared/            # skills included by several roles (soft skills)
+│   └── samples/               # fictional job posts and CV, one folder per role
 ├── tests/                     # pytest suite with fictional job posts
 ├── assets/screenshot.png
 ├── .streamlit/config.toml     # upload limit, no usage stats, theme
@@ -149,13 +201,15 @@ streamlit run app.py
 ```
 
 The app opens at http://localhost:8501. Click **Load sample data** to try it
-with fictional posts and a fictional CV.
+with fictional posts and a fictional CV for the selected target role.
 
 ### Run the tests
 
 ```bash
 pytest
 ```
+
+The same tests run automatically on GitHub Actions for every pull request and every push to `main` (Python 3.10 and 3.12), see [`.github/workflows/tests.yml`](.github/workflows/tests.yml).
 
 The tests cover whole-word matching, Italian/English synonyms, the tricky `R`,
 `SAS`, `Excel` and `Agile` cases, the post separator, the weighted coverage
@@ -184,10 +238,12 @@ top of this README.
 
 ## Known limitations
 
-- **Dictionary-based**: only the skills in `skills.yaml` are recognised, and new
+- **Dictionary-based**: only the skills in the dictionaries are recognised, and new
   wording ("analytical" on its own, a brand-new tool) is missed until a synonym is added.
-- **No context understanding**: "SQL is a plus" and "SQL is required" count the
-  same; a negated sentence ("no Python needed") still counts as a mention.
+- **Limited context understanding**: required vs nice to have is detected with
+  section headers and marker words, not by understanding the sentence. A list such
+  as "SQL, Excel, Python is a plus" marks all three as nice to have, and a negated
+  sentence ("no Python needed") still counts as a mention.
 - **Ambiguous short names** are handled with conservative rules: some true
   mentions can be missed (e.g. a sentence that ends with "… Python e R.").
 - **Scanned PDFs** (images without a text layer) cannot be read: there is no OCR.
@@ -198,13 +254,12 @@ top of this README.
 
 ## Future improvements
 
-- Distinguish **required vs nice-to-have** skills from the surrounding text and weight them differently.
 - Skill **levels** (e.g. "advanced Excel") and years of experience.
 - Import job posts from a **URL** or a CSV export of a job board.
-- More **dictionaries** (e.g. Data Engineer, Marketing, Finance) selectable in the app.
+- More **dictionaries** (e.g. Data Scientist, Marketing Analyst, Finance).
 - More languages (French, Spanish, German).
 - Optional **OCR** for scanned CVs (e.g. Tesseract).
-- A downloadable **PDF report** with the results.
+- A native **PDF** export (today: HTML report, printed to PDF from the browser).
 - Suggested learning resources for each study priority.
 
 ## License

@@ -1,0 +1,49 @@
+# Changelog
+
+All notable changes to Skill Gap Analyzer. Versions follow
+[semantic versioning](https://semver.org/); pre-release tags mark the stage.
+
+## 0.2.0-beta — 2026-10-20
+
+First version tested on real job posts (12 Italian and English posts) and a real CV.
+
+### Added
+- **Required vs nice to have.** Section headers ("Nice to have:", "Requisiti:",
+  "Costituiscono titolo preferenziale") and marker words ("is a plus", "gradita")
+  decide whether a post requires a skill. A nice-to-have mention weighs 0.5
+  (adjustable in the sidebar, from 0 to 1).
+- **Evidence:** "Where each skill was found" quotes the sentence that matched in
+  each post and in the CV.
+- **Soft skills to make visible in your CV:** soft skills are listed apart and kept
+  out of the coverage score, the missing skills and the study priorities.
+- **Multiple roles:** one dictionary per role in `data/dictionaries/`, a Target role
+  selector, shared soft skills through `include`, and a new Data Engineer /
+  Analytics Engineer dictionary (87 skills).
+- **Sample data per role** for "Load sample data".
+- **Downloadable HTML report** (prints to PDF), next to the CSV export.
+- **CI:** the test suite runs on GitHub Actions (Python 3.10 and 3.12).
+
+### Changed
+- Coverage score and priorities use demand = required + 0.5 × nice to have, on
+  technical skills only.
+- Emoji and symbol bullets (✅, •) in copy-pasted posts are read as line breaks.
+- Post titles skip generic job-board headings ("About the job",
+  "Informazioni sull'offerta di lavoro").
+- Data Analyst dictionary: 119 skills, with new wording from a pre-test on
+  realistic posts.
+
+### Fixed
+- "Laurea in … Statistica o affini" no longer counts as a request for Statistics
+  (`degree_subject` flag); a degree in the CV still counts.
+- "Nice to have: X, Y" on one line no longer turns the following lines into
+  nice-to-have.
+- False positives: "contratto di collaborazione", "sem." (semestre), "GTM strategy",
+  "su larga scala" (Scala), JavaScript (Java).
+
+## 0.1.0-alpha — 2026-10-10
+
+First version, merged on 2026-10-10 (labelled 1.0.0 in the code at first, relabelled
+0.1.0-alpha on 2026-10-11): CV upload (PDF), job posts in Italian or English (one text
+box with `---` or one field per post), a skill dictionary of 118 skills, demand
+chart by category, CV vs market comparison, weighted coverage score, top-5 study
+priorities, privacy by design (nothing stored), tests and README.

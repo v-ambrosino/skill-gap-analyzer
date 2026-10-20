@@ -1,0 +1,18 @@
+Sam Example - Junior Data Engineer
+sam.example@example.com | Turin, Italy
+
+PROFILE
+Computer engineering graduate who enjoys building reliable data pipelines.
+Comfortable working in teams, with good communication skills.
+
+SKILLS
+Python (pandas, PySpark), SQL (PostgreSQL), Airflow, dbt, Docker, Git, Linux.
+Basic knowledge of AWS (S3) and data modeling (star schema).
+
+EXPERIENCE
+Data Engineering Intern - Example Consulting (2025)
+- Built ETL pipelines in Airflow loading data into a PostgreSQL data warehouse
+- Wrote dbt models and data quality tests for the analytics team
+
+LANGUAGES
+Italian (native), English (B2)

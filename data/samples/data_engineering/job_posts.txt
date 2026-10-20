@@ -1,0 +1,56 @@
+Data Engineer - Fictional Logistics Co. (Milan, hybrid)
+
+We are building a modern data platform on AWS and need a Data Engineer to own
+our ingestion and transformation layer.
+
+What you'll do:
+- Build batch and streaming data pipelines with Spark and Kafka
+- Orchestrate workflows in Airflow and model data in dbt on Snowflake
+- Monitor pipelines and improve data quality with automated tests
+
+Requirements:
+- 3+ years with Python and SQL
+- Hands-on experience with AWS (S3, Glue, Lambda)
+- Infrastructure as code with Terraform and CI/CD with GitHub Actions
+- Good communication skills and fluent English
+
+Nice to have:
+- Kubernetes
+- Delta Lake or Apache Iceberg
+---
+Data Engineer - Azienda Immaginaria S.p.A. (Torino)
+
+Cerchiamo un/una Data Engineer per il team Data Platform.
+Attività:
+- Sviluppo e manutenzione di pipeline ETL su Azure Data Factory e Databricks
+- Modellazione dei dati (Data Vault, schema a stella) nel data warehouse
+- Ottimizzazione delle query e dei costi della piattaforma
+
+Requisiti:
+- Ottima conoscenza di SQL e Python (PySpark)
+- Esperienza con Git e metodologie Agile
+- Capacità di lavorare in team e problem solving
+- Buona conoscenza della lingua inglese
+Costituisce titolo preferenziale la conoscenza di Scala o Java.
+---
+Analytics Engineer - Imaginary Fintech Ltd (remote, EU)
+
+You will turn raw data into trusted, documented models for analysts.
+
+What you bring:
+- Strong SQL and dbt (dbt Core or dbt Cloud) on BigQuery
+- Data modeling (Kimball, dimensional modeling)
+- Data quality and testing (Great Expectations, dbt tests)
+- Experience with Fivetran or Airbyte for data ingestion
+- Stakeholder management and clear documentation
+Looker experience is a plus.
+---
+Senior Data Engineer - Società Fittizia S.r.l. (Bologna)
+
+Requisiti:
+- Esperienza con Kafka e stream processing in tempo reale
+- Docker, Kubernetes e pipeline CI/CD
+- Conoscenza di PostgreSQL e MongoDB
+- Monitoraggio con Prometheus e Grafana
+- Spiccate doti comunicative e autonomia
+Gradita la conoscenza di Go.

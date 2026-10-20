@@ -36,3 +36,23 @@ POSTS_FOR_ANALYSIS = [
     "Requirements: SQL, Python, Tableau.",
     "Requisiti: SQL, Excel, comunicazione.",
 ]
+
+
+# Longer posts written in the style of real listings (still fictional), used as
+# regression tests for wording found during the pre-test round.
+REALISTIC_POST_IT = """
+Data Analyst Junior - Milano
+Responsabilità: realizzazione di report e dashboard in Power BI per il management.
+Requisiti: ottima conoscenza del pacchetto Office, in particolare di Excel
+(formule, tabelle pivot, cerca.vert); conoscenza del linguaggio SQL.
+Precisione, spirito di iniziativa e predisposizione al lavoro in team.
+Si offre: contratto di collaborazione, smart working, buoni pasto.
+"""
+
+REALISTIC_POST_EN = """
+Data Analyst (Healthcare)
+Responsibilities include cleaning and validating large datasets, building
+predictive models (logistic regression, random forest) and presenting insights.
+Strong team spirit and an independent way of working. Experience with SSAS,
+UAT and Google Tag Manager is a plus. Our GTM strategy is ambitious.
+"""
