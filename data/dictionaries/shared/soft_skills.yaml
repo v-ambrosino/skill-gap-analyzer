@@ -12,40 +12,40 @@ skills:
   # ---------------------------------------------------------------------------
   - name: Communication
     category: Soft Skills
-    synonyms: [communication skills, communication, comunicazione, capacita comunicative, capacita di comunicazione, doti comunicative, competenze comunicative, abilita comunicative, capacita relazionali, written and verbal communication]
+    synonyms: [communication skills, communication, comunicazione, capacita comunicative, capacita di comunicazione, doti comunicative, competenze comunicative, abilita comunicative, capacita relazionali, written and verbal communication, capacites de communication, aisance relationnelle, kommunikationsfahigkeit, kommunikationsstarke, kommunikationsfahig, comunicacion, habilidades de comunicacion, habilidades comunicativas, comunicação, habilidades de comunicação]
   - name: Teamwork
     category: Soft Skills
-    synonyms: [teamwork, team work, team working, team player, lavoro di squadra, lavoro in team, lavorare in team, lavorare in squadra, collaboration, collaborazione con, spirito di collaborazione, team spirit, spirito di squadra, working in teams, working in a team, work in a team, cross-functional teams, team cross-funzionali]
+    synonyms: [teamwork, team work, team working, team player, lavoro di squadra, lavoro in team, lavorare in team, lavorare in squadra, collaboration, collaborazione con, spirito di collaborazione, team spirit, spirito di squadra, working in teams, working in a team, work in a team, cross-functional teams, team cross-funzionali, travail en equipe, esprit d'equipe, teamfahigkeit, teamgeist, teamarbeit, teamfahig, trabajo en equipo, trabalho em equipe, trabalho em equipa, espirito de equipe, espirito de equipa]
   - name: Problem Solving
     category: Soft Skills
-    synonyms: [problem solving, problem-solving, risoluzione dei problemi, risoluzione di problemi]
+    synonyms: [problem solving, problem-solving, risoluzione dei problemi, risoluzione di problemi, resolution de problemes, problemlosungsfahigkeit, problemlosung, resolucion de problemas, resolução de problemas]
   - name: Analytical Thinking
     category: Soft Skills
-    synonyms: [analytical thinking, analytical skills, analytical mindset, capacita analitiche, capacita di analisi, spirito analitico, mentalita analitica, attitudine analitica, approccio analitico, doti analitiche, data-driven mindset]
+    synonyms: [analytical thinking, analytical skills, analytical mindset, capacita analitiche, capacita di analisi, spirito analitico, mentalita analitica, attitudine analitica, approccio analitico, doti analitiche, data-driven mindset, esprit d'analyse, esprit analytique, capacites d'analyse, capacites analytiques, analytisches denken, analytische fahigkeiten, analytische denkweise, pensamiento analitico, capacidad analitica, capacidad de analisis, pensamento analitico, capacidade analitica]
   - name: Critical Thinking
     category: Soft Skills
-    synonyms: [critical thinking, pensiero critico, spirito critico]
+    synonyms: [critical thinking, pensiero critico, spirito critico, esprit critique, kritisches denken, pensamiento critico, pensamento critico]
   - name: Attention to Detail
     category: Soft Skills
-    synonyms: [attention to detail, detail-oriented, detail oriented, attenzione ai dettagli, attenzione al dettaglio, precisione, cura del dettaglio]
+    synonyms: [attention to detail, detail-oriented, detail oriented, attenzione ai dettagli, attenzione al dettaglio, precisione, cura del dettaglio, rigueur, souci du detail, sens du detail, sorgfalt, sorgfaltige arbeitsweise, detailgenauigkeit, atencion al detalle, atenção aos detalhes, atenção ao detalhe]
   - name: Stakeholder Management
     category: Soft Skills
-    synonyms: [stakeholder management, stakeholder engagement, gestione degli stakeholder, gestione stakeholder, working with stakeholders, relazione con gli stakeholder, stakeholders, stakeholder]
+    synonyms: [stakeholder management, stakeholder engagement, gestione degli stakeholder, gestione stakeholder, working with stakeholders, relazione con gli stakeholder, stakeholders, stakeholder, parties prenantes, partes interesadas, partes interessadas]
   - name: Presentation Skills
     category: Soft Skills
-    synonyms: [presentation skills, presenting, public speaking, capacita di presentazione, presentazione dei risultati, presentare i risultati, present findings, presenting insights]
+    synonyms: [presentation skills, presenting, public speaking, capacita di presentazione, presentazione dei risultati, presentare i risultati, present findings, presenting insights, presentation des resultats, prise de parole, prasentationsfahigkeit, prasentationsstarke, presentacion de resultados, habilidades de presentacion, apresentação de resultados]
   - name: Time Management
     category: Soft Skills
-    synonyms: [time management, gestione del tempo, organizzazione del lavoro, prioritization, prioritisation, gestione delle priorita, multiple priorities, competing priorities, meet deadlines, rispetto delle scadenze, organizational skills, capacita organizzative, doti organizzative]
+    synonyms: [time management, gestione del tempo, organizzazione del lavoro, prioritization, prioritisation, gestione delle priorita, multiple priorities, competing priorities, meet deadlines, rispetto delle scadenze, organizational skills, capacita organizzative, doti organizzative, gestion du temps, sens de l'organisation, gestion des priorites, zeitmanagement, organisationstalent, organisationsfahigkeit, gestion del tiempo, capacidad de organizacion, gestão do tempo, capacidade de organização]
   - name: Autonomy
     category: Soft Skills
-    synonyms: [autonomia, autonomy, work independently, working independently, ability to work independently, self-starter, work autonomously, working autonomously, independent way of working, spirito di iniziativa, take initiative, proattivita, proactive, proactivity, proattivo, proattiva]
+    synonyms: [autonomia, autonomy, work independently, working independently, ability to work independently, self-starter, work autonomously, working autonomously, independent way of working, spirito di iniziativa, take initiative, proattivita, proactive, proactivity, proattivo, proattiva, autonomie, autonome, selbststandigkeit, selbststandige arbeitsweise, eigenstandig, eigeninitiative, autonomia, proactividad, proactivo, proactiva, proatividade, proativo]
   - name: Curiosity & Learning
     category: Soft Skills
-    synonyms: [curiosity, curious, curiosita, curioso, curiosa, predisposizione all'apprendimento, capacita di apprendimento, apprendimento continuo, eagerness to learn, willingness to learn, voglia di imparare, desire to learn, continuous learning, growth mindset]
+    synonyms: [curiosity, curious, curiosita, curioso, curiosa, predisposizione all'apprendimento, capacita di apprendimento, apprendimento continuo, eagerness to learn, willingness to learn, voglia di imparare, desire to learn, continuous learning, growth mindset, curiosite, curieux, curieuse, envie d'apprendre, neugier, lernbereitschaft, wissbegierde, curiosidad, ganas de aprender, curiosidade, vontade de aprender]
   - name: Adaptability
     category: Soft Skills
-    synonyms: [adaptability, adattabilita, capacita di adattamento, adaptable]
+    synonyms: [adaptability, adattabilita, capacita di adattamento, adaptable, adaptabilite, capacite d'adaptation, anpassungsfahigkeit, adaptabilidad, capacidad de adaptacion, adaptabilidade]
   - name: English
     category: Soft Skills
-    synonyms: [english, inglese, fluent english, inglese fluente, business english]
+    synonyms: [english, inglese, fluent english, inglese fluente, business english, anglais, englisch, englischkenntnisse, ingles, ingles fluido]
