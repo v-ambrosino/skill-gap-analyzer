@@ -32,7 +32,7 @@ def make_report(dictionary, cv_skills):
         n_posts=len(posts),
         coverage=coverage_score(technical),
         nice_weight=0.5,
-        version="0.2.0-beta",
+        version="1.0.0",
         generated_on=date(2026, 10, 15),
     )
 

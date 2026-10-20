@@ -473,10 +473,10 @@ def main() -> None:
     nice_weight = render_sidebar(dictionary)
 
     st.title("Skill Gap Analyzer")
-    st.badge(f"Beta · v{__version__}", icon=":material/science:", color="blue")
+    st.badge(f"v{__version__}", icon=":material/verified:", color="green")
     st.caption(
-        "Beta: skill detection is dictionary-based and tested on real job posts, but some "
-        f"wording can still be missed. Spotted a wrong or missing skill? [Open an issue]({ISSUES_URL})."
+        "Skill detection is dictionary-based and tested on real job posts, but some wording "
+        f"can still be missed. Spotted a wrong or missing skill? [Open an issue]({ISSUES_URL})."
     )
     st.markdown(
         f"Find out which skills the job market asks for in **{dictionary.description or role}**, "
