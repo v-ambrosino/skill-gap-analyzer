@@ -6,7 +6,7 @@ include: [shared/soft_skills.yaml, shared/office.yaml]
 categories: [Methods, Certifications, Management, Tools, Office & General, Soft Skills]
 skills:
   - {name: Project Management, category: Management, synonyms: [project management, gestione progetti, gestione dei progetti, project manager, gestion de projet, projektmanagement, gestion de proyectos, gestao de projetos]}
-  - {name: Agile, category: Methods, synonyms: [agile, metodologia agile, metodologie agile, agile methodologies, scaled agile, safe framework]}
+  - {name: Agile, category: Soft Skills, synonyms: [agile, metodologia agile, metodologie agile, agile methodologies, scaled agile, safe framework]}
   - {name: Scrum, category: Methods, synonyms: [scrum, scrum master, sprint planning, product owner]}
   - {name: Kanban, category: Methods, synonyms: [kanban]}
   - {name: Waterfall, category: Methods, synonyms: [waterfall, a cascata, traditional project management]}

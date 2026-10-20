@@ -41,5 +41,5 @@ skills:
   - {name: Microservices, category: Practices, synonyms: [microservices, microservizi, micro-services, microservicios]}
   - {name: Testing, category: Practices, synonyms: [unit testing, unit test, test automation, automated testing, tdd, test driven development, junit, pytest, jest, selenium, cypress]}
   - {name: Object-Oriented Programming, category: Practices, synonyms: [oop, object oriented, object-oriented programming, programmazione a oggetti, design patterns, solid principles]}
-  - {name: Agile / Scrum, category: Practices, synonyms: [agile, scrum, kanban, metodologia agile, metodologie agile, sprint]}
+  - {name: Agile, category: Soft Skills, synonyms: [agile, scrum, kanban, metodologia agile, metodologie agile, sprint]}
   - {name: Cybersecurity, category: Practices, synonyms: [security, sicurezza informatica, cybersecurity, owasp, oauth, authentication]}

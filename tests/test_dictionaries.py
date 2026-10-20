@@ -101,3 +101,11 @@ def test_sample_data_matches_its_role():
         assert len(posts) >= 3, path.stem
         assert all(find_skills_in_posts(posts, dictionary)), path.stem
         assert find_skills(cv, dictionary), path.stem
+
+
+def test_agile_is_a_soft_skill_everywhere():
+    """Agile is a way of working: it must never become a study priority."""
+    for path in list_dictionaries().values():
+        for skill in load_dictionary(path).skills:
+            if skill.name == "Agile":
+                assert skill.category == "Soft Skills", path.name

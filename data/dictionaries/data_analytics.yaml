@@ -337,7 +337,8 @@ skills:
   # Methodologies & ways of working
   # ---------------------------------------------------------------------------
   - name: Agile
-    category: Methodologies
+    # Agile is a way of working: shown with examples in the CV, not studied.
+    category: Soft Skills
     # In Italian "agile" is also an adjective ("ambiente dinamico e agile"),
     # so lowercase "agile" counts only next to methodology words.
     synonyms: [agile methodology, agile methodologies, metodologia agile, metodologie agile, metodologie agili, metodologia agili, agile framework, agile development, agile environment, agile team, agile teams, approccio agile, agile/scrum, agile practices, methodologie agile, methodes agiles, agile methoden, agile methodik, agiles arbeiten, metodologias agiles, metodologia agil, metodologias ageis]

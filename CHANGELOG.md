@@ -3,6 +3,12 @@
 All notable changes to Skill Gap Analyzer. Versions follow
 [semantic versioning](https://semver.org/); pre-release tags mark the stage.
 
+## 1.7.1 — 2026-10-20
+
+### Fixed
+- **Agile is now a soft skill** in every role dictionary: it is listed under "Soft skills
+  to make visible in your CV" (with example CV sentences) instead of the study priorities.
+
 ## 1.7.0 — 2026-10-20
 
 ### Changed
