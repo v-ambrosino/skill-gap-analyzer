@@ -144,6 +144,66 @@ def coverage_score(table: pd.DataFrame) -> float | None:
     return float(100 * covered / total)
 
 
+POST_MATCH_COLUMNS = [
+    "post", "coverage", "requested", "covered", "missing_required", "missing_nice", "matched",
+]
+
+
+def post_matches(
+    posts_skills: list[PostSkills],
+    cv_skills: set[str],
+    dictionary: SkillDictionary,
+    nice_weight: float = DEFAULT_NICE_WEIGHT,
+) -> pd.DataFrame:
+    """How well the CV covers each single job post, best match first.
+
+    The same weights as the overall score are used inside one post: a required
+    skill counts 1, a nice-to-have one `nice_weight`, plus `LEVEL_BONUS` when
+    the post asks for a level. Soft skills are left out, as in the score.
+
+    Returns one row per post: `post` is its position in `posts_skills`
+    (0-based), `coverage` a percentage, or None when the post asks for no
+    technical skill that carries weight (those posts come last).
+    """
+    rows = []
+    for index, post in enumerate(posts_skills):
+        levels = set()
+        if not isinstance(post, (set, frozenset)):
+            levels = {s for s, v in post.items() if isinstance(v, SkillMention) and v.level}
+        total = covered_weight = 0.0
+        matched, missing_required, missing_nice = [], [], []
+        for skill, priority in sorted(_priorities(post).items(), key=lambda item: item[0].lower()):
+            if dictionary.category_of(skill) == SOFT_SKILLS_CATEGORY:
+                continue
+            is_nice = priority == NICE_TO_HAVE
+            weight = (nice_weight if is_nice else 1) + (LEVEL_BONUS if skill in levels else 0)
+            total += weight
+            if skill in cv_skills:
+                covered_weight += weight
+                matched.append(skill)
+            else:
+                (missing_nice if is_nice else missing_required).append(skill)
+        rows.append(
+            {
+                "post": index,
+                "coverage": 100 * covered_weight / total if total else None,
+                "requested": len(matched) + len(missing_required) + len(missing_nice),
+                "covered": len(matched),
+                "missing_required": missing_required,
+                "missing_nice": missing_nice,
+                "matched": matched,
+            }
+        )
+    table = pd.DataFrame(rows, columns=POST_MATCH_COLUMNS)
+    if table.empty:
+        return table
+    # Best coverage first; on a tie the post with more matched skills, then the original order.
+    return table.sort_values(
+        ["coverage", "covered", "post"], ascending=[False, False, True],
+        na_position="last", ignore_index=True,
+    )
+
+
 def study_priorities(table: pd.DataFrame, n: int = 5) -> pd.DataFrame:
     """The `n` missing skills with the highest demand."""
     missing = table[~table["in_cv"] & (table["demand"] > 0)]

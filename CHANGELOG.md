@@ -3,6 +3,22 @@
 All notable changes to Skill Gap Analyzer. Versions follow
 [semantic versioning](https://semver.org/); pre-release tags mark the stage.
 
+## 1.8.0 — 2026-11-16
+
+### Added
+- **Match per job post:** a new *Job posts* tab ranks the posts by how well your CV covers
+  each one (same weights as the overall score), with the required and nice-to-have skills
+  missing for each post.
+- **Analyze my CV** button in the hero, which jumps straight to the analyzer.
+
+### Changed
+- The analyzer now comes right after the hero; "Why", "How it works" and the limitations
+  moved below the results, so the tool is one scroll away instead of three.
+
+### Fixed
+- Messages and README no longer point to the sidebar for the target role and the
+  nice-to-have weight, which live in the analyzer since the redesign.
+
 ## 1.7.2 — 2026-10-20
 
 ### Fixed

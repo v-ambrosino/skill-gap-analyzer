@@ -1,12 +1,12 @@
 # Skill Gap Analyzer
 
 [![Live demo](https://img.shields.io/badge/live%20demo-skill--gap.streamlit.app-ff4b4b?logo=streamlit&logoColor=white)](https://skill-gap.streamlit.app/)
-![Version](https://img.shields.io/badge/version-1.7.2-blue)
+![Version](https://img.shields.io/badge/version-1.8.0-blue)
 [![Tests](https://github.com/v-ambrosino/skill-gap-analyzer/actions/workflows/tests.yml/badge.svg)](https://github.com/v-ambrosino/skill-gap-analyzer/actions/workflows/tests.yml)
 
 **Compare your CV with real job posts and see which data skills the market wants — and which ones you are missing.**
 
-Built for people looking for **Data Analyst, BI Analyst and Business Analyst** roles, with a second dictionary for **Data Engineer / Analytics Engineer** roles (pick the target role in the sidebar).
+Built for people looking for **Data Analyst, BI Analyst and Business Analyst** roles, with a second dictionary for **Data Engineer / Analytics Engineer** roles (pick the target role at the top of the analyzer).
 Upload your CV (PDF), paste a few job posts (English, Italian, French, German, Spanish or Portuguese) and get:
 
 - the most requested skills, grouped by category;
@@ -61,7 +61,8 @@ transparent method you can explain and verify.
 | **Study priorities** | The 5 missing technical skills that most posts ask for, each with a **free resource to learn it** (Kaggle Learn, Microsoft Learn, official docs…), also as clickable links in the PDF. |
 | **Soft skills** | Listed apart in *Soft skills to make visible in your CV*: they are shown with examples rather than studied, so they are not counted as missing, in the score or in the priorities. Each missing one comes with **example CV sentences** to adapt. |
 | **PDF report** | One click downloads a **PDF report**: coverage, top priorities, bar charts of the most requested skills and of coverage by category, CV vs market, soft skills and the full skill table. It holds skill names and scores only, never the CV text. |
-| **Interface** | A landing page with the three steps, results in tabs (Overview, Skills, Evidence, Report), a coverage ring and KPI cards; works on phones. |
+| **Match per job post** | Each job post gets its own weighted coverage, best match first, with the required and nice-to-have skills you are missing for it: useful to decide where to apply first. |
+| **Interface** | The analyzer right under the hero, results in tabs (Overview, Job posts, Skills, Evidence, Report), a coverage ring and KPI cards; works on phones. |
 | **Sample data** | *Load sample data* fills in fictional job posts and a fictional CV for the selected target role. |
 | **Privacy** | Everything stays in memory for the session only. |
 
@@ -104,7 +105,7 @@ If a skill is required anywhere in a post, it counts as required for that post.
 
 Each requested skill weighs as much as its **demand**: +1 for every post that
 requires it, +0.5 for every post where it is only nice to have (the 0.5 can be
-changed in the sidebar, from 0 = ignore to 1 = same as required):
+changed in *Advanced settings*, from 0 = ignore to 1 = same as required):
 
 ```
 demand   = required_count + nice_weight × nice_count

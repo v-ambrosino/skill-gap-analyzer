@@ -22,6 +22,7 @@ from skill_gap.analysis import (
     category_breakdown,
     coverage_score,
     extra_cv_skills,
+    post_matches,
     split_soft_skills,
     study_priorities,
 )
@@ -283,6 +284,15 @@ h1, h2, h3, h4 { color: var(--ink); letter-spacing: -.015em; }
   padding: 8px 18px; border-radius: 999px; border: 1px solid var(--line); background: #fff; box-shadow: var(--shadow-sm);
   color: var(--ink) !important; text-decoration: none !important; font-weight: 600; font-size: .95rem; }
 .sga-ghost:hover { border-color: var(--brand); color: var(--brand) !important; }
+.sga-primary { display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: 100%;
+  padding: 9px 18px; border-radius: 999px; background: var(--grad); color: #fff !important; text-decoration: none !important;
+  font-weight: 600; font-size: .98rem; box-shadow: 0 1px 0 rgba(255,255,255,.25) inset, 0 8px 20px rgba(47,111,228,.30);
+  transition: transform .15s ease, box-shadow .15s ease, filter .15s ease; }
+.sga-primary:hover { filter: brightness(1.06); transform: translateY(-1px);
+  box-shadow: 0 1px 0 rgba(255,255,255,.25) inset, 0 12px 26px rgba(47,111,228,.36); }
+.sga-how { margin: 12px 0 0; font-size: .92rem; }
+.sga-how a { color: var(--brand) !important; text-decoration: none !important; font-weight: 600; }
+.sga-how a:hover { text-decoration: underline !important; }
 .sga-checks { display: flex; flex-wrap: wrap; gap: 8px 18px; color: var(--ink-2); font-size: .9rem; margin: 14px 0 0; }
 .sga-checks span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
 .sga-checks svg { width: 16px; height: 16px; color: var(--ok); }
@@ -376,7 +386,7 @@ h1, h2, h3, h4 { color: var(--ink); letter-spacing: -.015em; }
   background-size: 200% auto; -webkit-background-clip: text; background-clip: text; color: transparent;
   animation: sga-shine 7s linear infinite; }
 .sga-eyebrow .tag { animation: sga-pulse 2.6s ease-in-out infinite; }
-.sga-eyebrow, .sga-title, .sga-lead, .sga-checks { animation: sga-rise .7s cubic-bezier(.2,.7,.2,1) both; }
+.sga-eyebrow, .sga-title, .sga-lead, .sga-checks, .sga-how { animation: sga-rise .7s cubic-bezier(.2,.7,.2,1) both; }
 .sga-title { animation-delay: .05s; } .sga-lead { animation-delay: .12s; } .sga-checks { animation-delay: .2s; }
 .sga-stage { animation: sga-rise .9s .15s cubic-bezier(.2,.7,.2,1) both; }
 .sga-bar div span, .sga-mini-bars i, .sga-prio .meter span { animation: sga-grow 1.2s .3s cubic-bezier(.2,.7,.2,1) both; }
@@ -445,6 +455,31 @@ h1, h2, h3, h4 { color: var(--ink); letter-spacing: -.015em; }
   text-decoration: none !important; padding: 7px 12px; border-radius: 999px; background: var(--brand-soft); }
 .sga-prio-item .learn:hover { background: var(--brand); color: #fff !important; }
 
+/* --- Results: match per job post ----------------------------------------------------------- */
+.sga-match { display: grid; gap: 10px; }
+.sga-match-item { display: grid; grid-template-columns: 36px minmax(0, 1fr) 150px; align-items: start; gap: 14px;
+  padding: 14px 16px; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-sm); }
+.sga-match-item .rank { width: 36px; height: 36px; border-radius: 11px; display: grid; place-items: center; font-weight: 800;
+  background: #eef2fb; color: var(--brand); }
+.sga-match-item:first-child .rank { color: #fff; background: var(--grad); }
+.sga-match-item .info b { display: block; color: var(--ink); font-size: .98rem; overflow-wrap: anywhere; }
+.sga-match-item .info small { display: block; color: var(--muted); font-size: .8rem; margin-bottom: 8px; }
+.sga-match-item .row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 6px; font-size: .78rem; color: var(--muted); }
+.sga-match-item .row > span:first-child { min-width: 52px; }
+.sga-match-item .t { font-size: .74rem; font-weight: 600; border-radius: 999px; padding: 3px 9px; white-space: nowrap; }
+.sga-match-item .t.req { background: #fef0ef; color: #b42318; }
+.sga-match-item .t.nice { background: #f2f4f7; color: #475467; }
+.sga-match-item .t.ok { background: #e7f6ee; color: #067647; }
+.sga-match-item .score { text-align: right; }
+.sga-match-item .score b { font-size: 1.5rem; font-weight: 800; color: var(--ink); letter-spacing: -.02em; }
+.sga-match-item .score .meter { height: 6px; border-radius: 99px; background: #eef1f7; margin-top: 6px; overflow: hidden; }
+.sga-match-item .score .meter span { display: block; height: 100%; border-radius: 99px; background: var(--grad);
+  animation: sga-grow 1.2s .3s cubic-bezier(.2,.7,.2,1) both; }
+@media (max-width: 640px) {
+  .sga-match-item { grid-template-columns: 36px minmax(0, 1fr); }
+  .sga-match-item .score { grid-column: 1 / -1; text-align: left; }
+}
+
 /* --- Closing call to action ---------------------------------------------------------------- */
 .sga-cta { position: relative; overflow: hidden; margin-top: 72px; padding: 38px 40px; border-radius: 26px; display: flex;
   align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; color: #fff;
@@ -459,7 +494,8 @@ h1, h2, h3, h4 { color: var(--ink); letter-spacing: -.015em; }
 
 @media (prefers-reduced-motion: reduce) {
   .sga-title .hl, .sga-eyebrow .tag, .sga-marquee .track, .sga-eyebrow, .sga-title, .sga-lead, .sga-checks, .sga-stage,
-  .sga-bar div span, .sga-mini-bars i, .sga-prio .meter span, .sga-ring .arc { animation: none; }
+  .sga-bar div span, .sga-mini-bars i, .sga-prio .meter span, .sga-ring .arc, .sga-how,
+  .sga-match-item .score .meter span { animation: none; }
 }
 @media (max-width: 900px) {
   .sga-bento { grid-template-columns: 1fr; } .sga-bento .span2 { grid-column: auto; }
@@ -600,16 +636,17 @@ see which skills employers ask for, which ones you are missing and what to study
 """,
             unsafe_allow_html=True,
         )
-        buttons = st.columns([1.25, 1, 0.35], vertical_alignment="center")
-        buttons[0].button(
+        buttons = st.columns([1, 1.15, 0.2], vertical_alignment="center")
+        buttons[0].markdown('<a class="sga-primary" href="#analyze">Analyze my CV →</a>',
+                            unsafe_allow_html=True)
+        buttons[1].button(
             "Try with sample data", icon=":material/play_arrow:", on_click=load_sample_data,
-            args=(sample_folder,), type="primary", width="stretch",
+            args=(sample_folder,), width="stretch",
             help="Fictional job posts and CV for the selected target role "
             "(or for Data Analyst, when the role has no sample).",
         )
-        buttons[1].markdown('<a class="sga-ghost" href="#how-it-works">How it works →</a>',
-                            unsafe_allow_html=True)
         st.markdown(
+            '<p class="sga-how"><a href="#how-it-works">How it works ↓</a></p>'
             '<p class="sga-checks">' + "".join(
                 f'<span>{_ICONS["check"]}{item}</span>'
                 for item in ("No sign-up", "Nothing stored", "PDF report", "Free")
@@ -699,6 +736,9 @@ def render_features() -> None:
         unsafe_allow_html=True,
     )
     render_limitations()
+
+
+def render_analyze_heading() -> None:
     st.markdown(
         _section("Analyze", "Analyze your CV",
                  "Choose the role, add your CV and the job posts, then click Analyze.", "analyze"),
@@ -1025,6 +1065,49 @@ def render_priorities(technical) -> None:
     st.markdown(f'<div class="sga-prio">{"".join(items)}</div>', unsafe_allow_html=True)
 
 
+def render_post_matches(matches, posts: list[str]) -> None:
+    """Each job post with its own coverage, best match first, and what is missing for it."""
+    st.markdown("#### :material/work: Which job posts fit you best")
+    st.caption(
+        "The same weighted coverage, computed for each job post on its own: the best match comes "
+        "first. Red skills are required by that post, grey ones are only nice to have. "
+        "Soft skills are not counted."
+    )
+    if len(posts) == 1:
+        st.info("Add more job posts to compare them and see where you fit best.", icon=":material/info:")
+
+    def chips(skills: list[str], css: str) -> str:
+        return "".join(f'<span class="t {css}">{html.escape(skill)}</span>' for skill in skills)
+
+    items = []
+    for rank, row in enumerate(matches.itertuples(), start=1):
+        title = post_title(posts[row.post], row.post + 1)
+        scored = row.coverage == row.coverage and row.coverage is not None  # not None / NaN
+        rows = ""
+        if row.missing_required:
+            rows += f'<div class="row"><span>Missing</span>{chips(row.missing_required, "req")}</div>'
+        if row.missing_nice:
+            rows += f'<div class="row"><span>Nice</span>{chips(row.missing_nice, "nice")}</div>'
+        if row.matched:
+            rows += f'<div class="row"><span>You have</span>{chips(row.matched, "ok")}</div>'
+        if not row.requested:
+            summary = "No technical skills found in this post"
+        elif row.covered == row.requested:
+            summary = f"You have all {row.requested} requested technical skills"
+        else:
+            summary = f"You have {row.covered} of {row.requested} requested technical skills"
+        score = (
+            f'<b>{row.coverage:.0f}%</b><div class="meter"><span style="width:{max(row.coverage, 3):.0f}%"></span></div>'
+            if scored else "<b>–</b>"
+        )
+        items.append(
+            f'<div class="sga-match-item"><span class="rank">{rank}</span>'
+            f'<div class="info"><b>{html.escape(title)}</b><small>{summary}</small>{rows}</div>'
+            f'<div class="score">{score}</div></div>'
+        )
+    st.markdown(f'<div class="sga-match">{"".join(items)}</div>', unsafe_allow_html=True)
+
+
 def render_results(
     cv_text: str, posts: list[str], dictionary: SkillDictionary, nice_weight: float
 ) -> None:
@@ -1036,7 +1119,7 @@ def render_results(
     if table.empty:
         st.warning(
             ":material/search_off: No known skills were found in the job posts. "
-            "Check that you pasted the full text, pick another target role in the sidebar, "
+            "Check that you pasted the full text, pick another target role above, "
             "or extend the dictionaries in data/dictionaries/."
         )
         return
@@ -1048,7 +1131,7 @@ def render_results(
     if score is None:
         st.warning(
             ":material/info: No technical skills to score: the posts list only soft skills, "
-            "or only nice-to-have skills with a weight of 0 (see the sidebar)."
+            "or only nice-to-have skills with a weight of 0 (see Advanced settings)."
         )
         return
     n_posts = len(posts)
@@ -1092,7 +1175,7 @@ def render_results(
     kpi = st.columns(4)
     kpi[0].metric("Weighted coverage", f"{score:.0f}%", border=True,
                   help="Requested technical skills found in your CV, weighted by how many posts ask "
-                       "for each one (nice-to-have skills count less, see the sidebar). "
+                       "for each one (nice-to-have skills count less, see Advanced settings). "
                        "Soft skills are listed separately and not scored.")
     kpi[1].metric("Job posts", n_posts, border=True)
     kpi[2].metric("Skills you have", f"{n_covered} of {len(technical)}", border=True,
@@ -1100,8 +1183,9 @@ def render_results(
     kpi[3].metric("Skills to learn", len(technical) - n_covered, border=True,
                   help="Requested technical skills missing from your CV.")
 
-    overview, skills_tab, evidence_tab, report_tab = st.tabs([
+    overview, posts_tab, skills_tab, evidence_tab, report_tab = st.tabs([
         ":material/dashboard: Overview",
+        ":material/work: Job posts",
         ":material/bar_chart: Skills",
         ":material/format_quote: Evidence",
         ":material/picture_as_pdf: Report",
@@ -1115,6 +1199,10 @@ def render_results(
         with col_priorities:
             render_priorities(technical)
         render_soft_skills(soft)
+
+    # --- Job posts: which ones fit best ---------------------------------------------
+    with posts_tab:
+        render_post_matches(post_matches(posts_mentions, cv_skills, dictionary, nice_weight), posts)
 
     # --- Skills: demand chart, CV vs market, categories ---------------------------
     with skills_tab:
@@ -1232,7 +1320,8 @@ def main() -> None:
     render_sidebar(dictionary)
     render_header()
     render_hero(dictionary, role, sample_folder)
-    render_features()
+    # The tool comes right after the hero; the explanations follow the results.
+    render_analyze_heading()
 
     # --- The analyser ---------------------------------------------------------
     with st.container(border=True):
@@ -1292,6 +1381,7 @@ def main() -> None:
             ":material/lock: Your CV and the job posts stay in memory for this session only "
             "and are discarded when you close the page."
         )
+    render_features()
     render_cta()
     render_footer()
 

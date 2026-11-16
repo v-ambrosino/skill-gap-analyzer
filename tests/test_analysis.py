@@ -7,9 +7,10 @@ from skill_gap.analysis import (
     category_breakdown,
     coverage_score,
     extra_cv_skills,
+    post_matches,
     study_priorities,
 )
-from skill_gap.extractor import find_skills_in_posts
+from skill_gap.extractor import NICE_TO_HAVE, REQUIRED, SkillMention, find_skills_in_posts
 from tests.sample_job_posts import POSTS_FOR_ANALYSIS
 
 
@@ -76,3 +77,33 @@ def test_soft_skills_are_split_out(dictionary):
     # Soft skills do not lower the score: SQL 2 out of SQL 2 + Excel 1.
     assert coverage_score(technical) == pytest.approx(100 * 2 / 3)
     assert "Teamwork" not in set(study_priorities(technical)["skill"])
+
+
+def test_post_matches_ranks_posts_by_weighted_coverage(dictionary):
+    posts = [
+        {"SQL": REQUIRED, "Tableau": REQUIRED, "Python": NICE_TO_HAVE},   # 1 of 2.5
+        {"SQL": REQUIRED, "Excel": NICE_TO_HAVE, "Communication": REQUIRED},  # 1 of 1.5
+        {"Communication": REQUIRED},  # soft skills only: nothing to score
+    ]
+    matches = post_matches(posts, {"SQL"}, dictionary)
+    assert list(matches["post"]) == [1, 0, 2]
+    best, second, unscored = matches.to_dict("records")
+    assert best["coverage"] == pytest.approx(100 * 1 / 1.5)
+    assert (best["covered"], best["requested"]) == (1, 2)  # the soft skill is not counted
+    assert best["missing_required"] == [] and best["missing_nice"] == ["Excel"]
+    assert second["coverage"] == pytest.approx(40.0)
+    assert second["missing_required"] == ["Tableau"] and second["missing_nice"] == ["Python"]
+    assert second["matched"] == ["SQL"]
+    assert unscored["coverage"] is None or unscored["coverage"] != unscored["coverage"]
+    assert unscored["requested"] == 0
+
+
+def test_post_matches_weights_levels_and_nice_weight(dictionary):
+    post = {
+        "SQL": SkillMention("SQL", REQUIRED, "advanced SQL", level=True),  # 1.5
+        "Tableau": SkillMention("Tableau", NICE_TO_HAVE, "Tableau is a plus"),
+    }
+    assert post_matches([post], {"SQL"}, dictionary)["coverage"][0] == pytest.approx(75.0)
+    # With a weight of 0 a missing nice-to-have skill no longer lowers the match.
+    assert post_matches([post], {"SQL"}, dictionary, nice_weight=0)["coverage"][0] == pytest.approx(100.0)
+    assert post_matches([], {"SQL"}, dictionary).empty
