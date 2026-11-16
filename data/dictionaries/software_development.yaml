@@ -2,6 +2,7 @@
 version: 1
 domain: Software Developer / Web Developer
 description: Software Developer, Web Developer and Full-stack roles
+core: [JavaScript, Python, Java, SQL, Git, HTML & CSS, React, TypeScript, REST APIs, Testing, Docker, Node.js, CI/CD, C#]
 include: [shared/soft_skills.yaml, shared/office.yaml]
 categories: [Languages, Frameworks, Data & Cloud, Practices, Office & General, Soft Skills]
 skills:

@@ -8,6 +8,7 @@ from skill_gap.analysis import (
     coverage_score,
     extra_cv_skills,
     post_matches,
+    tied_priorities,
     study_priorities,
 )
 from skill_gap.extractor import NICE_TO_HAVE, REQUIRED, SkillMention, find_skills_in_posts
@@ -27,9 +28,9 @@ def test_skill_table_counts(table):
         "SQL": 3, "Excel": 2, "Power BI": 1, "Python": 1,
         "Tableau": 1, "Communication": 1,
     }
-    # Sorted by demand, ties alphabetically.
+    # Sorted by demand; ties go to the role's core skills (in the dictionary's order), then A-Z.
     assert list(table["skill"]) == [
-        "SQL", "Excel", "Communication", "Power BI", "Python", "Tableau",
+        "SQL", "Excel", "Power BI", "Python", "Tableau", "Communication",
     ]
     assert table.loc[table["skill"] == "SQL", "posts_share"].item() == 1.0
 
@@ -49,7 +50,7 @@ def test_coverage_edge_cases(dictionary):
 
 def test_study_priorities(table):
     top = study_priorities(table, n=5)
-    assert list(top["skill"]) == ["Excel", "Communication", "Power BI", "Tableau"]
+    assert list(top["skill"]) == ["Excel", "Power BI", "Tableau", "Communication"]
     assert not top["in_cv"].any()
     assert len(study_priorities(table, n=2)) == 2
 
@@ -107,3 +108,20 @@ def test_post_matches_weights_levels_and_nice_weight(dictionary):
     # With a weight of 0 a missing nice-to-have skill no longer lowers the match.
     assert post_matches([post], {"SQL"}, dictionary, nice_weight=0)["coverage"][0] == pytest.approx(100.0)
     assert post_matches([], {"SQL"}, dictionary).empty
+
+
+def test_tied_priorities_flags_an_arbitrary_cut(dictionary):
+    # Seven missing skills asked once each: the top 5 is cut inside a 7-way tie.
+    skills = {"Tableau", "Looker", "Qlik", "dbt", "Jira", "Confluence", "Snowflake"}
+    table = build_skill_table([{"SQL"} | skills], {"SQL"}, dictionary)
+    assert tied_priorities(table, n=5) == 7
+    # A clear-cut top 5 (or fewer missing skills than places) is not flagged.
+    clear = build_skill_table([{"Tableau", "Looker"}, {"Tableau"}], set(), dictionary)
+    assert tied_priorities(clear, n=1) == 0
+    assert tied_priorities(clear, n=5) == 0
+
+
+def test_core_skills_break_ties(dictionary):
+    table = build_skill_table([{"Confluence", "A/B Testing", "Tableau", "Python"}], set(), dictionary)
+    # Python and Tableau are core skills of the role; the others follow A-Z.
+    assert list(table["skill"]) == ["Python", "Tableau", "A/B Testing", "Confluence"]

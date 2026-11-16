@@ -16,6 +16,8 @@ import pandas as pd
 from fpdf import FPDF
 from fpdf.fonts import FontFace
 
+from skill_gap.i18n import plural, t
+
 # Colours (RGB) from the app's palette.
 _BLUE = (42, 120, 214)
 _BLUE_LIGHT = (205, 226, 251)
@@ -51,7 +53,7 @@ class _Report(FPDF):
         self.set_font("Helvetica", size=8)
         self.set_text_color(*_MUTED)
         self.cell(0, 5, _latin1(self.footer_text), align="L")
-        self.cell(0, 5, f"Page {self.page_no()}/{{nb}}", align="R")
+        self.cell(0, 5, _latin1(t("Page {page}/{pages}", page=self.page_no(), pages="{nb}")), align="R")
 
     # --- small building blocks ------------------------------------------------
     def section(self, title: str, subtitle: str = "") -> None:
@@ -75,7 +77,7 @@ class _Report(FPDF):
         if not names:
             self.set_font("Helvetica", "I", 9)
             self.set_text_color(*_MUTED)
-            self.cell(0, 6, "None.", new_x="LMARGIN", new_y="NEXT")
+            self.cell(0, 6, _latin1(t("None.")), new_x="LMARGIN", new_y="NEXT")
             return
         self.set_font("Helvetica", size=8.5)
         x0, right, h, gap = self.l_margin, self.w - self.r_margin, 6, 1.6
@@ -130,6 +132,7 @@ def build_pdf_report(
     generated_on: date | None = None,
     resources: dict[str, list[tuple[str, str]]] | None = None,
     cv_phrases: dict[str, list[str]] | None = None,
+    post_matches: list[tuple[str, float | None, list[str]]] | None = None,
 ) -> bytes:
     """Return the PDF report as bytes.
 
@@ -147,6 +150,10 @@ def build_pdf_report(
         generated_on: report date (defaults to today).
         resources: free learning resources per skill (see `resources.py`).
         cv_phrases: example CV sentences per soft skill (see `resources.py`).
+        post_matches: one (post title, coverage 0-100 or None, missing required skills)
+            per job post, best match first (see `analysis.post_matches`).
+
+    The text is written in the current interface language (see `i18n.py`).
     """
     from skill_gap.resources import resources_for
     generated_on = generated_on or date.today()
@@ -163,20 +170,22 @@ def build_pdf_report(
     pdf.set_xy(18, 10)
     pdf.set_text_color(255, 255, 255)
     pdf.set_font("Helvetica", "B", 22)
-    pdf.cell(0, 10, "Skill Gap Report", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(0, 10, _latin1(t("Skill Gap Report")), new_x="LMARGIN", new_y="NEXT")
     pdf.set_font("Helvetica", size=10)
     pdf.cell(
         0, 6,
-        _latin1(f"Target role: {role}  |  {n_posts} job posts analysed  |  {generated_on.isoformat()}"),
+        _latin1(f"{t('Target role')}: {role}  |  "
+                + plural(n_posts, "{n} job post analysed", "{n} job posts analysed")
+                + f"  |  {generated_on.isoformat()}"),
         new_x="LMARGIN", new_y="NEXT",
     )
     pdf.set_y(46)
 
     # --- KPI cards ----------------------------------------------------------------
     cards = [
-        (f"{coverage:.0f}%", "Weighted coverage", "technical skills"),
-        (f"{len(present)} of {len(table)}", "Technical skills", "in your CV"),
-        (str(len(missing)), "Missing", "technical skills"),
+        (f"{coverage:.0f}%", t("Weighted coverage"), t("technical skills")),
+        (t("{covered} of {total}", covered=len(present), total=len(table)), t("Technical skills"), t("in your CV")),
+        (str(len(missing)), t("Missing"), t("technical skills")),
     ]
     card_w, gap, y = (pdf.w - 36 - 2 * 6) / 3, 6, pdf.get_y()
     for i, (value, label, sub) in enumerate(cards):
@@ -204,12 +213,12 @@ def build_pdf_report(
     pdf.ln(5)
 
     # --- Study priorities ------------------------------------------------------------
-    pdf.section(f"Top {len(priorities)} study priorities" if not priorities.empty else "Study priorities",
-                "Missing technical skills, most requested first.")
+    pdf.section(t("Top {n} study priorities", n=len(priorities)) if not priorities.empty else t("Study priorities"),
+                t("Missing technical skills, most requested first."))
     if priorities.empty:
         pdf.set_font("Helvetica", size=10)
         pdf.set_text_color(*_GREEN)
-        pdf.cell(0, 7, "Your CV covers every requested technical skill.", new_x="LMARGIN", new_y="NEXT")
+        pdf.cell(0, 7, _latin1(t("Your CV covers every requested technical skill.")), new_x="LMARGIN", new_y="NEXT")
     else:
         pdf.set_font("Helvetica", size=9)
         pdf.set_text_color(*_INK)
@@ -222,12 +231,12 @@ def build_pdf_report(
             line_height=6,
             borders_layout="HORIZONTAL_LINES",
             cell_fill_mode="NONE",
-        ) as t:
-            header = t.row()
-            for h in ("#", "Skill", "Category", "Required", "Nice", "Share"):
-                header.cell(h)
+        ) as tbl:
+            header = tbl.row()
+            for h in ("#", t("Skill"), t("Category"), t("Required"), t("Nice"), t("Share")):
+                header.cell(_latin1(h))
             for i, row in enumerate(priorities.itertuples(), start=1):
-                r = t.row()
+                r = tbl.row()
                 for value in (str(i), row.skill, row.category, str(row.required_count),
                               str(row.nice_count), f"{row.posts_share * 100:.0f}%"):
                     r.cell(_latin1(value))
@@ -236,7 +245,7 @@ def build_pdf_report(
         pdf.ln(2)
         pdf.set_font("Helvetica", "B", 9)
         pdf.set_text_color(*_INK)
-        pdf.cell(0, 5, "Where to start learning (free):", new_x="LMARGIN", new_y="NEXT")
+        pdf.cell(0, 5, _latin1(t("Where to start learning (free):")), new_x="LMARGIN", new_y="NEXT")
         for row in priorities.itertuples():
             title, url = resources_for(row.skill, resources or {})[0]
             pdf.set_font("Helvetica", size=8.5)
@@ -245,11 +254,35 @@ def build_pdf_report(
             pdf.set_text_color(*_BLUE)
             pdf.cell(0, 5, _latin1(title), link=url, new_x="LMARGIN", new_y="NEXT")
 
+    # --- Match per job post --------------------------------------------------------------
+    if post_matches:
+        pdf.section(
+            t("Which job posts fit you best"),
+            t("Weighted coverage of each job post on its own, best match first, with the required "
+              "technical skills you are missing for it."),
+        )
+        pdf.bars(
+            [(title if len(title) <= 34 else title[:33].rstrip() + "...", score or 0,
+              f"{score:.0f}%" if score is not None and score == score else "-", _BLUE)
+             for title, score, _ in post_matches],
+            max_value=100,
+        )
+        pdf.ln(1)
+        pdf.set_font("Helvetica", size=8.5)
+        for title, _, missing_required in post_matches:
+            if not missing_required:
+                continue
+            pdf.set_text_color(*_MUTED)
+            pdf.multi_cell(
+                0, 4.5, _latin1(f"{title} - {t('Missing')}: {', '.join(missing_required)}"),
+                new_x="LMARGIN", new_y="NEXT",
+            )
+
     # --- Most requested skills ---------------------------------------------------------
     top = table.head(_MAX_BARS)
     pdf.section(
-        "Most requested technical skills",
-        "Number of job posts asking for each skill. Dark bar = in your CV, light bar = missing.",
+        t("Most requested technical skills"),
+        t("Number of job posts asking for each skill. Dark bar = in your CV, light bar = missing."),
     )
     pdf.bars(
         [(r.skill, r.posts_count, str(r.posts_count), _BLUE if r.in_cv else _BLUE_LIGHT)
@@ -258,7 +291,7 @@ def build_pdf_report(
     )
 
     # --- Coverage by category --------------------------------------------------------------
-    pdf.section("Coverage by category", "Weighted coverage of the technical skills in each category.")
+    pdf.section(t("Coverage by category"), t("Weighted coverage of the technical skills in each category."))
     pdf.bars(
         [(r.category, r.coverage_pct, f"{r.coverage_pct:.0f}%  ({r.covered}/{r.requested})", _BLUE)
          for r in breakdown.itertuples()],
@@ -266,19 +299,19 @@ def build_pdf_report(
     )
 
     # --- CV vs market ------------------------------------------------------------------------
-    pdf.section("Your CV vs the market", "Technical skills requested by the posts.")
+    pdf.section(t("Your CV vs the market"), t("Technical skills requested by the posts."))
     pdf.set_font("Helvetica", "B", 10)
     pdf.set_text_color(*_GREEN)
-    pdf.cell(0, 6, f"In your CV ({len(present)})", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(0, 6, _latin1(t("In your CV ({n})", n=len(present))), new_x="LMARGIN", new_y="NEXT")
     pdf.chips([f"{r.skill} - {r.posts_count}" for r in present.itertuples()], _GREEN, _GREEN_BG)
     pdf.set_font("Helvetica", "B", 10)
     pdf.set_text_color(*_RED)
-    pdf.cell(0, 6, f"Missing from your CV ({len(missing)})", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(0, 6, _latin1(t("Missing from your CV ({n})", n=len(missing))), new_x="LMARGIN", new_y="NEXT")
     pdf.chips([f"{r.skill} - {r.posts_count}" for r in missing.itertuples()], _RED, _RED_BG)
     if extras:
         pdf.set_font("Helvetica", size=9)
         pdf.set_text_color(*_MUTED)
-        pdf.multi_cell(0, 4.5, _latin1("Also in your CV but not requested: " + ", ".join(extras) + "."),
+        pdf.multi_cell(0, 4.5, _latin1(t("Also in your CV but not requested: ") + ", ".join(extras) + "."),
                        new_x="LMARGIN", new_y="NEXT")
 
     # --- Soft skills ----------------------------------------------------------------------------
@@ -286,27 +319,27 @@ def build_pdf_report(
         soft_missing = soft[~soft["in_cv"]]
         soft_present = soft[soft["in_cv"]]
         pdf.section(
-            "Soft skills to make visible in your CV",
-            "Not counted in the coverage score. Show them with a concrete example in your CV "
-            "rather than studying them.",
+            t("Soft skills to make visible in your CV"),
+            t("Not counted in the coverage score. Show them with a concrete example in your CV "
+              "rather than studying them."),
         )
         pdf.chips([f"{r.skill} - {r.posts_count}" for r in soft_missing.itertuples()], _ORANGE, _ORANGE_BG)
         examples = [(s, (cv_phrases or {})[s][0]) for s in soft_missing["skill"] if (cv_phrases or {}).get(s)]
         if examples:
             pdf.set_font("Helvetica", "B", 9)
             pdf.set_text_color(*_MUTED)
-            pdf.cell(0, 5, "Example sentences for your CV:", new_x="LMARGIN", new_y="NEXT")
+            pdf.cell(0, 5, _latin1(t("Example sentences for your CV:")), new_x="LMARGIN", new_y="NEXT")
             pdf.set_font("Helvetica", size=9)
             for skill, phrase in examples:
                 pdf.multi_cell(0, 4.5, _latin1(f"- {skill}: {phrase}"), new_x="LMARGIN", new_y="NEXT")
         if not soft_present.empty:
             pdf.set_font("Helvetica", size=9)
             pdf.set_text_color(*_MUTED)
-            pdf.multi_cell(0, 4.5, _latin1("Already visible in your CV: " + ", ".join(soft_present["skill"]) + "."),
+            pdf.multi_cell(0, 4.5, _latin1(t("Already visible in your CV: ") + ", ".join(soft_present["skill"]) + "."),
                            new_x="LMARGIN", new_y="NEXT")
 
     # --- Full table ---------------------------------------------------------------------------------
-    pdf.section("All requested technical skills")
+    pdf.section(t("All requested technical skills"))
     pdf.set_font("Helvetica", size=8.5)
     pdf.set_text_color(*_INK)
     pdf.set_fill_color(255, 255, 255)
@@ -317,14 +350,14 @@ def build_pdf_report(
         line_height=5.5,
         borders_layout="HORIZONTAL_LINES",
             cell_fill_mode="NONE",
-    ) as t:
-        header = t.row()
-        for h in ("Skill", "Category", "Required", "Nice to have", "Demand", "In CV"):
-            header.cell(h)
+    ) as tbl:
+        header = tbl.row()
+        for h in (t("Skill"), t("Category"), t("Required"), t("Nice to have"), t("Demand"), t("In CV")):
+            header.cell(_latin1(h))
         for r in table.itertuples():
-            row = t.row()
+            row = tbl.row()
             for value in (r.skill, r.category, str(r.required_count), str(r.nice_count),
-                          f"{r.demand:g}", "Yes" if r.in_cv else "No"):
+                          f"{r.demand:g}", t("Yes") if r.in_cv else t("No")):
                 row.cell(_latin1(value))
 
     # --- Method note -------------------------------------------------------------------------------------
@@ -334,11 +367,11 @@ def build_pdf_report(
     pdf.multi_cell(
         0, 4,
         _latin1(
-            f"How to read it: demand = posts that require the skill + {nice_weight:g} x posts where it is "
-            "only nice to have. Weighted coverage = demand of the technical skills in your CV / total "
-            "demand. Skills are recognised with a dictionary (no AI), so wording outside the dictionary "
-            "can be missed. This report contains skill names and scores only, never the text of your CV "
-            "or of the job posts."
+            t("How to read it: demand = posts that require the skill + {weight} x posts where it is "
+              "only nice to have. Weighted coverage = demand of the technical skills in your CV / total "
+              "demand. Skills are recognised with a dictionary (no AI), so wording outside the dictionary "
+              "can be missed. This report contains skill names and scores only, never the text of your CV "
+              "or of the job posts.", weight=f"{nice_weight:g}")
         ),
         new_x="LMARGIN", new_y="NEXT",
     )

@@ -2,6 +2,7 @@
 version: 1
 domain: Human Resources / Recruiter
 description: HR Specialist, Recruiter, HR Business Partner and People roles
+core: [Recruiting, Candidate Screening, Interviewing, Onboarding, Labour Law, Payroll, Training & Development, HRIS, ATS, Performance Management, Excel]
 include: [shared/soft_skills.yaml, shared/office.yaml]
 categories: [Recruiting, HR Management, Labour & Payroll, Tools, Office & General, Soft Skills]
 skills:

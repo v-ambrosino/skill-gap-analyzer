@@ -68,8 +68,8 @@ def build_skill_table(
             1 = same as a requirement).
 
     Returns:
-        A DataFrame sorted by demand (then by number of posts, then by name so
-        that ties are always shown in the same order).
+        A DataFrame sorted by demand, then by number of posts; ties go to the
+        role's core skills first and then by name, so the order is stable.
     """
     n_posts = len(posts_skills)
     required: dict[str, int] = {}
@@ -105,9 +105,29 @@ def build_skill_table(
     table = pd.DataFrame(rows, columns=SKILL_TABLE_COLUMNS)
     if table.empty:
         return table
-    return table.sort_values(
-        ["demand", "posts_count", "skill"], ascending=[False, False, True], ignore_index=True
+    # With few posts many skills are tied: the skills most typical of the role
+    # (the dictionary's `core` list, in its order) come first, then A-Z.
+    core_rank = {skill.name: skill.core_rank for skill in dictionary.skills}
+    return (
+        table.assign(_core=table["skill"].map(core_rank))
+        .sort_values(["demand", "posts_count", "_core", "skill"],
+                     ascending=[False, False, True, True], ignore_index=True)
+        .drop(columns="_core")
     )
+
+
+def tied_priorities(table: pd.DataFrame, n: int = 5) -> int:
+    """How many missing skills share the demand of the last study priority.
+
+    More than the ones that fit in the top `n` means the cut is arbitrary: the
+    app then says that more job posts are needed for a reliable ranking.
+    Returns 0 when the top `n` is clear-cut.
+    """
+    missing = table[~table["in_cv"] & (table["demand"] > 0)]
+    if len(missing) <= n:
+        return 0
+    cut = missing["demand"].iloc[n - 1]
+    return int((missing["demand"] == cut).sum()) if missing["demand"].iloc[n] == cut else 0
 
 
 def split_soft_skills(

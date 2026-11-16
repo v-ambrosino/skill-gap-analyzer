@@ -3,33 +3,115 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Skill Gap Analyzer (offline)</title>
+  <title>Skill Gap Analyzer - compare your CV with real job posts, in your browser</title>
+  <meta name="description" content="Compare your CV with real job posts: the skills employers ask for, the ones you are missing and what to study first. Runs entirely in your browser: your CV never leaves your device." />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Skill Gap Analyzer" />
+  <meta property="og:description" content="Find your skill gap in 30 seconds. Free, no sign-up, and your CV never leaves your device." />
+  <meta property="og:url" content="{{SITE_URL}}" />
+  <meta property="og:image" content="{{SITE_URL}}assets/screenshot.png" />
+  <meta name="twitter:card" content="summary_large_image" />
   <link rel="icon" href="assets/logo.svg" />
+  <!-- The app's theme font: loaded here because stlite cannot load a font from the theme. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@stlite/browser@{{STLITE_VERSION}}/build/stlite.css" />
   <style>
-    body { margin: 0; font-family: Inter, system-ui, sans-serif; background: #f7f8fc; }
-    #loading { max-width: 520px; margin: 18vh auto; padding: 0 16px; text-align: center; color: #334155; }
-    #loading h1 { font-size: 1.4rem; color: #312e81; }
+    html, body { margin: 0; height: 100%; }
+    body { font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif; background: #f8fafd; color: #0b1430; }
+    /* The static page below is shown at once; the app replaces it when Python has loaded. */
+    #shell { min-height: 100%; box-sizing: border-box; display: grid; place-items: center; padding: 32px 16px;
+      background: radial-gradient(900px 520px at 8% -8%, rgba(47,111,228,.16), transparent 62%),
+        radial-gradient(800px 480px at 95% 0%, rgba(112,72,232,.14), transparent 60%), #f8fafd; }
+    #shell main { max-width: 620px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; margin-bottom: 28px; }
+    .brand img { width: 32px; height: 32px; }
+    h1 { font-size: clamp(2.2rem, 7vw, 3.4rem); line-height: 1.04; letter-spacing: -.035em; margin: 0 0 16px; }
+    h1 span { background: linear-gradient(90deg, #2f6fe4, #7048e8, #c246d6); -webkit-background-clip: text;
+      background-clip: text; color: transparent; }
+    p { color: #344054; font-size: 1.08rem; line-height: 1.6; margin: 0 0 14px; }
+    ul { list-style: none; padding: 0; margin: 20px 0 26px; display: grid; gap: 10px; }
+    li { background: #fff; border: 1px solid #e7eaf3; border-radius: 14px; padding: 12px 14px; color: #344054; font-size: .95rem; }
+    li b { color: #0b1430; }
+    #status { display: flex; align-items: center; gap: 12px; background: #0b1430; color: #fff; border-radius: 16px;
+      padding: 14px 18px; font-size: .95rem; }
+    #status small { display: block; color: #b8c2dc; margin-top: 2px; }
+    .spin { flex: 0 0 22px; width: 22px; height: 22px; border-radius: 50%; border: 3px solid rgba(255,255,255,.25);
+      border-top-color: #fff; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) { .spin { animation-duration: 4s; } }
+    #status.failed { background: #b42318; } #status.failed .spin { display: none; }
+    #status a { color: #fff; }
+    .alt { font-size: .88rem; color: #667085; margin-top: 14px; } .alt a { color: #2f6fe4; }
+    #root { height: 100%; }
+    body:not(.ready) #root { position: fixed; inset: 0; opacity: 0; pointer-events: none; }
+    body.ready #shell { display: none; }
   </style>
 </head>
 <body>
-  <div id="root">
-    <div id="loading">
-      <h1>Skill Gap Analyzer</h1>
-      <p>Loading Python in your browser… the first visit takes 20–40 seconds.</p>
-      <p><strong>Your CV never leaves this device</strong>: everything runs locally.</p>
-    </div>
+  <div id="shell">
+    <main>
+      <div class="brand"><img src="assets/logo.svg" alt="" />Skill Gap Analyzer</div>
+      <h1 data-it='Scopri il tuo <span>skill gap</span> in 30 secondi'>Find your <span>skill gap</span> in 30 seconds</h1>
+      <p data-it="Confronta il tuo CV con annunci di lavoro reali: scopri quali competenze chiedono le aziende, quali ti mancano e cosa studiare per primo.">Compare your CV with real job posts: see which skills employers ask for, which ones you are missing and what to study first.</p>
+      <ul>
+        <li data-it="<b>Il tuo CV non lascia mai questo dispositivo.</b> L'app gira interamente nel tuo browser: nulla viene inviato a un server."><b>Your CV never leaves this device.</b> The app runs entirely inside your browser: nothing is uploaded to a server.</li>
+        <li data-it="<b>Gratis, senza registrazione, senza IA.</b> Ogni risultato mostra la frase esatta in cui la competenza è stata trovata."><b>Free, no sign-up, no AI.</b> Every result shows the exact sentence where the skill was found.</li>
+      </ul>
+      <div id="status" role="status">
+        <span class="spin"></span>
+        <span><span id="status-text" data-it="Sto caricando l'analizzatore nel tuo browser…">Loading the analyzer in your browser…</span>
+          <small id="status-hint" data-it="La prima visita richiede 20–40 secondi; le successive sono più veloci.">The first visit takes 20–40 seconds; later visits are faster.</small></span>
+      </div>
+      <p class="alt"><span data-it="Non vuoi aspettare?">In a hurry?</span>
+        <a href="{{HOSTED_URL}}" data-it="Apri la versione online">Open the hosted version</a>
+        <span data-it="(il CV viene elaborato sul server e non salvato).">(the CV is processed on the server and not stored).</span></p>
+      <noscript><p>This page needs JavaScript to run the analyzer.</p></noscript>
+    </main>
   </div>
+  <div id="root"></div>
+  <script>
+    // Italian text for Italian browsers; the app itself follows the same rule.
+    if ((navigator.language || "").toLowerCase().startsWith("it")) {
+      document.documentElement.lang = "it";
+      document.querySelectorAll("[data-it]").forEach((el) => { el.innerHTML = el.dataset.it; });
+    }
+    function loadingFailed() {
+      const italian = document.documentElement.lang === "it";
+      document.getElementById("status").classList.add("failed");
+      document.getElementById("status-text").textContent = italian
+        ? "Non sono riuscito a caricare l'analizzatore in questo browser."
+        : "The analyzer could not be loaded in this browser.";
+      document.getElementById("status-hint").innerHTML = italian
+        ? 'Ricarica la pagina oppure <a href="{{HOSTED_URL}}">apri la versione online</a>.'
+        : 'Reload the page or <a href="{{HOSTED_URL}}">open the hosted version</a>.';
+    }
+  </script>
   <script type="module">
-    import { mount } from "https://cdn.jsdelivr.net/npm/@stlite/browser@{{STLITE_VERSION}}/build/stlite.js";
-    mount(
-      {
-        requirements: {{REQUIREMENTS}},
-        entrypoint: "app.py",
-        files: {{FILES}},
-      },
-      document.getElementById("root"),
-    );
+    const root = document.getElementById("root");
+    // Swap the static page for the app as soon as its first screen is drawn.
+    const observer = new MutationObserver(() => {
+      if (root.querySelector(".sga-title")) {
+        document.body.classList.add("ready");
+        observer.disconnect();
+      }
+    });
+    observer.observe(root, { childList: true, subtree: true });
+    try {
+      const { mount } = await import("https://cdn.jsdelivr.net/npm/@stlite/browser@{{STLITE_VERSION}}/build/stlite.js");
+      mount(
+        {
+          requirements: {{REQUIREMENTS}},
+          entrypoint: "app.py",
+          files: {{FILES}},
+        },
+        root,
+      );
+    } catch (error) {
+      console.error(error);
+      loadingFailed();
+    }
   </script>
 </body>
 </html>

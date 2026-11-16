@@ -1,0 +1,18 @@
+Alex Example - Junior Project Manager
+alex.example@example.com | Bologna, Italy
+
+PROFILE
+Management Engineering graduate with one year as a project coordinator.
+Organised, good communicator, used to working with suppliers.
+
+SKILLS
+Project management, project planning, budget management, Jira, Excel,
+PowerPoint, Microsoft Office.
+
+EXPERIENCE
+Project Coordinator - Example Engineering (2025)
+- Kept the project plan and the weekly status report for 4 customer projects
+- Tracked costs against the budget and flagged deviations to the PM
+
+LANGUAGES
+Italian (native), English (C1)

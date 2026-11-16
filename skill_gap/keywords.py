@@ -114,6 +114,29 @@ def suggest_terms(posts: list[str], dictionary: SkillDictionary, role: str = "",
     return [surface[k][:1].upper() + surface[k][1:] for k in keys[:max_terms]]
 
 
+def apply_term_edits(suggestions: list[str], removed: set[str],
+                     added: list[str]) -> tuple[list[str], list[str]]:
+    """Put the user's edits back on a fresh list of suggestions.
+
+    The suggestions change every time the job posts are edited; what the user
+    removed (`removed`, lower-case) and typed in (`added`) must survive that.
+    Returns (the options to offer, the ones selected).
+    """
+    suggested = {term.lower() for term in suggestions}
+    options = suggestions + [term for term in added if term.lower() not in suggested]
+    return options, [term for term in options if term.lower() not in removed]
+
+
+def record_term_edits(selected: list[str], shown: list[str], removed: set[str],
+                      added: list[str]) -> tuple[set[str], list[str]]:
+    """Update (`removed`, `added`) after the user changed the selection among `shown`."""
+    chosen = {term.lower() for term in selected}
+    shown_keys = {term.lower() for term in shown}
+    kept = [term for term in added if term.lower() in chosen]
+    new = [term for term in selected if term.lower() not in shown_keys]
+    return (removed | shown_keys) - chosen, list(dict.fromkeys(kept + new))
+
+
 def merge_dictionaries(dictionaries: list[SkillDictionary], domain: str) -> SkillDictionary:
     """One dictionary with every skill of `dictionaries` (first one wins on a name clash)."""
     skills: dict[str, Skill] = {}

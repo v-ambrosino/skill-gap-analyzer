@@ -10,6 +10,7 @@ lives in the `skill_gap` package:
 from __future__ import annotations
 
 import html
+import sys
 from dataclasses import replace
 from pathlib import Path
 
@@ -25,6 +26,7 @@ from skill_gap.analysis import (
     post_matches,
     split_soft_skills,
     study_priorities,
+    tied_priorities,
 )
 from skill_gap.charts import category_coverage_chart, demand_bar_chart
 from skill_gap.extractor import (
@@ -35,7 +37,15 @@ from skill_gap.extractor import (
     post_title,
     split_job_posts,
 )
-from skill_gap.keywords import add_custom_skills, merge_dictionaries, suggest_terms
+from skill_gap.i18n import LANGUAGES as UI_LANGUAGES
+from skill_gap.i18n import language_from_locale, plural, set_language, t
+from skill_gap.keywords import (
+    add_custom_skills,
+    apply_term_edits,
+    merge_dictionaries,
+    record_term_edits,
+    suggest_terms,
+)
 from skill_gap.pdf_reader import PdfReadError, extract_text_from_pdf
 from skill_gap.report import build_pdf_report
 from skill_gap.resources import load_cv_phrases, load_resources, resources_for
@@ -48,9 +58,14 @@ from skill_gap.skills_dictionary import (
 
 SAMPLES_DIR = Path(__file__).resolve().parent / "data" / "samples"
 ASSETS_DIR = Path(__file__).resolve().parent / "assets"
-MODE_SINGLE_BOX = "One text box (separate posts with ---)"
-MODE_FIELDS = "One field per job post"
+MODE_SINGLE_BOX = "single"
+MODE_FIELDS = "fields"
 TOP_PRIORITIES = 5
+# Below this many job posts most skills are asked equally often, so the ranking is weak.
+MIN_POSTS_FOR_RANKING = 5
+# True in the browser-only build (stlite): Python runs on WebAssembly inside the
+# visitor's browser, so nothing is uploaded to any server.
+IN_BROWSER = sys.platform == "emscripten"
 AUTHOR = "Vincenzo Ambrosino"
 AUTHOR_URL = "https://github.com/v-ambrosino"
 LINKEDIN_URL = "https://www.linkedin.com/in/vincenzo-ambrosino/"
@@ -167,6 +182,8 @@ def clear_all() -> None:
     st.session_state.next_post_id = 1
     st.session_state.posts_text = ""
     st.session_state.cv_text_manual = ""
+    st.session_state.custom_removed = set()
+    st.session_state.custom_added = []
     # Changing the uploader key is the way to reset a st.file_uploader.
     st.session_state.uploader_key = st.session_state.get("uploader_key", 0) + 1
     st.session_state.analyzed = False
@@ -175,7 +192,10 @@ def clear_all() -> None:
 # ---------------------------------------------------------------------------
 # Look and feel
 # ---------------------------------------------------------------------------
-LANGUAGES = "English, Italian, French, German, Spanish and Portuguese"
+def post_languages() -> str:
+    """The languages the job posts can be written in, as a sentence fragment."""
+    return t("English, Italian, French, German, Spanish and Portuguese")
+
 
 # The page is styled like a product website on top of the theme in
 # .streamlit/config.toml: Streamlit's own toolbar is hidden, the content is
@@ -193,7 +213,9 @@ _CSS = """
 }
 
 /* --- Page --------------------------------------------------------------------------- */
-[data-testid="stHeader"] { background: transparent; height: 0; }
+[data-testid="stHeader"] { background: transparent; height: 0; pointer-events: none; }
+/* The invisible header must not swallow clicks on what sits under it (the language switch). */
+[data-testid="stHeader"] button, [data-testid="stHeader"] a { pointer-events: auto; }
 [data-testid="stToolbar"], [data-testid="stDecoration"], #MainMenu, footer { visibility: hidden; height: 0; }
 [data-testid="stAppViewContainer"] {
   background:
@@ -218,6 +240,9 @@ h1, h2, h3, h4 { color: var(--ink); letter-spacing: -.015em; }
 [data-testid="stMetric"]::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 3px; background: var(--grad); }
 [data-testid="stMetricLabel"] p { text-transform: uppercase; letter-spacing: .06em; font-size: .74rem !important;
   font-weight: 600; color: var(--muted); }
+/* Long labels (e.g. in Italian) wrap instead of being cut with an ellipsis. */
+[data-testid="stMetricLabel"], [data-testid="stMetricLabel"] * { white-space: normal !important; overflow: visible !important;
+  text-overflow: clip !important; }
 [data-testid="stMetricValue"] { font-weight: 800; color: var(--ink); font-size: 2.1rem; letter-spacing: -.02em; }
 [data-testid="stBaseButton-primary"] {
   background: var(--grad); border: 0; border-radius: 999px; font-weight: 600; letter-spacing: .005em;
@@ -248,12 +273,20 @@ h1, h2, h3, h4 { color: var(--ink); letter-spacing: -.015em; }
 [data-testid="stAlert"] { border-radius: 14px; }
 [role="tablist"] { gap: 4px; background: #eaeff8; padding: 5px; border-radius: 999px; width: fit-content;
   border: 0 !important; box-shadow: inset 0 1px 2px rgba(16,24,40,.06) !important; }
-[data-testid="stTab"] { border-radius: 999px; padding: 7px 18px; height: auto; border: 0 !important; }
+/* Five tabs do not fit on a phone: the bar scrolls sideways instead of widening the page. */
+[data-testid="stTabs"] { max-width: 100%; overflow-x: clip; }
+[role="tablist"] { max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+[data-testid="stTab"] { border-radius: 999px; flex: 0 0 auto; padding: 7px 18px; height: auto; border: 0 !important; }
 [data-testid="stTab"] p { font-weight: 600; }
 [data-testid="stTab"][aria-selected="true"] { background: var(--surface); box-shadow: 0 1px 2px rgba(16,24,40,.08), 0 4px 10px rgba(16,24,40,.06); }
 [data-testid="stTab"][aria-selected="true"] p { color: var(--brand); }
 [role="tablist"] > :not([role="tab"]) { display: none; }
 [data-testid="stDataFrame"] { border-radius: 14px; overflow: hidden; }
+
+/* --- Language switch --------------------------------------------------------------- */
+.st-key-langbar { align-items: flex-end; margin-bottom: -6px; }
+.st-key-langbar [data-testid="stButtonGroup"] { justify-content: flex-end; }
+.st-key-langbar button { min-height: 0; padding: 2px 12px; font-size: .8rem; }
 
 /* --- Navigation --------------------------------------------------------------------- */
 .sga-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 4px 0 26px;
@@ -428,7 +461,7 @@ h1, h2, h3, h4 { color: var(--ink); letter-spacing: -.015em; }
 
 /* --- Results: ring and priorities --------------------------------------------------------- */
 .sga-ring { text-align: center; padding: 6px 4px 0; }
-.sga-ring svg { width: 210px; height: 210px; filter: drop-shadow(0 14px 28px rgba(47,111,228,.18)); }
+.sga-ring svg { display: block; margin: 0 auto; width: 210px; height: 210px; filter: drop-shadow(0 14px 28px rgba(47,111,228,.18)); }
 .sga-ring .v { font-size: 38px; font-weight: 800; fill: var(--ink); letter-spacing: -.03em; font-family: Inter, sans-serif; }
 .sga-ring .l { font-size: 12px; fill: var(--muted); font-family: Inter, sans-serif; }
 .sga-ring-verdict { display: inline-block; margin-top: 4px; padding: 4px 12px; border-radius: 999px; font-size: .82rem;
@@ -522,6 +555,13 @@ h1, h2, h3, h4 { color: var(--ink); letter-spacing: -.015em; }
   .sga-stage { padding: 26px 0 34px; }
 }
 @media (max-width: 640px) {
+  /* KPI cards two by two instead of one tall column. */
+  .st-key-kpis [data-testid="stHorizontalBlock"] { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .st-key-kpis [data-testid="stColumn"] { width: auto !important; min-width: 0 !important; flex: unset !important; }
+  .st-key-kpis [data-testid="stMetric"] { padding: 14px 14px 12px !important; }
+  .st-key-kpis [data-testid="stMetricValue"] { font-size: 1.55rem; }
+  .st-key-kpis [data-testid="stMetricLabel"] p { font-size: .66rem !important; letter-spacing: .03em; }
+
   .sga-title { font-size: 2.35rem; }
   .sga-nav { padding: 8px 8px 8px 10px; }
   .sga-version { display: none; }
@@ -573,22 +613,23 @@ _ICONS = {
 }
 
 # A static example card shown in the hero, so visitors see the result at a glance.
-_PREVIEW = f"""
+def _preview() -> str:
+    return f"""
 <div class="sga-stage">
-  <div class="sga-float one"><span class="ico">{_ICONS["book"]}</span><span>Top study priority<b>Tableau · 5 of 12 posts</b></span></div>
+  <div class="sga-float one"><span class="ico">{_ICONS["book"]}</span><span>{t("Top study priority")}<b>{t("Tableau · 5 of 12 posts")}</b></span></div>
   <div class="sga-preview">
-    <div class="sga-preview-head"><span class="sga-dots"><i></i><i></i><i></i></span><span>Example · 12 job posts · Data Analyst</span></div>
+    <div class="sga-preview-head"><span class="sga-dots"><i></i><i></i><i></i></span><span>{t("Example · 12 job posts · Data Analyst")}</span></div>
     <div class="sga-preview-row">
-      <svg width="118" height="118" viewBox="0 0 120 120" aria-label="72% coverage">
+      <svg width="118" height="118" viewBox="0 0 120 120" aria-label="72%">
         <defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#2f6fe4"/><stop offset="1" stop-color="#7048e8"/></linearGradient></defs>
         <circle cx="60" cy="60" r="48" fill="none" stroke="#eef1f7" stroke-width="13"/>
         <circle cx="60" cy="60" r="48" fill="none" stroke="url(#g)" stroke-width="13" stroke-linecap="round"
           stroke-dasharray="217 302" transform="rotate(-90 60 60)"/>
         <text x="60" y="64" text-anchor="middle" font-size="25" font-weight="800" fill="#0b1430" font-family="Inter, sans-serif">72%</text>
-        <text x="60" y="81" text-anchor="middle" font-size="9.5" fill="#667085" font-family="Inter, sans-serif">coverage</text>
+        <text x="60" y="81" text-anchor="middle" font-size="9.5" fill="#667085" font-family="Inter, sans-serif">{t("coverage")}</text>
       </svg>
-      <div class="sga-preview-kpi"><span><b>18 / 25</b> skills in your CV</span><span><b>3</b> study priorities</span>
-        <span><b>PDF</b> report ready</span></div>
+      <div class="sga-preview-kpi"><span><b>18 / 25</b> {t("skills in your CV")}</span><span><b>3</b> {t("study priorities")}</span>
+        <span><b>PDF</b> {t("report ready")}</span></div>
     </div>
     <div class="sga-bars">
       <div class="sga-bar"><span>SQL</span><div><span style="width:92%"></span></div><em>11</em></div>
@@ -598,24 +639,64 @@ _PREVIEW = f"""
     <div><span class="sga-chip ok">✓ Python · 7</span><span class="sga-chip ok">✓ Excel · 6</span>
       <span class="sga-chip miss">✕ dbt · 3</span></div>
   </div>
-  <div class="sga-float two"><span class="ico">{_ICONS["check"]}</span><span>Report<b>skill_gap_report.pdf</b></span></div>
+  <div class="sga-float two"><span class="ico">{_ICONS["check"]}</span><span>{t("Report")}<b>skill_gap_report.pdf</b></span></div>
 </div>
 """
 
-_STEPS = [
-    ("file", "Upload your CV", "A text-based PDF, or paste its text."),
-    ("briefcase", "Paste job posts", "One or more posts, separated by a line with ---."),
-    ("target", "Get your gap", "Coverage, study priorities with free resources, the evidence and a PDF report."),
-]
+
+def _steps() -> list[tuple[str, str, str]]:
+    return [
+        ("file", t("Upload your CV"), t("A text-based PDF, or paste its text.")),
+        ("briefcase", t("Paste job posts"), t("One or more posts, separated by a line with ---.")),
+        ("target", t("Get your gap"),
+         t("Coverage, study priorities with free resources, the evidence and a PDF report.")),
+    ]
+
+
+def _privacy_line() -> str:
+    """One sentence on where the CV is processed, true for the version that is running."""
+    if IN_BROWSER:
+        return t("Everything runs inside your browser: your CV never leaves this device. "
+                 "No account, no tracking, no copy kept anywhere.")
+    return t("Your CV is processed in memory for this session only. No account, no tracking, "
+             "no copy kept anywhere.")
+
+
+# ---------------------------------------------------------------------------
+# Language
+# ---------------------------------------------------------------------------
+def init_language() -> None:
+    """Pick the interface language: ?lang=…, then the browser language, then English."""
+    if "lang" not in st.session_state:
+        wanted = st.query_params.get("lang")
+        if wanted not in UI_LANGUAGES:
+            wanted = language_from_locale(getattr(st.context, "locale", None))
+        st.session_state.lang = wanted
+    # A segmented control can be deselected: keep the language chosen before.
+    if st.session_state.get("lang_switch") in UI_LANGUAGES:
+        st.session_state.lang = st.session_state.lang_switch
+    set_language(st.session_state.lang)
+    if st.query_params.get("lang") != st.session_state.lang:
+        st.query_params["lang"] = st.session_state.lang  # so a shared link keeps the language
+
+
+def render_language_switch() -> None:
+    with st.container(key="langbar"):
+        st.session_state.lang_switch = st.session_state.lang
+        st.segmented_control(
+            "Language / Lingua", list(UI_LANGUAGES), key="lang_switch",
+            format_func=str.upper, label_visibility="collapsed",
+        )
 
 
 def render_header() -> None:
     st.markdown(_CSS, unsafe_allow_html=True)
+    render_language_switch()
     st.markdown(
         f"""
 <div class="sga-nav">
   <div class="sga-brand">{_LOGO_SVG}<span>Skill Gap Analyzer</span><span class="sga-version">v{__version__}</span></div>
-  <div class="sga-links"><span class="by">Built by <b>{AUTHOR}</b></span>
+  <div class="sga-links"><span class="by">{t("Built by")} <b>{AUTHOR}</b></span>
   <a href="{AUTHOR_URL}" target="_blank" aria-label="GitHub">{_ICONS["github"]}<span class="lbl">GitHub</span></a>
   <a href="{LINKEDIN_URL}" target="_blank" aria-label="LinkedIn">{_ICONS["linkedin"]}<span class="lbl">LinkedIn</span></a></div>
 </div>
@@ -628,39 +709,39 @@ def render_hero(dictionary: SkillDictionary, role: str, sample_folder: str) -> N
     text_col, preview_col = st.columns([1.1, 1], gap="large", vertical_alignment="center")
     with text_col:
         st.markdown(
-            """
-<div class="sga-eyebrow"><span class="tag">New</span>Works for any job title, in 6 languages</div>
-<h1 class="sga-title">Find your <span class="hl">skill gap</span><br>in 30 seconds</h1>
-<p class="sga-lead">Compare your CV with real job posts:
-see which skills employers ask for, which ones you are missing and what to study first.</p>
+            f"""
+<div class="sga-eyebrow"><span class="tag">{t("New")}</span>{t("Works for any job title, in 6 languages")}</div>
+<h1 class="sga-title">{t('Find your <span class="hl">skill gap</span><br>in 30 seconds')}</h1>
+<p class="sga-lead">{t("Compare your CV with real job posts: see which skills employers ask for, "
+                       "which ones you are missing and what to study first.")}</p>
 """,
             unsafe_allow_html=True,
         )
         buttons = st.columns([1, 1.15, 0.2], vertical_alignment="center")
-        buttons[0].markdown('<a class="sga-primary" href="#analyze">Analyze my CV →</a>',
+        buttons[0].markdown(f'<a class="sga-primary" href="#analyze">{t("Analyze my CV")} →</a>',
                             unsafe_allow_html=True)
         buttons[1].button(
-            "Try with sample data", icon=":material/play_arrow:", on_click=load_sample_data,
+            t("Try with sample data"), icon=":material/play_arrow:", on_click=load_sample_data,
             args=(sample_folder,), width="stretch",
-            help="Fictional job posts and CV for the selected target role "
-            "(or for Data Analyst, when the role has no sample).",
+            help=t("Fictional job posts and CV for the selected target role "
+                   "(or for Data Analyst, when you typed your own role)."),
         )
         st.markdown(
-            '<p class="sga-how"><a href="#how-it-works">How it works ↓</a></p>'
+            f'<p class="sga-how"><a href="#how-it-works">{t("How it works")} ↓</a></p>'
             '<p class="sga-checks">' + "".join(
                 f'<span>{_ICONS["check"]}{item}</span>'
-                for item in ("No sign-up", "Nothing stored", "PDF report", "Free")
+                for item in (t("No sign-up"), t("Nothing stored"), t("PDF report"), t("Free"))
             ) + "</p>",
             unsafe_allow_html=True,
         )
     with preview_col:
-        st.markdown(_PREVIEW, unsafe_allow_html=True)
+        st.markdown(_preview(), unsafe_allow_html=True)
 
     stats = [
-        (known_skills_label(), "skills and synonyms recognised"),
-        ("6", "European languages, also mixed"),
-        (str(len(get_dictionary_files())), "ready-made roles, plus any job title"),
-        ("0", "bytes of your CV stored"),
+        (known_skills_label(), t("skills and synonyms recognised")),
+        ("6", t("European languages, also mixed")),
+        (str(len(get_dictionary_files())), t("ready-made roles, plus any job title")),
+        ("0", t("bytes of your CV stored")),
     ]
     st.markdown(
         '<div class="sga-stats">'
@@ -668,12 +749,12 @@ see which skills employers ask for, which ones you are missing and what to study
         + "</div>",
         unsafe_allow_html=True,
     )
-    roles = ["Data Analyst", "Software Developer", "Digital Marketing", "Accountant", "HR Specialist",
-             "Project Manager", "Sales Manager", "Data Engineer", "Nurse", "Chef", "Architect", "Teacher",
-             "Customer Success", "Financial Controller", "Recruiter", "Web Developer", "Logistics", "Pharmacist"]
+    roles = ["Data Analyst", "Software Developer", "Digital Marketing", t("Accountant"), "HR Specialist",
+             "Project Manager", "Sales Manager", "Data Engineer", t("Nurse"), "Chef", t("Architect"), t("Teacher"),
+             "Customer Success", "Financial Controller", "Recruiter", "Web Developer", t("Logistics"), t("Pharmacist")]
     chips = "".join(f"<span>{role}</span>" for role in roles)
     st.markdown(
-        '<div class="sga-marquee-label">Works for every job title, from data to the kitchen</div>'
+        f'<div class="sga-marquee-label">{t("Works for every job title, from data to the kitchen")}</div>'
         f'<div class="sga-marquee"><div class="track">{chips}{chips}</div></div>',
         unsafe_allow_html=True,
     )
@@ -689,50 +770,57 @@ def _section(kicker: str, title: str, lead: str, anchor: str = "") -> str:
 
 def render_features() -> None:
     langs = "".join(f"<span>{code}</span>" for code in ("EN", "IT", "FR", "DE", "ES", "PT"))
+    privacy_chips = (
+        (t("Stays on this device"), t("No sign-up"), t("Gone when you close the page"), t("PDF report built on the fly"))
+        if IN_BROWSER else
+        (t("In memory only"), t("No sign-up"), t("Gone when you close the page"), t("PDF report built on the fly"))
+    )
     bento = f"""
 <div class="sga-bento">
   <div class="sga-card span2">
-    <div class="sga-icon">{_ICONS["search"]}</div><h4>Explainable, no AI</h4>
-    <p>Skills are recognised with a list of {known_skills_label()} skills and their synonyms, and the app shows
-    the exact sentence that matched.</p>
-    <div class="sga-demo-quote">“We are looking for an analyst with strong <mark>SQL</mark> and <mark>Power BI</mark>,
-    good <mark>Excel</mark> and a working knowledge of <mark class="nice">Python</mark> (nice to have).”</div>
+    <div class="sga-icon">{_ICONS["search"]}</div><h4>{t("Explainable, no AI")}</h4>
+    <p>{t("Skills are recognised with a list of {count} skills and their synonyms, and the app shows "
+          "the exact sentence that matched.", count=known_skills_label())}</p>
+    <div class="sga-demo-quote">{t('“We are looking for an analyst with strong <mark>SQL</mark> and '
+      '<mark>Power BI</mark>, good <mark>Excel</mark> and a working knowledge of '
+      '<mark class="nice">Python</mark> (nice to have).”')}</div>
   </div>
   <div class="sga-card">
-    <div class="sga-icon c2">{_ICONS["chart"]}</div><h4>Weighted by demand</h4>
-    <p>Skills most employers require count more; nice-to-have skills count half.</p>
+    <div class="sga-icon c2">{_ICONS["chart"]}</div><h4>{t("Weighted by demand")}</h4>
+    <p>{t("Skills most employers require count more; nice-to-have skills count half.")}</p>
     <div class="sga-mini-bars"><div><span>SQL</span><i style="width:92%"></i></div>
       <div><span>Tableau</span><i style="width:60%"></i></div>
       <div><span>Python</span><i class="h" style="width:38%"></i></div></div>
   </div>
   <div class="sga-card">
-    <div class="sga-icon c3">{_ICONS["globe"]}</div><h4>6 European languages</h4>
-    <p>Job posts in {LANGUAGES}, also mixed together.</p>
+    <div class="sga-icon c3">{_ICONS["globe"]}</div><h4>{t("6 European languages")}</h4>
+    <p>{t("Job posts in {languages}, also mixed together.", languages=post_languages())}</p>
     <div class="sga-langs">{langs}</div>
   </div>
   <div class="sga-card span2 dark">
-    <div class="sga-icon c4">{_ICONS["lock"]}</div><h4>Private by design</h4>
-    <p>Your CV is processed in memory for this session only. No account, no tracking, no copy kept anywhere.</p>
-    <div class="sga-privacy"><span>{_ICONS["check"]}In memory only</span><span>{_ICONS["check"]}No sign-up</span>
-      <span>{_ICONS["check"]}Gone when you close the page</span><span>{_ICONS["check"]}PDF report built on the fly</span></div>
+    <div class="sga-icon c4">{_ICONS["lock"]}</div><h4>{t("Private by design")}</h4>
+    <p>{_privacy_line()}</p>
+    <div class="sga-privacy">{"".join(f'<span>{_ICONS["check"]}{chip}</span>' for chip in privacy_chips)}</div>
   </div>
 </div>
 """
     steps = "".join(
         f'<div class="sga-card"><span class="sga-step-num">0{number}</span><div class="sga-icon">{_ICONS[icon]}</div>'
         f"<h4>{title}</h4><p>{text}</p></div>"
-        for number, (icon, title, text) in enumerate(_STEPS, start=1)
+        for number, (icon, title, text) in enumerate(_steps(), start=1)
     )
     st.markdown(
-        _section("Why Skill Gap Analyzer", "Read the job market like a recruiter",
-                 "A transparent way to read the job market, for any role: ready-made skill lists for the "
-                 "most common jobs, automatic detection for all the others.")
+        _section(t("Why Skill Gap Analyzer"), t("Read the job market like a recruiter"),
+                 t("A transparent way to read the job market, for any role: ready-made skill lists for the "
+                   "most common jobs, automatic detection for all the others."))
         + bento
-        + _section("How it works", "Three steps, about a minute",
-                   "No account, no upload to third parties: everything happens in this session.", "how-it-works")
+        + _section(t("How it works"), t("Three steps, about a minute"),
+                   t("No account, no upload to third parties: everything happens on this device.") if IN_BROWSER
+                   else t("No account, no upload to third parties: everything happens in this session."),
+                   "how-it-works")
         + f'<div class="sga-grid sga-steps">{steps}</div>'
-        + _section("Good to know", "Honest about its limits",
-                   "What the app can and cannot do, so you know how far to trust the result.", "limitations"),
+        + _section(t("Good to know"), t("Honest about its limits"),
+                   t("What the app can and cannot do, so you know how far to trust the result."), "limitations"),
         unsafe_allow_html=True,
     )
     render_limitations()
@@ -740,8 +828,8 @@ def render_features() -> None:
 
 def render_analyze_heading() -> None:
     st.markdown(
-        _section("Analyze", "Analyze your CV",
-                 "Choose the role, add your CV and the job posts, then click Analyze.", "analyze"),
+        _section(t("Analyze"), t("Analyze your CV"),
+                 t("Choose the role, add your CV and the job posts, then click Analyze."), "analyze"),
         unsafe_allow_html=True,
     )
 
@@ -749,11 +837,11 @@ def render_analyze_heading() -> None:
 def render_cta() -> None:
     """A closing call to action before the footer."""
     st.markdown(
-        """
+        f"""
 <div class="sga-cta">
-  <div><h3>Your next interview starts with the right skills.</h3>
-  <p>Paste a few job posts, add your CV and get a study plan in under a minute. Free, private, no sign-up.</p></div>
-  <a class="sga-cta-btn" href="#analyze">Analyze my CV →</a>
+  <div><h3>{t("Your next interview starts with the right skills.")}</h3>
+  <p>{t("Paste a few job posts, add your CV and get a study plan in under a minute. Free, private, no sign-up.")}</p></div>
+  <a class="sga-cta-btn" href="#analyze">{t("Analyze my CV")} →</a>
 </div>
 """,
         unsafe_allow_html=True,
@@ -762,10 +850,10 @@ def render_cta() -> None:
 
 def render_limitations() -> None:
     """What the app cannot do: being upfront about it makes the result easier to trust."""
-    with st.expander(":material/info: Limitations: what the app can and cannot do"):
+    with st.expander(":material/info: " + t("Limitations: what the app can and cannot do")):
         st.markdown(
-            f"""
-- **It only knows the skills in its lists** ({known_skills_label()} skills, with synonyms in {LANGUAGES}),
+            t("""
+- **It only knows the skills in its lists** ({count} skills, with synonyms in {languages}),
   plus, for a role you type yourself, the terms that recur in your job posts. A skill written in an
   unusual way (an uncommon abbreviation, a typo, a brand-new tool) can be missed.
 - **It reads words, not meaning.** "We don't use Excel" still counts as Excel, and the app cannot
@@ -777,8 +865,8 @@ def render_limitations() -> None:
   reliable picture; a single post gives a narrow one.
 - **Soft skills** are listed apart and not scored: they are shown with examples, not studied.
 
-Missing a skill, or found a wrong match? [Tell me on LinkedIn]({LINKEDIN_URL}) and I will add it.
-"""
+Missing a skill, or found a wrong match? [Tell me on LinkedIn]({url}) and I will add it.
+""", count=known_skills_label(), languages=post_languages(), url=LINKEDIN_URL)
         )
 
 
@@ -786,8 +874,8 @@ def render_footer() -> None:
     st.markdown(
         f"""
 <div class="sga-footer">
-  <div class="brand">{_LOGO_SVG}<span>Skill Gap Analyzer<small>v{__version__} · No AI, nothing stored · © 2026 {AUTHOR}. All rights reserved.</small></span></div>
-  <div><a href="#how-it-works">How it works</a><a href="#limitations">Limitations</a>
+  <div class="brand">{_LOGO_SVG}<span>Skill Gap Analyzer<small>v{__version__} · {t("No AI, nothing stored")} · © 2026 {AUTHOR}. {t("All rights reserved.")}</small></span></div>
+  <div><a href="#how-it-works">{t("How it works")}</a><a href="#limitations">{t("Limitations")}</a>
   <a href="{AUTHOR_URL}" target="_blank">GitHub</a><a href="{LINKEDIN_URL}" target="_blank">LinkedIn</a></div>
 </div>
 """,
@@ -801,50 +889,61 @@ def render_footer() -> None:
 def render_sidebar(dictionary: SkillDictionary) -> None:
     """The sidebar (collapsed at start): privacy and how the score works."""
     with st.sidebar:
-        st.header(":material/lock: Privacy")
-        st.markdown(
-            "**No data is stored.** Your CV and the job posts are processed "
-            "**in memory only** for this session: nothing is saved to disk, "
-            "logged, cached or sent to external services or AI. Close the tab "
-            "and everything is gone."
-        )
-        st.caption(
-            "The online version runs on Streamlit Community Cloud: files are processed in "
-            "that server's memory and never stored. For full control, run the app locally "
-            "(see the README)."
-        )
+        st.header(":material/lock: " + t("Privacy"))
+        if IN_BROWSER:
+            st.markdown(t(
+                "**Your CV never leaves this device.** This version runs entirely inside your "
+                "browser: the CV and the job posts are not uploaded to any server, nothing is "
+                "saved, and everything is gone when you close the tab."
+            ))
+        else:
+            st.markdown(t(
+                "**No data is stored.** Your CV and the job posts are processed "
+                "**in memory only** for this session: nothing is saved to disk, "
+                "logged, cached or sent to external services or AI. Close the tab "
+                "and everything is gone."
+            ))
+            st.caption(t(
+                "The online version runs on Streamlit Community Cloud: files are processed in "
+                "that server's memory and never stored. For full control, run the app locally "
+                "(see the README)."
+            ))
         st.divider()
-        st.header(":material/help: How it works")
-        st.markdown(
+        st.header(":material/help: " + t("How it works"))
+        st.markdown(t(
             "1. Skills are recognised with an editable **dictionary** "
-            f"of **{len(dictionary.skills)} skills**, with synonyms in {LANGUAGES}.\n"
+            "of **{count} skills**, with synonyms in {languages}.\n"
             "2. Each skill counts **once per job post**: 1 if the post **requires** it, "
-            "less if it is only **nice to have** (see Settings).\n"
+            "less if it is only **nice to have** (see Advanced settings).\n"
             "3. **Coverage** = share of the requested technical skills found in your CV, "
-            "weighted by that demand."
-        )
-        st.caption(
-            f"v{__version__} · © 2026 {AUTHOR}. All rights reserved."
-        )
+            "weighted by that demand.",
+            count=len(dictionary.skills), languages=post_languages(),
+        ))
+        st.caption(f"v{__version__} · © 2026 {AUTHOR}. {t('All rights reserved.')}")
 
 
 def render_cv_input() -> str:
     """Return the CV text, from the uploaded PDF or from the text box."""
-    st.markdown('<div class="sga-card-title"><span class="n">1</span>Your CV</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="sga-card-title"><span class="n">1</span>{t("Your CV")}</div>', unsafe_allow_html=True)
     uploaded = st.file_uploader(
-        "Upload your CV (PDF)",
+        t("Upload your CV (PDF)"),
         type=["pdf"],
         key=f"cv_upload_{st.session_state.get('uploader_key', 0)}",
-        help="Text-based PDFs only: scanned images cannot be read.",
+        help=t("Text-based PDFs only: scanned images cannot be read."),
     )
-    with st.expander("No PDF at hand? Paste your CV text instead", expanded=False):
-        st.text_area("CV text", key="cv_text_manual", height=200, label_visibility="collapsed")
+    with st.expander(t("No PDF at hand? Paste your CV text instead"), expanded=False):
+        st.text_area(t("CV text"), key="cv_text_manual", height=200, label_visibility="collapsed")
+    first = (
+        ("lock", t("Read on this device only"), t("The PDF never leaves your browser: nothing is uploaded."))
+        if IN_BROWSER else
+        ("lock", t("Read in memory only"), t("The PDF is never saved, logged or sent to third parties."))
+    )
     st.markdown(
         '<ul class="sga-assure">'
         + "".join(f"<li>{_ICONS[icon]}<span><b>{title}</b>{text}</span></li>" for icon, title, text in (
-            ("lock", "Read in memory only", "The PDF is never saved, logged or sent to third parties."),
-            ("file", "Text-based PDF, up to 5 MB", "Exported from Word, Google Docs or Canva works best."),
-            ("check", "Gone when you close the page", "Nothing is kept between sessions."),
+            first,
+            ("file", t("Text-based PDF, up to 5 MB"), t("Exported from Word, Google Docs or Canva works best.")),
+            ("check", t("Gone when you close the page"), t("Nothing is kept between sessions.")),
         ))
         + "</ul>",
         unsafe_allow_html=True,
@@ -857,65 +956,92 @@ def render_cv_input() -> str:
             st.error(f":material/error: {exc}")
             return ""
         if not text:
-            st.error(
-                ":material/image_not_supported: **This PDF looks like an image (a scan), so it "
-                "has no text to read.** Paste the text of your CV in the box above "
-                "(\"No PDF at hand? Paste your CV text instead\"), or export it again as a text PDF."
-            )
+            st.error(":material/image_not_supported: " + t(
+                "**This PDF looks like an image (a scan), so it has no text to read.** Paste the "
+                "text of your CV in the box above (\"No PDF at hand? Paste your CV text instead\"), "
+                "or export it again as a text PDF."
+            ))
         else:
-            st.caption(f":material/check_circle: Read {len(text.split()):,} words from **{uploaded.name}**.")
+            st.caption(":material/check_circle: " + t(
+                "Read {words} words from **{name}**.", words=f"{len(text.split()):,}", name=uploaded.name))
         return text
     return st.session_state.cv_text_manual
 
 
+def remember_custom_terms() -> None:
+    """Keep what the user removed from / added to the detected skills of a typed role."""
+    st.session_state.custom_removed, st.session_state.custom_added = record_term_edits(
+        st.session_state.get("custom_terms", []), st.session_state.get("custom_options", []),
+        st.session_state.custom_removed, st.session_state.custom_added,
+    )
+
+
 def render_custom_skills(posts: list[str], dictionary: SkillDictionary, role: str) -> SkillDictionary:
     """For a typed role: let the user review the skills detected in the posts."""
-    suggestions = suggest_terms(posts, dictionary, role)
+    if st.session_state.get("custom_role") != role:  # another role: start from a clean list
+        st.session_state.custom_role = role
+        st.session_state.custom_removed = set()
+        st.session_state.custom_added = []
+    st.session_state.setdefault("custom_removed", set())
+    st.session_state.setdefault("custom_added", [])
+
+    # The suggestions change when the posts are edited: the user's own removals and
+    # additions are applied again on top of them, instead of being lost.
+    options, selected = apply_term_edits(
+        suggest_terms(posts, dictionary, role), st.session_state.custom_removed, st.session_state.custom_added)
+    st.session_state.custom_options = options
+    st.session_state.custom_terms = selected
     with st.container(border=True):
-        st.markdown(f"#### :material/auto_awesome: Skills detected for *{role}*")
-        st.caption(
+        st.markdown("#### :material/auto_awesome: " + t("Skills detected for *{role}*", role=role))
+        st.caption(t(
             "There is no ready-made skill list for this role, so the app also looks for the terms "
             "that keep coming back in your job posts (on top of hundreds of known skills). "
             "Remove the wrong ones and type any skill that is missing, then click Analyze."
-        )
+        ))
         terms = st.multiselect(
-            "Skills from the job posts", suggestions, default=suggestions,
-            key=f"custom_terms_{hash(tuple(suggestions))}", accept_new_options=True,
-            placeholder="Type a skill and press Enter", label_visibility="collapsed",
+            t("Skills from the job posts"), options, key="custom_terms", accept_new_options=True,
+            on_change=remember_custom_terms,
+            placeholder=t("Type a skill and press Enter"), label_visibility="collapsed",
         )
     return add_custom_skills(dictionary, terms)
 
 
 def render_posts_input() -> list[str]:
     """Return the list of job posts, from either input mode."""
-    st.markdown('<div class="sga-card-title"><span class="n">2</span>Job posts</div>', unsafe_allow_html=True)
-    st.caption(f":material/translate: Posts can be in {LANGUAGES}, and you can mix languages freely.")
-    mode = st.radio("Input mode", [MODE_SINGLE_BOX, MODE_FIELDS], horizontal=True, key="input_mode")
+    st.markdown(f'<div class="sga-card-title"><span class="n">2</span>{t("Job posts")}</div>', unsafe_allow_html=True)
+    st.caption(":material/translate: " + t(
+        "Posts can be in {languages}, and you can mix languages freely.", languages=post_languages()))
+    mode_labels = {
+        MODE_SINGLE_BOX: t("One text box (separate posts with ---)"),
+        MODE_FIELDS: t("One field per job post"),
+    }
+    mode = st.radio(t("Input mode"), list(mode_labels), horizontal=True, key="input_mode",
+                    format_func=mode_labels.get)
 
     if mode == MODE_SINGLE_BOX:
         st.text_area(
-            "Paste one or more job posts",
+            t("Paste one or more job posts"),
             key="posts_text",
             height=300,
-            placeholder="First job post...\n---\nSecond job post...\n---\nThird job post...",
-            help=f"Put a line with three dashes (---) between two job posts. Languages: {LANGUAGES}.",
+            placeholder=t("First job post...\n---\nSecond job post...\n---\nThird job post..."),
+            help=t("Put a line with three dashes (---) between two job posts. Languages: {languages}.",
+                   languages=post_languages()),
         )
         return split_job_posts(st.session_state.posts_text)
 
     posts = []
     for number, post_id in enumerate(st.session_state.post_ids, start=1):
+        label = t("Job post #{n}", n=number)
         label_col, button_col = st.columns([5, 1], vertical_alignment="bottom")
-        label_col.markdown(f"**Job post #{number}**")
+        label_col.markdown(f"**{label}**")
         button_col.button(
-            "Remove", key=f"remove_{post_id}", icon=":material/close:",
+            t("Remove"), key=f"remove_{post_id}", icon=":material/close:",
             on_click=remove_post_field, args=(post_id,), width="stretch",
         )
-        text = st.text_area(
-            f"Job post #{number}", key=f"post_{post_id}", height=160, label_visibility="collapsed"
-        )
+        text = st.text_area(label, key=f"post_{post_id}", height=160, label_visibility="collapsed")
         if text.strip():
             posts.append(text.strip())
-    st.button("Add job post", icon=":material/add:", on_click=add_post_field)
+    st.button(t("Add job post"), icon=":material/add:", on_click=add_post_field)
     return posts
 
 
@@ -929,21 +1055,26 @@ def skill_badges(rows, color: str, icon: str) -> str:
 
 def priority_badge(row) -> str:
     """Required skills and nice-to-have-only skills look different."""
-    return ":red-badge[required]" if row.required_count else ":gray-badge[nice to have]"
+    return f":red-badge[{t('required')}]" if row.required_count else f":gray-badge[{t('nice to have')}]"
+
+
+def _learn_label(title: str) -> str:
+    """'Learn it' for a curated resource, 'Find a course' for the search fallback."""
+    return t("Find a course") if title.startswith("Search") else t("Learn it")
 
 
 def render_missing_skills(missing) -> None:
     """Missing skills by demand (#1 = top study priority), each with a free resource."""
     if missing.empty:
-        st.markdown("_Nothing missing!_")
+        st.markdown(f"_{t('Nothing missing!')}_")
         return
     resources = get_resources()
     lines = []
     for rank, row in enumerate(missing.itertuples(), start=1):
         title, url = resources_for(row.skill, resources)[0]
         lines.append(
-            f"`#{rank}` **{row.skill}** · {row.posts_count} post{'s' * (row.posts_count != 1)} "
-            f"{priority_badge(row)} · [{'Learn it' if 'Search' not in title else 'Find a course'} ↗]({url})"
+            f"`#{rank}` **{row.skill}** · {plural(row.posts_count, '{n} post', '{n} posts')} "
+            f"{priority_badge(row)} · [{_learn_label(title)} ↗]({url})"
         )
     box = st.container(height=420, border=False) if len(lines) > 12 else st.container(border=False)
     box.markdown("  \n".join(lines))
@@ -956,32 +1087,32 @@ def render_evidence(
     cv_mentions: dict[str, SkillMention],
 ) -> None:
     """Show the sentences where a chosen skill was found, to check the matching."""
-    st.markdown("#### :material/format_quote: Where each skill was found")
-    st.caption(
+    st.markdown("#### :material/format_quote: " + t("Where each skill was found"))
+    st.caption(t(
         "Pick a skill to see the exact sentences that matched. Useful to check "
-        f"the result, and to spot wrong matches to [report on LinkedIn]({LINKEDIN_URL})."
-    )
-    skill = st.selectbox("Skill", table["skill"], label_visibility="collapsed")
+        "the result, and to spot wrong matches to [report on LinkedIn]({url}).", url=LINKEDIN_URL))
+    skill = st.selectbox(t("Skill"), table["skill"], label_visibility="collapsed")
     col_posts, col_cv = st.columns([3, 2], gap="large")
     with col_posts:
-        st.markdown("**In the job posts**")
+        st.markdown(f"**{t('In the job posts')}**")
         for number, (post, mentions) in enumerate(zip(posts, posts_mentions), start=1):
             mention = mentions.get(skill)
             if mention is None:
                 continue
             if mention.priority == REQUIRED:
-                tag = ":blue-badge[Required]"
+                tag = f":blue-badge[{t('Required')}]"
             else:
-                tag = ":gray-badge[Nice to have]"
-            quote = f"“{mention.snippet}”" if mention.snippet else "_(phrase split across lines)_"
+                tag = f":gray-badge[{t('Nice to have')}]"
+            quote = f"“{mention.snippet}”" if mention.snippet else f"_({t('phrase split across lines')})_"
             st.markdown(f"{tag} **{post_title(post, number)}**  \n{quote}")
     with col_cv:
-        st.markdown("**In your CV**")
+        st.markdown(f"**{t('In your CV')}**")
         mention = cv_mentions.get(skill)
         if mention is None:
-            st.markdown("_Not found in your CV._")
+            st.markdown(f"_{t('Not found in your CV.')}_")
         else:
-            st.markdown(f"“{mention.snippet}”" if mention.snippet else "_Found (phrase split across lines)._")
+            st.markdown(f"“{mention.snippet}”" if mention.snippet
+                        else f"_{t('Found (phrase split across lines).')}_")
 
 
 def render_soft_skills(soft) -> None:
@@ -991,90 +1122,108 @@ def render_soft_skills(soft) -> None:
     missing = soft[~soft["in_cv"]]
     present = soft[soft["in_cv"]]
     with st.container(border=True):
-        st.markdown("#### :material/record_voice_over: Soft skills to make visible in your CV")
+        st.markdown("#### :material/record_voice_over: " + t("Soft skills to make visible in your CV"))
         if missing.empty:
-            st.success("Every soft skill the posts ask for is already visible in your CV.")
+            st.success(t("Every soft skill the posts ask for is already visible in your CV."))
         else:
-            st.caption(
+            st.caption(t(
                 "Employers ask for these soft skills, but your CV does not mention them in words "
                 "the app recognises. They are not counted in the coverage score: rather than "
                 "studying them, show them with a concrete example, e.g. \"presented monthly "
                 "results to the sales team\" for communication."
-            )
+            ))
             st.markdown(skill_badges(missing, "orange", "visibility"))
             phrases = get_cv_phrases()
-            with st.expander(":material/edit_note: Example sentences to add to your CV"):
-                st.caption("Adapt them to your experience: replace the [bracketed] parts with real facts.")
+            with st.expander(":material/edit_note: " + t("Example sentences to add to your CV")):
+                st.caption(t("Adapt them to your experience: replace the [bracketed] parts with real facts. "
+                             "The examples are in English."))
                 for skill in missing["skill"]:
                     for phrase in phrases.get(skill, []):
                         st.markdown(f"- **{skill}:** {phrase}")
         if not present.empty:
-            st.caption("Already visible in your CV: " + ", ".join(present["skill"]))
+            st.caption(t("Already visible in your CV: ") + ", ".join(present["skill"]))
 
 
 def render_coverage_ring(score: float, n_covered: int, n_total: int) -> None:
     """The coverage score as an animated gradient ring."""
     circumference = 2 * 3.14159 * 74
     filled = circumference * max(0.0, min(score, 100.0)) / 100
-    verdict = ("Strong match" if score >= 75 else "Good base" if score >= 50
-               else "Room to grow" if score >= 25 else "Early stage")
+    verdict = (t("Strong match") if score >= 75 else t("Good base") if score >= 50
+               else t("Room to grow") if score >= 25 else t("Early stage"))
     st.markdown(
         f"""
 <div class="sga-ring">
-  <svg viewBox="0 0 180 180" aria-label="{score:.0f}% weighted coverage">
+  <svg viewBox="0 0 180 180" aria-label="{score:.0f}% {t("weighted coverage")}">
     <defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2f6fe4"/>
       <stop offset="1" stop-color="#7048e8"/></linearGradient></defs>
     <circle cx="90" cy="90" r="74" fill="none" stroke="#e3e9f5" stroke-width="16"/>
     <circle class="arc" cx="90" cy="90" r="74" fill="none" stroke="url(#rg)" stroke-width="16" stroke-linecap="round"
       stroke-dasharray="{filled:.1f} {circumference:.1f}" style="--len:{circumference:.1f}" transform="rotate(-90 90 90)"/>
     <text x="90" y="92" text-anchor="middle" class="v">{score:.0f}%</text>
-    <text x="90" y="116" text-anchor="middle" class="l">weighted coverage</text>
+    <text x="90" y="116" text-anchor="middle" class="l">{t("weighted coverage")}</text>
   </svg>
   <div class="sga-ring-verdict">{verdict}</div>
-  <p>{n_covered} of {n_total} requested technical skills are in your CV, weighted by how often employers ask for them.</p>
+  <p>{t("{covered} of {total} requested technical skills are in your CV, weighted by how often "
+        "employers ask for them.", covered=n_covered, total=n_total)}</p>
 </div>
 """,
         unsafe_allow_html=True,
     )
 
 
-def render_priorities(technical) -> None:
-    st.markdown(f"#### :material/school: Top {TOP_PRIORITIES} study priorities")
+def render_priorities(technical, n_posts: int) -> None:
+    st.markdown("#### :material/school: " + t("Top {n} study priorities", n=TOP_PRIORITIES))
     priorities = study_priorities(technical, TOP_PRIORITIES)
     if priorities.empty:
-        st.success("Your CV covers every requested technical skill. Well done!")
+        st.success(t("Your CV covers every requested technical skill. Well done!"))
         return
+    # Say so when the ranking is weak, instead of showing an arbitrary order as a fact.
+    tied = tied_priorities(technical, TOP_PRIORITIES)
+    if n_posts < MIN_POSTS_FOR_RANKING:
+        st.warning(
+            plural(n_posts, "Based on only {n} job post:", "Based on only {n} job posts:") + " "
+            + t("many skills are asked equally often, so among those the skills most typical of "
+                "the role come first. Add at least {min} posts for a reliable ranking.",
+                min=MIN_POSTS_FOR_RANKING),
+            icon=":material/info:",
+        )
+    elif tied:
+        st.caption(":material/info: " + t(
+            "{n} missing skills are asked equally often as the last ones listed here: among those, "
+            "the skills most typical of the role come first.", n=tied))
     resources = get_resources()
     items = []
     for rank, row in enumerate(priorities.itertuples(), start=1):
         title, url = resources_for(row.skill, resources)[0]
         share = row.posts_share * 100
-        tags = [f'<span class="t req">Required in {row.required_count}</span>' if row.required_count else ""]
+        tags = [f'<span class="t req">{t("Required in {n}", n=row.required_count)}</span>'
+                if row.required_count else ""]
         if row.nice_count:
-            tags.append(f'<span class="t nice">Nice in {row.nice_count}</span>')
+            tags.append(f'<span class="t nice">{t("Nice in {n}", n=row.nice_count)}</span>')
         if getattr(row, "level_count", 0):
-            tags.append(f'<span class="t lvl">Level asked in {row.level_count}</span>')
+            tags.append(f'<span class="t lvl">{t("Level asked in {n}", n=row.level_count)}</span>')
         items.append(
             f'<div class="sga-prio-item"><span class="rank">{rank}</span>'
             f'<div class="info"><b>{html.escape(row.skill)}</b><small>{html.escape(row.category)} · '
-            f'in {share:.0f}% of the posts</small><div class="meter"><span style="width:{max(share, 4):.0f}%"></span></div></div>'
+            f'{t("in {share}% of the posts", share=f"{share:.0f}")}</small>'
+            f'<div class="meter"><span style="width:{max(share, 4):.0f}%"></span></div></div>'
             f'<div class="tags">{"".join(tags)}</div>'
             f'<a class="learn" href="{html.escape(url)}" target="_blank" rel="noopener" title="{html.escape(title)}">'
-            f'{"Learn it" if not title.startswith("Search") else "Find a course"} ↗</a></div>'
+            f'{_learn_label(title)} ↗</a></div>'
         )
     st.markdown(f'<div class="sga-prio">{"".join(items)}</div>', unsafe_allow_html=True)
 
 
 def render_post_matches(matches, posts: list[str]) -> None:
     """Each job post with its own coverage, best match first, and what is missing for it."""
-    st.markdown("#### :material/work: Which job posts fit you best")
-    st.caption(
+    st.markdown("#### :material/work: " + t("Which job posts fit you best"))
+    st.caption(t(
         "The same weighted coverage, computed for each job post on its own: the best match comes "
         "first. Red skills are required by that post, grey ones are only nice to have. "
         "Soft skills are not counted."
-    )
+    ))
     if len(posts) == 1:
-        st.info("Add more job posts to compare them and see where you fit best.", icon=":material/info:")
+        st.info(t("Add more job posts to compare them and see where you fit best."), icon=":material/info:")
 
     def chips(skills: list[str], css: str) -> str:
         return "".join(f'<span class="t {css}">{html.escape(skill)}</span>' for skill in skills)
@@ -1085,17 +1234,18 @@ def render_post_matches(matches, posts: list[str]) -> None:
         scored = row.coverage == row.coverage and row.coverage is not None  # not None / NaN
         rows = ""
         if row.missing_required:
-            rows += f'<div class="row"><span>Missing</span>{chips(row.missing_required, "req")}</div>'
+            rows += f'<div class="row"><span>{t("Missing")}</span>{chips(row.missing_required, "req")}</div>'
         if row.missing_nice:
-            rows += f'<div class="row"><span>Nice</span>{chips(row.missing_nice, "nice")}</div>'
+            rows += f'<div class="row"><span>{t("Nice")}</span>{chips(row.missing_nice, "nice")}</div>'
         if row.matched:
-            rows += f'<div class="row"><span>You have</span>{chips(row.matched, "ok")}</div>'
+            rows += f'<div class="row"><span>{t("You have")}</span>{chips(row.matched, "ok")}</div>'
         if not row.requested:
-            summary = "No technical skills found in this post"
+            summary = t("No technical skills found in this post")
         elif row.covered == row.requested:
-            summary = f"You have all {row.requested} requested technical skills"
+            summary = t("You have all {total} requested technical skills", total=row.requested)
         else:
-            summary = f"You have {row.covered} of {row.requested} requested technical skills"
+            summary = t("You have {covered} of {total} requested technical skills",
+                        covered=row.covered, total=row.requested)
         score = (
             f'<b>{row.coverage:.0f}%</b><div class="meter"><span style="width:{max(row.coverage, 3):.0f}%"></span></div>'
             if scored else "<b>–</b>"
@@ -1117,11 +1267,10 @@ def render_results(
     table = build_skill_table(posts_mentions, cv_skills, dictionary, nice_weight=nice_weight)
 
     if table.empty:
-        st.warning(
-            ":material/search_off: No known skills were found in the job posts. "
-            "Check that you pasted the full text, pick another target role above, "
-            "or extend the dictionaries in data/dictionaries/."
-        )
+        st.warning(":material/search_off: " + t(
+            "No known skills were found in the job posts. Check that you pasted the full text, "
+            "pick another target role above, or extend the dictionaries in data/dictionaries/."
+        ))
         return
 
     # Soft skills get their own section: the score, the missing skills and the
@@ -1129,16 +1278,17 @@ def render_results(
     technical, soft = split_soft_skills(table)
     score = coverage_score(technical)
     if score is None:
-        st.warning(
-            ":material/info: No technical skills to score: the posts list only soft skills, "
-            "or only nice-to-have skills with a weight of 0 (see Advanced settings)."
-        )
+        st.warning(":material/info: " + t(
+            "No technical skills to score: the posts list only soft skills, or only nice-to-have "
+            "skills with a weight of 0 (see Advanced settings)."
+        ))
         return
     n_posts = len(posts)
     n_covered = int(technical["in_cv"].sum())
     mode = "dark" if st.context.theme.type == "dark" else "light"
     breakdown = category_breakdown(technical, dictionary)
     extras = extra_cv_skills(table, cv_skills)
+    matches = post_matches(posts_mentions, cv_skills, dictionary, nice_weight)
 
     report = build_pdf_report(
         technical,
@@ -1153,17 +1303,21 @@ def render_results(
         version=__version__,
         resources=get_resources(),
         cv_phrases=get_cv_phrases(),
+        post_matches=[
+            (post_title(posts[row.post], row.post + 1), row.coverage, row.missing_required)
+            for row in matches.itertuples()
+        ],
     )
 
     # --- Header row and headline numbers ------------------------------------
     title_col, download_col = st.columns([3, 1], vertical_alignment="bottom")
     title_col.markdown(
-        f'<div class="sga-results-head"><h2>Your results</h2><span class="pill">Analysis ready</span></div>'
-        f'<p class="sga-results-sub">{n_posts} job post{"s" * (n_posts != 1)} · {dictionary.domain}</p>',
+        f'<div class="sga-results-head"><h2>{t("Your results")}</h2><span class="pill">{t("Analysis ready")}</span></div>'
+        f'<p class="sga-results-sub">{plural(n_posts, "{n} job post", "{n} job posts")} · {dictionary.domain}</p>',
         unsafe_allow_html=True,
     )
     download_col.download_button(
-        "Download PDF report",
+        t("Download PDF report"),
         report,
         file_name="skill_gap_report.pdf",
         mime="application/pdf",
@@ -1172,23 +1326,24 @@ def render_results(
         width="stretch",
         key="download_top",
     )
-    kpi = st.columns(4)
-    kpi[0].metric("Weighted coverage", f"{score:.0f}%", border=True,
-                  help="Requested technical skills found in your CV, weighted by how many posts ask "
-                       "for each one (nice-to-have skills count less, see Advanced settings). "
-                       "Soft skills are listed separately and not scored.")
-    kpi[1].metric("Job posts", n_posts, border=True)
-    kpi[2].metric("Skills you have", f"{n_covered} of {len(technical)}", border=True,
-                  help="Requested technical skills found in your CV.")
-    kpi[3].metric("Skills to learn", len(technical) - n_covered, border=True,
-                  help="Requested technical skills missing from your CV.")
+    with st.container(key="kpis"):
+        kpi = st.columns(4)
+    kpi[0].metric(t("Weighted coverage"), f"{score:.0f}%", border=True,
+                  help=t("Requested technical skills found in your CV, weighted by how many posts ask "
+                         "for each one (nice-to-have skills count less, see Advanced settings). "
+                         "Soft skills are listed separately and not scored."))
+    kpi[1].metric(t("Job posts"), n_posts, border=True)
+    kpi[2].metric(t("Skills you have"), t("{covered} of {total}", covered=n_covered, total=len(technical)),
+                  border=True, help=t("Requested technical skills found in your CV."))
+    kpi[3].metric(t("Skills to learn"), len(technical) - n_covered, border=True,
+                  help=t("Requested technical skills missing from your CV."))
 
     overview, posts_tab, skills_tab, evidence_tab, report_tab = st.tabs([
-        ":material/dashboard: Overview",
-        ":material/work: Job posts",
-        ":material/bar_chart: Skills",
-        ":material/format_quote: Evidence",
-        ":material/picture_as_pdf: Report",
+        ":material/dashboard: " + t("Overview"),
+        ":material/work: " + t("Job posts"),
+        ":material/bar_chart: " + t("Skills"),
+        ":material/format_quote: " + t("Evidence"),
+        ":material/picture_as_pdf: " + t("Report"),
     ])
 
     # --- Overview: score, priorities, soft skills -----------------------------
@@ -1197,20 +1352,20 @@ def render_results(
         with col_score:
             render_coverage_ring(score, n_covered, len(technical))
         with col_priorities:
-            render_priorities(technical)
+            render_priorities(technical, n_posts)
         render_soft_skills(soft)
 
     # --- Job posts: which ones fit best ---------------------------------------------
     with posts_tab:
-        render_post_matches(post_matches(posts_mentions, cv_skills, dictionary, nice_weight), posts)
+        render_post_matches(matches, posts)
 
     # --- Skills: demand chart, CV vs market, categories ---------------------------
     with skills_tab:
-        st.markdown("#### :material/bar_chart: Most requested skills")
+        st.markdown("#### :material/bar_chart: " + t("Most requested skills"))
         controls = st.columns([2, 2, 3], vertical_alignment="bottom")
         max_bars = len(table)
-        top_n = controls[0].slider("Skills to show", 1, max_bars, min(20, max_bars)) if max_bars > 1 else 1
-        group = controls[1].toggle("Group by category", value=True)
+        top_n = controls[0].slider(t("Skills to show"), 1, max_bars, min(20, max_bars)) if max_bars > 1 else 1
+        group = controls[1].toggle(t("Group by category"), value=True)
         st.plotly_chart(
             demand_bar_chart(table.head(top_n), dictionary.categories, n_posts,
                              group_by_category=group, mode=mode),
@@ -1218,35 +1373,40 @@ def render_results(
             config={"displayModeBar": False},
         )
 
-        st.markdown("#### :material/compare_arrows: Your CV vs the market")
-        st.caption(
+        st.markdown("#### :material/compare_arrows: " + t("Your CV vs the market"))
+        st.caption(t(
             "Technical skills, most requested first: #1 is your top study priority. The number is how "
             "many job posts ask for the skill; grey skills appear only as nice to have."
-        )
+        ))
         present = technical[technical["in_cv"]]
         missing = technical[~technical["in_cv"]]
         col_present, col_missing = st.columns(2)
         with col_present.container(border=True):
-            st.markdown(f"**:material/check_circle: In your CV ({len(present)})**")
+            st.markdown(f"**:material/check_circle: {t('In your CV ({n})', n=len(present))}**")
             st.markdown(
                 " ".join(
                     f":{'green' if row.required_count else 'gray'}-badge[:material/check: {row.skill} · {row.posts_count}]"
                     for row in present.itertuples()
-                ) if not present.empty else "_None yet._"
+                ) if not present.empty else f"_{t('None yet.')}_"
             )
         with col_missing.container(border=True):
-            st.markdown(f"**:material/cancel: Missing from your CV ({len(missing)})**")
+            st.markdown(f"**:material/cancel: {t('Missing from your CV ({n})', n=len(missing))}**")
             render_missing_skills(missing)
         if extras:
-            st.caption("Also in your CV but not requested by these posts: " + ", ".join(extras))
+            st.caption(t("Also in your CV but not requested by these posts: ") + ", ".join(extras))
 
-        st.markdown("#### :material/category: Coverage by category")
+        st.markdown("#### :material/category: " + t("Coverage by category"))
         st.plotly_chart(category_coverage_chart(breakdown, mode=mode), width="stretch",
                         config={"displayModeBar": False})
 
-        with st.expander("Full skill table"):
+        with st.expander(t("Full skill table")):
+            labels = {
+                "skill": t("Skill"), "category": t("Category"), "posts_count": t("Posts"),
+                "required_count": t("Required"), "nice_count": t("Nice to have"), "demand": t("Demand"),
+                "posts_share": t("Share of posts (%)"), "in_cv": t("In CV"), "level_count": t("Level asked"),
+            }
             st.dataframe(
-                table.assign(posts_share=(table["posts_share"] * 100).round(1)),
+                table.assign(posts_share=(table["posts_share"] * 100).round(1)).rename(columns=labels),
                 hide_index=True, width="stretch",
             )
 
@@ -1256,18 +1416,18 @@ def render_results(
 
     # --- Report ------------------------------------------------------------------------
     with report_tab:
-        st.markdown("#### :material/picture_as_pdf: Your PDF report")
-        st.markdown(
-            "A ready-to-share summary: coverage, the top study priorities, the most requested "
-            "skills, coverage by category, your CV vs the market, the soft skills to show and "
-            "the full skill table."
-        )
-        st.caption(
+        st.markdown("#### :material/picture_as_pdf: " + t("Your PDF report"))
+        st.markdown(t(
+            "A ready-to-share summary: coverage, the top study priorities, the match with each job "
+            "post, the most requested skills, coverage by category, your CV vs the market, the soft "
+            "skills to show and the full skill table."
+        ))
+        st.caption(t(
             "Generated in memory for this session only. It contains skill names and scores, "
             "never the text of your CV or of the job posts."
-        )
+        ))
         st.download_button(
-            "Download PDF report",
+            t("Download PDF report"),
             report,
             file_name="skill_gap_report.pdf",
             mime="application/pdf",
@@ -1303,6 +1463,7 @@ def scroll_to_results() -> None:
 
 def main() -> None:
     init_state()
+    init_language()
     st.session_state.setdefault("analyzed", False)
     st.logo(str(ASSETS_DIR / "logo_wide.svg"), icon_image=str(ASSETS_DIR / "logo.svg"))
     try:
@@ -1311,7 +1472,7 @@ def main() -> None:
         custom_role = role not in dictionary_files
         dictionary = get_all_skills() if custom_role else get_dictionary(dictionary_files[role])
     except DictionaryError as exc:
-        st.error(f"The skill dictionary could not be loaded: {exc}")
+        st.error(t("The skill dictionary could not be loaded: {error}", error=exc))
         st.stop()
     if custom_role:
         dictionary = replace(dictionary, domain=role, description=role)
@@ -1327,25 +1488,25 @@ def main() -> None:
     with st.container(border=True):
         col_role, col_weight, col_clear = st.columns([2, 2, 1], vertical_alignment="bottom")
         col_role.selectbox(
-            ":material/work: Target role", list(dictionary_files), key="role",
+            ":material/work: " + t("Target role"), list(dictionary_files), key="role",
             accept_new_options=True,
-            help="Pick a ready-made role or type any job title (e.g. Nurse, Chef, Architect): "
-            "for a typed role the skills are detected in the job posts themselves.",
+            help=t("Pick a ready-made role or type any job title (e.g. Nurse, Chef, Architect): "
+                   "for a typed role the skills are detected in the job posts themselves."),
         )
-        with col_weight.popover("Advanced settings", icon=":material/tune:", width="stretch"):
+        with col_weight.popover(t("Advanced settings"), icon=":material/tune:", width="stretch"):
             nice_weight = st.select_slider(
-                "Weight of nice-to-have skills",
+                t("Weight of nice-to-have skills"),
                 options=[0.0, 0.25, 0.5, 0.75, 1.0],
                 value=DEFAULT_NICE_WEIGHT,
                 format_func=lambda w: f"{w:g}",
                 key="nice_weight",
-                help=(
+                help=t(
                     "A post that requires a skill counts 1. A post where the skill is only "
                     "nice to have (\"is a plus\", \"gradita\", \"von Vorteil\", \"se valorará\") "
                     "counts this much. 0 ignores nice-to-have skills, 1 treats them as requirements."
                 ),
             )
-        col_clear.button("Clear all", icon=":material/delete:", on_click=clear_all, width="stretch")
+        col_clear.button(t("Clear all"), icon=":material/delete:", on_click=clear_all, width="stretch")
 
     col_cv, col_posts = st.columns([2, 3], gap="large")
     with col_cv.container(border=True):
@@ -1356,31 +1517,33 @@ def main() -> None:
     if custom_role and posts:
         dictionary = render_custom_skills(posts, dictionary, role)
 
-    missing_inputs = [label for label, given in (("your CV", cv_text.strip()), ("at least one job post", posts))
+    missing_inputs = [label for label, given in ((t("your CV"), cv_text.strip()), (t("at least one job post"), posts))
                       if not given]
     st.button(
-        "Analyze my skill gap", icon=":material/insights:", type="primary",
+        t("Analyze my skill gap"), icon=":material/insights:", type="primary",
         width="stretch", on_click=start_analysis, disabled=bool(missing_inputs), key="analyze",
     )
     if missing_inputs:
-        st.caption(":material/info: To analyze, add " + " and ".join(missing_inputs) + ".")
+        st.caption(":material/info: " + t("To analyze, add {what}.", what=t(" and ").join(missing_inputs)))
 
     if st.session_state.analyzed and posts:
         st.markdown('<div id="your-results"></div>', unsafe_allow_html=True)
         if not cv_text.strip():
             st.info(
-                "No CV yet: upload it (or paste its text) to compare it with the market. "
-                "Meanwhile, here is what the job posts ask for.",
+                t("No CV yet: upload it (or paste its text) to compare it with the market. "
+                  "Meanwhile, here is what the job posts ask for."),
                 icon=":material/info:",
             )
-        with st.spinner("Analyzing your CV and the job posts…", show_time=True):
+        with st.spinner(t("Analyzing your CV and the job posts…"), show_time=True):
             render_results(cv_text, posts, dictionary, nice_weight)
         scroll_to_results()
     else:
-        st.caption(
-            ":material/lock: Your CV and the job posts stay in memory for this session only "
-            "and are discarded when you close the page."
-        )
+        st.caption(":material/lock: " + (
+            t("Your CV and the job posts stay on this device and are discarded when you close the page.")
+            if IN_BROWSER else
+            t("Your CV and the job posts stay in memory for this session only "
+              "and are discarded when you close the page.")
+        ))
     render_features()
     render_cta()
     render_footer()

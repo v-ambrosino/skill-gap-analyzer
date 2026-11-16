@@ -2,6 +2,7 @@
 version: 1
 domain: Finance / Accounting / Controlling
 description: Accountant, Controller, Financial Analyst and Finance roles
+core: [General Accounting, Excel, Financial Statements, Budgeting, Controlling, Financial Analysis, SAP, ERP, Management Reporting, Tax, IFRS, Financial Forecasting]
 include: [shared/soft_skills.yaml, shared/office.yaml]
 categories: [Accounting, Finance & Control, Tax & Compliance, Tools, Office & General, Soft Skills]
 skills:
