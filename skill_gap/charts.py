@@ -10,6 +10,8 @@ from __future__ import annotations
 import pandas as pd
 import plotly.graph_objects as go
 
+from skill_gap.i18n import t
+
 # Categorical palette in a fixed order, checked for colour-blind separation.
 # Each mode has its own steps, tuned for a light or dark background.
 _CATEGORY_PALETTE = {
@@ -65,9 +67,8 @@ def demand_bar_chart(
 
     if group_by_category:
         rank = {category: i for i, category in enumerate(categories)}
-        ordered = table.assign(_rank=table["category"].map(rank)).sort_values(
-            ["_rank", "demand", "posts_count", "skill"], ascending=[True, False, False, True]
-        )
+        # A stable sort keeps the table's own order (demand, core skills first) in each category.
+        ordered = table.assign(_rank=table["category"].map(rank)).sort_values("_rank", kind="stable")
     else:
         ordered = table
     # Plotly draws the first y category at the bottom: reverse to read top-down.
@@ -75,9 +76,9 @@ def demand_bar_chart(
 
     hovertemplate = (
         "<b>%{y}</b><br>%{customdata[0]}<br>"
-        f"Required in %{{customdata[1]}} of {n_posts} posts<br>"
-        "Nice to have in %{customdata[2]}<br>"
-        "In your CV: %{customdata[3]}<extra></extra>"
+        + t("Required in {required} of {total} posts", required="%{customdata[1]}", total=n_posts) + "<br>"
+        + t("Nice to have in {nice}", nice="%{customdata[2]}") + "<br>"
+        + t("In your CV: {answer}", answer="%{customdata[3]}") + "<extra></extra>"
     )
     fig = go.Figure()
     for category in categories:
@@ -89,7 +90,7 @@ def demand_bar_chart(
                 rows["category"],
                 rows["required_count"],
                 rows["nice_count"],
-                rows["in_cv"].map({True: "Yes", False: "No"}),
+                rows["in_cv"].map({True: t("Yes"), False: t("No")}),
             )
         )
         color = colors[category]
@@ -103,7 +104,7 @@ def demand_bar_chart(
         )
         fig.add_trace(
             go.Bar(
-                name=f"{category} (nice to have)", legendgroup=category, showlegend=False,
+                name=f"{category} ({t('nice to have')})", legendgroup=category, showlegend=False,
                 orientation="h", x=rows["nice_count"], y=rows["skill"],
                 marker=dict(
                     color=_hex_to_rgba(color, 0.25),
@@ -129,7 +130,7 @@ def demand_bar_chart(
     if (ordered["nice_count"] > 0).any():
         fig.add_trace(
             go.Bar(
-                name="Hatched = nice to have", orientation="h", x=[None], y=[None],
+                name=t("Hatched = nice to have"), orientation="h", x=[None], y=[None],
                 marker=dict(
                     color="rgba(128,128,128,0.2)", line=dict(color="#888", width=1),
                     pattern=dict(shape="/", fgcolor="#888", size=6, solidity=0.3),
@@ -139,7 +140,7 @@ def demand_bar_chart(
         )
 
     fig.update_yaxes(categoryorder="array", categoryarray=y_order)
-    fig.update_xaxes(title_text="Number of job posts", dtick=1 if n_posts <= 10 else None)
+    fig.update_xaxes(title_text=t("Number of job posts"), dtick=1 if n_posts <= 10 else None)
     fig.update_layout(
         barmode="stack",
         barcornerradius=4,
@@ -153,7 +154,7 @@ def demand_bar_chart(
 def category_coverage_chart(breakdown: pd.DataFrame, mode: str = "light") -> go.Figure:
     """Horizontal bars: weighted CV coverage (%) for each category."""
     labels = [
-        f"{pct:.0f}%  ({covered} of {requested})"
+        f"{pct:.0f}%  ({t('{covered} of {total}', covered=covered, total=requested)})"
         for pct, covered, requested in zip(
             breakdown["coverage_pct"], breakdown["covered"], breakdown["requested"]
         )
@@ -167,11 +168,11 @@ def category_coverage_chart(breakdown: pd.DataFrame, mode: str = "light") -> go.
             text=labels,
             textposition="outside",
             cliponaxis=False,
-            hovertemplate="<b>%{y}</b><br>Weighted coverage: %{x:.0f}%<extra></extra>",
+            hovertemplate="<b>%{y}</b><br>" + t("Weighted coverage") + ": %{x:.0f}%<extra></extra>",
         )
     )
     fig.update_xaxes(range=[0, 135], tickvals=[0, 25, 50, 75, 100], ticksuffix="%",
-                     title_text="Weighted coverage")
+                     title_text=t("Weighted coverage"))
     fig.update_yaxes(autorange="reversed")
     height = max(200, 44 * len(breakdown) + 70)
     return _base_layout(fig, mode, height)
@@ -199,7 +200,7 @@ def coverage_donut(score: float, mode: str = "light") -> go.Figure:
         annotations=[
             dict(text=f"<b>{score:.0f}%</b>", x=0.5, y=0.55, showarrow=False,
                  font=dict(size=34, color=_SINGLE_SERIES[mode])),
-            dict(text="weighted coverage", x=0.5, y=0.36, showarrow=False,
+            dict(text=t("weighted coverage"), x=0.5, y=0.36, showarrow=False,
                  font=dict(size=12, color=_TEXT_MUTED[mode])),
         ],
     )

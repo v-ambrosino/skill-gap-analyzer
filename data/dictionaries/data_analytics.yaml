@@ -37,6 +37,9 @@
 version: 1
 domain: Data Analyst / BI / Business Analyst
 description: Data Analyst, BI Analyst and Business Analyst roles
+# The skills most typical of the role, most typical first: they only break ties between
+# skills that the job posts ask for equally often.
+core: [SQL, Excel, Power BI, Python, Tableau, Data Visualization, Data Analysis, Statistics, Reporting, Dashboarding, ETL / ELT, Data Modeling, R, Data Cleaning]
 
 # Other files whose skills are added to this dictionary (paths are relative
 # to this file).

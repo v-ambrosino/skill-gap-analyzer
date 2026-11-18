@@ -2,6 +2,7 @@
 version: 1
 domain: Sales / Account Manager / Customer Success
 description: Sales, Account Manager, Business Developer and Customer Success roles
+core: [B2B Sales, CRM, Account Management, Lead Generation, Business Development, Pipeline Management, Sales Targets, Salesforce, Key Account Management, Excel]
 include: [shared/soft_skills.yaml, shared/office.yaml]
 categories: [Sales Skills, Tools, Business & Market, Office & General, Soft Skills]
 skills:

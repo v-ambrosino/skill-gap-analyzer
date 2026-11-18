@@ -1,0 +1,43 @@
+Junior Full Stack Developer - Fictional Apps Co. (Milan, hybrid)
+
+We are looking for a Junior Full Stack Developer to join our product team.
+You will build features in React and Node.js and write automated tests.
+
+Requirements:
+- Good knowledge of JavaScript, HTML and CSS
+- Experience with React and Node.js
+- TypeScript is a plus
+- SQL basics (PostgreSQL) and Git
+- Teamwork, problem solving and good English
+---
+Sviluppatore Backend - Azienda Immaginaria S.p.A. (Torino)
+
+Cerchiamo un/una sviluppatore backend per la nostra piattaforma di pagamenti.
+Attività principali:
+- Sviluppo di microservizi in Java con Spring Boot
+- Progettazione di API REST
+- Scrittura di test automatici e code review
+
+Requisiti:
+- Ottima conoscenza di Java e della programmazione a oggetti
+- Conoscenza di SQL e di Git
+- Gradita la conoscenza di Docker e Kubernetes
+- Capacità di lavorare in team
+---
+Frontend Developer - Imaginary Travel Ltd (remote, EU)
+
+What we expect:
+- 2+ years with React and TypeScript
+- Solid JavaScript, HTML and CSS
+- REST APIs and unit testing
+- CI/CD pipelines and Git
+- Experience with AWS is a plus
+---
+Web Developer - Societa Fittizia S.r.l. (Bologna)
+
+Requisiti:
+- Esperienza nello sviluppo web con PHP e Laravel
+- Buona conoscenza di JavaScript, HTML e CSS
+- Database MySQL e conoscenza di Git
+- Conoscenza di Docker considerata un plus
+- Precisione e problem solving

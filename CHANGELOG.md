@@ -3,6 +3,54 @@
 All notable changes to Skill Gap Analyzer. Versions follow
 [semantic versioning](https://semver.org/); pre-release tags mark the stage.
 
+## 1.9.0 — 2026-11-16
+
+### Added
+- **Italian interface:** an EN / IT switch at the top; Italian browsers get Italian by
+  default and `?lang=it` forces it. The PDF report and the charts follow the language.
+  Skill names, categories and role names stay as they are in the dictionaries.
+- **Sample data for every role** (digital marketing, finance, HR, project management,
+  sales, software development), so *Try with sample data* always shows the selected role.
+- **Free learning resources for about 130 more skills**, covering all eight roles
+  (before, almost only the data roles had them; the others got a search link).
+- The **PDF report** now includes the match with each job post.
+- Tests of the interface itself (Streamlit's headless test client), of the browser build
+  and of every role's sample data; the GitHub Pages workflow runs the tests before publishing.
+
+### Changed
+- **Study priorities with few posts:** skills asked equally often are no longer ordered
+  A-Z. Each dictionary lists its `core` skills (the most typical of the role), which come
+  first in a tie, and the app says when the ranking is weak (fewer than 5 posts, or a tie
+  across the last places).
+- **Browser-only version:** a static page with the pitch appears at once while Python loads,
+  in English or Italian, with link-preview tags; the privacy texts now say that the CV stays
+  on the device instead of mentioning Streamlit's servers. stlite 1.12.2.
+- **Phones:** the four KPI cards sit two by two, long labels wrap, and the results tab bar
+  scrolls sideways instead of widening the page.
+
+### Fixed
+- **The browser-only version showed a blank page:** the theme font loaded from a URL made
+  stlite crash at start-up. The build now loads the font from the page itself.
+- **Typed roles:** skills removed from (or added to) the detected list are no longer reset
+  every time the job posts are edited.
+- A broken learning link (scikit-learn tutorials).
+
+## 1.8.0 — 2026-11-16
+
+### Added
+- **Match per job post:** a new *Job posts* tab ranks the posts by how well your CV covers
+  each one (same weights as the overall score), with the required and nice-to-have skills
+  missing for each post.
+- **Analyze my CV** button in the hero, which jumps straight to the analyzer.
+
+### Changed
+- The analyzer now comes right after the hero; "Why", "How it works" and the limitations
+  moved below the results, so the tool is one scroll away instead of three.
+
+### Fixed
+- Messages and README no longer point to the sidebar for the target role and the
+  nice-to-have weight, which live in the analyzer since the redesign.
+
 ## 1.7.2 — 2026-10-20
 
 ### Fixed

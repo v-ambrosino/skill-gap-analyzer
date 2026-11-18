@@ -1,0 +1,17 @@
+Alex Example - Junior Web Developer
+alex.example@example.com | Milan, Italy
+
+PROFILE
+Computer Science graduate who likes building clean interfaces. Used to
+working in teams with Git and code review.
+
+SKILLS
+JavaScript, HTML, CSS, React, Python, SQL (MySQL), Git, Linux.
+
+EXPERIENCE
+Web Developer Intern - Example Digital Agency (2025)
+- Built responsive pages in React for two e-commerce websites
+- Wrote small REST APIs in Python with Flask
+
+LANGUAGES
+Italian (native), English (B2)

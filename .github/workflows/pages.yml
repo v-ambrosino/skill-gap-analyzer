@@ -26,6 +26,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      # Never publish a build whose tests fail.
+      - run: pip install -r requirements.txt -r requirements-dev.txt
+      - run: pytest
       - run: python web/build.py _site
       - uses: actions/upload-pages-artifact@v3
         with:

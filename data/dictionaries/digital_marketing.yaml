@@ -2,6 +2,7 @@
 version: 1
 domain: Digital Marketing / Communication
 description: Digital Marketing, Social Media and Communication roles
+core: [SEO, SEM / Google Ads, Social Media Marketing, Google Analytics, Content Marketing, Meta Ads, Email Marketing, Copywriting, KPI & Reporting, Marketing Strategy, CRM]
 include: [shared/soft_skills.yaml, shared/office.yaml]
 categories: [Channels, Tools, Content & Brand, Analytics, Office & General, Soft Skills]
 skills:

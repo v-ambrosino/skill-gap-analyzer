@@ -37,6 +37,9 @@ _TOKEN_SPLITTER = re.compile(r"[\s\-]+")
 # that e.g. "sas" never turns into "sass".
 _MIN_LENGTH_FOR_PLURAL = 4
 
+# `core_rank` of a skill that is not in the dictionary's `core` list.
+NOT_CORE = 10**6
+
 
 class DictionaryError(ValueError):
     """Raised when the skill dictionary file is missing or malformed."""
@@ -52,6 +55,10 @@ class Skill:
     # True for skills that are also a field of study ("Statistics"): in a job
     # post, "Laurea in Statistica" is an education requirement, not a skill.
     degree_subject: bool = False
+    # Position in the dictionary's `core` list (0 = the most typical skill of
+    # the role), NOT_CORE otherwise. Only used to break ties between skills
+    # that the job posts ask for equally often.
+    core_rank: int = NOT_CORE
 
     def is_in(self, normalized_text: str) -> bool:
         """True if at least one pattern matches the (normalised) text."""
@@ -123,6 +130,9 @@ def parse_dictionary(data: dict) -> SkillDictionary:
     if not categories:
         raise DictionaryError("The dictionary must declare a non-empty 'categories' list.")
 
+    core = _as_list(data.get("core"), "core", "the dictionary")
+    core_rank = {name: rank for rank, name in reversed(list(enumerate(core)))}
+
     skills: list[Skill] = []
     seen_names: set[str] = set()
     # Maps a normalised, lower-cased synonym to the skill that owns it, so the
@@ -178,8 +188,13 @@ def parse_dictionary(data: dict) -> SkillDictionary:
                 category=category,
                 patterns=unique,
                 degree_subject=bool(entry.get("degree_subject", False)),
+                core_rank=core_rank.get(name, NOT_CORE),
             )
         )
+
+    unknown_core = [name for name in core if name not in seen_names]
+    if unknown_core:
+        raise DictionaryError(f"'core' lists unknown skills: {', '.join(unknown_core)}.")
 
     return SkillDictionary(
         domain=str(data.get("domain", "")),

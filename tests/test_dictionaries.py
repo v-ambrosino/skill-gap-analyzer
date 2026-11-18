@@ -119,3 +119,22 @@ def test_ways_of_working_are_soft_skills_everywhere():
                 assert skill.category == "Soft Skills", (path.name, skill.name)
             if skill.category == "Soft Skills":
                 assert phrases.get(skill.name), (path.name, skill.name)
+
+
+def test_core_list_is_validated():
+    import pytest
+
+    from skill_gap.skills_dictionary import NOT_CORE, DictionaryError, parse_dictionary
+
+    data = {
+        "categories": ["Tools"],
+        "core": ["Excel"],
+        "skills": [
+            {"name": "Excel", "category": "Tools", "synonyms": ["excel"]},
+            {"name": "Tableau", "category": "Tools", "synonyms": ["tableau"]},
+        ],
+    }
+    excel, tableau = parse_dictionary(data).skills
+    assert excel.core_rank == 0 and tableau.core_rank == NOT_CORE
+    with pytest.raises(DictionaryError, match="unknown skills"):
+        parse_dictionary({**data, "core": ["Excel", "Nope"]})

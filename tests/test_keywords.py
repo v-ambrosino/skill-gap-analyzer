@@ -42,3 +42,24 @@ def test_custom_skills_are_matched_and_counted():
     assert rows.loc["BLSD", "in_cv"] and rows.loc["Terapia intensiva", "in_cv"]
     assert not rows.loc["ACLS", "in_cv"]
     assert rows.loc["ACLS", "category"] == CUSTOM_CATEGORY
+
+
+def test_user_edits_survive_new_suggestions():
+    from skill_gap.keywords import apply_term_edits, record_term_edits
+
+    removed, added = set(), []
+    options, selected = apply_term_edits(["Triage", "Wound care"], removed, added)
+    assert options == selected == ["Triage", "Wound care"]
+
+    # The user removes "Triage" and types "Phlebotomy".
+    removed, added = record_term_edits(["Wound care", "Phlebotomy"], options, removed, added)
+    assert removed == {"triage"} and added == ["Phlebotomy"]
+
+    # The posts change: a new suggestion appears, the edits are applied again.
+    options, selected = apply_term_edits(["Triage", "Wound care", "Night shifts"], removed, added)
+    assert options == ["Triage", "Wound care", "Night shifts", "Phlebotomy"]
+    assert selected == ["Wound care", "Night shifts", "Phlebotomy"]
+
+    # Putting "Triage" back and dropping the typed skill is remembered too.
+    removed, added = record_term_edits(["Triage", "Wound care", "Night shifts"], options, removed, added)
+    assert removed == {"phlebotomy"} and added == []

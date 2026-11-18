@@ -2,6 +2,7 @@
 version: 1
 domain: Project Manager / Operations
 description: Project Manager, Product Owner, PMO and Operations roles
+core: [Project Management, Project Planning, Budget Management, Risk Management, Resource Management, MS Project, Jira, PMP, Process Improvement, Excel]
 include: [shared/soft_skills.yaml, shared/office.yaml]
 categories: [Methods, Certifications, Management, Tools, Office & General, Soft Skills]
 skills:

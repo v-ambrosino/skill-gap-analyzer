@@ -9,6 +9,7 @@
 version: 1
 domain: Data Engineer / Analytics Engineer
 description: Data Engineer and Analytics Engineer roles
+core: [SQL, Python, ETL / ELT, Data Pipelines, Apache Spark, AWS, Apache Airflow, Data Warehousing, Data Modeling, Docker, Git, dbt, Apache Kafka, Microsoft Azure, Google Cloud Platform, Snowflake, Databricks, CI/CD]
 
 include:
   - shared/soft_skills.yaml

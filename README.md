@@ -1,12 +1,12 @@
 # Skill Gap Analyzer
 
 [![Live demo](https://img.shields.io/badge/live%20demo-skill--gap.streamlit.app-ff4b4b?logo=streamlit&logoColor=white)](https://skill-gap.streamlit.app/)
-![Version](https://img.shields.io/badge/version-1.7.2-blue)
+![Version](https://img.shields.io/badge/version-1.9.0-blue)
 [![Tests](https://github.com/v-ambrosino/skill-gap-analyzer/actions/workflows/tests.yml/badge.svg)](https://github.com/v-ambrosino/skill-gap-analyzer/actions/workflows/tests.yml)
 
 **Compare your CV with real job posts and see which data skills the market wants — and which ones you are missing.**
 
-Built for people looking for **Data Analyst, BI Analyst and Business Analyst** roles, with a second dictionary for **Data Engineer / Analytics Engineer** roles (pick the target role in the sidebar).
+Built for people looking for **Data Analyst, BI Analyst and Business Analyst** roles, with a second dictionary for **Data Engineer / Analytics Engineer** roles (pick the target role at the top of the analyzer).
 Upload your CV (PDF), paste a few job posts (English, Italian, French, German, Spanish or Portuguese) and get:
 
 - the most requested skills, grouped by category;
@@ -58,11 +58,13 @@ transparent method you can explain and verify.
 | **CV comparison** | Skills in your CV in green, missing ones in red, each with its demand. Skills you have that the posts did not ask for are listed too. |
 | **Coverage score** | Share of requested skills found in your CV, **weighted by demand** (required = 1, nice to have = 0.5, adjustable; +0.5 when the post asks for a level such as "advanced Excel" or "3+ years of SQL"). Also shown per category. |
 | **Evidence** | For any skill, the exact sentences where it was found in each post and in your CV, to check the result. |
-| **Study priorities** | The 5 missing technical skills that most posts ask for, each with a **free resource to learn it** (Kaggle Learn, Microsoft Learn, official docs…), also as clickable links in the PDF. |
+| **Study priorities** | The 5 missing technical skills that most posts ask for, each with a **free resource to learn it** (Kaggle Learn, Microsoft Learn, official docs…), also as clickable links in the PDF. Skills asked equally often are ordered by how typical they are of the role, and the app warns when there are too few posts for a reliable ranking. |
 | **Soft skills** | Listed apart in *Soft skills to make visible in your CV*: they are shown with examples rather than studied, so they are not counted as missing, in the score or in the priorities. Each missing one comes with **example CV sentences** to adapt. |
-| **PDF report** | One click downloads a **PDF report**: coverage, top priorities, bar charts of the most requested skills and of coverage by category, CV vs market, soft skills and the full skill table. It holds skill names and scores only, never the CV text. |
-| **Interface** | A landing page with the three steps, results in tabs (Overview, Skills, Evidence, Report), a coverage ring and KPI cards; works on phones. |
-| **Sample data** | *Load sample data* fills in fictional job posts and a fictional CV for the selected target role. |
+| **PDF report** | One click downloads a **PDF report**: coverage, top priorities, the match with each job post, bar charts of the most requested skills and of coverage by category, CV vs market, soft skills and the full skill table. It holds skill names and scores only, never the CV text. |
+| **Match per job post** | Each job post gets its own weighted coverage, best match first, with the required and nice-to-have skills you are missing for it: useful to decide where to apply first. |
+| **Interface** | The analyzer right under the hero, results in tabs (Overview, Job posts, Skills, Evidence, Report), a coverage ring and KPI cards; works on phones. |
+| **Sample data** | *Try with sample data* fills in fictional job posts and a fictional CV for the selected target role (every ready-made role has its own). |
+| **Languages of the interface** | English and Italian, with a switch at the top (Italian browsers start in Italian; `?lang=it` forces it). The PDF report follows the language. |
 | **Privacy** | Everything stays in memory for the session only. |
 
 ## How it works
@@ -104,7 +106,7 @@ If a skill is required anywhere in a post, it counts as required for that post.
 
 Each requested skill weighs as much as its **demand**: +1 for every post that
 requires it, +0.5 for every post where it is only nice to have (the 0.5 can be
-changed in the sidebar, from 0 = ignore to 1 = same as required):
+changed in *Advanced settings*, from 0 = ignore to 1 = same as required):
 
 ```
 demand   = required_count + nice_weight × nice_count
@@ -157,6 +159,9 @@ Matching rules:
     is not a skill, and the Italian adjective "agile" only counts next to
     methodology words.
 - The skill **name is not matched automatically**: only what is listed is matched.
+- `core: [SQL, Excel, …]` at the top of a role dictionary lists the skills most typical
+  of the role, most typical first. It never changes the score: it only decides the order
+  of skills that the posts ask for equally often (with 3 or 4 posts, most of them).
 - `degree_subject: true` marks skills that are also a field of study (Statistics):
   in a job post, "Laurea in Statistica o affini" is a degree requirement, so it
   does not count as a request for the skill (in the CV it still counts).
@@ -182,13 +187,18 @@ skill-gap-analyzer/
 │   ├── skills_dictionary.py   # load + validate YAML, compile regexes
 │   ├── extractor.py           # find skills in a text, split job posts
 │   ├── analysis.py            # pandas: skill table, coverage, priorities
+│   ├── keywords.py            # skills detected in the posts, for a typed role
+│   ├── resources.py           # free learning resources, example CV sentences
 │   ├── charts.py              # Plotly charts
-│   └── report.py              # downloadable PDF report (fpdf2)
+│   ├── report.py              # downloadable PDF report (fpdf2)
+│   ├── i18n.py                # interface language (t("English text"))
+│   └── translations.py        # the Italian text of every sentence
 ├── data/
 │   ├── dictionaries/          # one skill dictionary per role (edit me!)
 │   │   └── shared/            # skills included by several roles (soft skills)
 │   └── samples/               # fictional job posts and CV, one folder per role
-├── tests/                     # pytest suite with fictional job posts
+├── tests/                     # pytest suite: logic, interface, browser build
+├── web/                       # browser-only build (stlite) for GitHub Pages
 ├── assets/screenshot.png
 ├── .streamlit/config.toml     # upload limit, no usage stats, theme
 └── requirements.txt
@@ -223,7 +233,14 @@ The same tests run automatically on GitHub Actions for every pull request and ev
 
 The tests cover whole-word matching, synonyms in six languages, the tricky `R`,
 `SAS`, `Excel` and `Agile` cases, the post separator, the weighted coverage
-score, the study priorities, dictionary validation and PDF reading.
+score, the study priorities, dictionary validation and PDF reading. They also run
+the interface itself with Streamlit's headless test client (`tests/test_app.py`),
+check that every sentence has an Italian translation, that every role's sample data
+gives a meaningful result and that the browser build is complete.
+
+**Translating the interface:** every sentence shown to the user is wrapped in
+`t("English text")`; the Italian text lives in `skill_gap/translations.py`. To add a
+language, add a table there and its name to `LANGUAGES` in `skill_gap/i18n.py`.
 
 ## Deploy on Streamlit Community Cloud (free)
 
@@ -240,16 +257,20 @@ Every push to `main` redeploys the app automatically. On the free tier an app
 that nobody opens for a while goes to sleep: the next visitor wakes it up with
 one click, in about a minute.
 
-## Browser-only version (stlite, experimental)
+## Browser-only version (stlite)
 
 The same app can run **entirely inside your browser** thanks to
 [stlite](https://github.com/whitphx/stlite) (Streamlit + Python on WebAssembly):
 the CV is never sent to any server, not even Streamlit's.
 
 - `web/build.py` copies the app, the dictionaries and the assets into `_site/`
-  and writes an `index.html` that mounts the app with stlite.
-- `.github/workflows/pages.yml` publishes `_site/` on GitHub Pages at every push
-  to `main` (enable it once in *Settings → Pages → Source: GitHub Actions*).
+  and writes an `index.html` that mounts the app with stlite. The page shows a short
+  static introduction at once and swaps in the app when Python has loaded.
+- `.github/workflows/pages.yml` runs the tests and publishes `_site/` on GitHub Pages
+  at every push to `main`. **Pages must be set to *Settings → Pages → Source: GitHub
+  Actions***: with *Deploy from a branch* GitHub shows this README instead of the app.
+- The theme font cannot be loaded from `.streamlit/config.toml` there (stlite shows a
+  blank page), so the build keeps only the font name and the page loads the font.
 - PDFs are read with `pypdf` there, because pdfplumber needs a compiled
   library that is not available in the browser.
 - The first load takes 20–40 seconds while Python is downloaded; later visits
@@ -295,7 +316,8 @@ python web/build.py && python -m http.server -d _site 8000
 ## Future improvements
 
 - Import job posts from a **URL** or a CSV export of a job board.
-- More **dictionaries** (e.g. Data Scientist, Marketing Analyst, Finance).
+- More **dictionaries** (e.g. Data Scientist, Healthcare, Hospitality).
+- More interface languages (the app is in English and Italian).
 - More languages (Dutch, Polish) and more wording for French, German, Spanish and Portuguese.
 - Optional **OCR** for scanned CVs (e.g. Tesseract).
 

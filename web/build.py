@@ -14,15 +14,20 @@ The output folder can be served by any static host (GitHub Pages is set up in
 from __future__ import annotations
 
 import json
+import re
 import shutil
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-STLITE_VERSION = "1.11.0"
+STLITE_VERSION = "1.12.2"
 # pdfplumber needs a compiled library unavailable in Pyodide: the app falls back to pypdf.
 REQUIREMENTS = ["pandas", "plotly", "PyYAML", "fpdf2", "pypdf"]
 SOURCES = ["app.py", "skill_gap", "data", "assets", ".streamlit/config.toml"]
+# Where the build is published (GitHub Pages), for the link preview tags, and the
+# server-hosted version offered as an alternative while Python loads.
+SITE_URL = "https://v-ambrosino.github.io/skill-gap-analyzer/"
+HOSTED_URL = "https://skill-gap.streamlit.app/"
 
 
 def collect_files() -> list[str]:
@@ -37,6 +42,16 @@ def collect_files() -> list[str]:
     return files
 
 
+def browser_config(config: str) -> str:
+    """The Streamlit config for the browser build.
+
+    stlite crashes at start-up (blank page) when the theme loads a font from a
+    URL (`font = "Inter:https://..."`), so the family name alone is kept and
+    index.html loads the font itself.
+    """
+    return re.sub(r'^(font\s*=\s*")([^":]+):https?://[^"]*(")', r"\1\2\3", config, flags=re.M)
+
+
 def build(output: Path) -> None:
     if output.exists():
         shutil.rmtree(output)
@@ -45,10 +60,14 @@ def build(output: Path) -> None:
         target = output / name
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(ROOT / name, target)
+    config = output / ".streamlit" / "config.toml"
+    config.write_text(browser_config(config.read_text(encoding="utf-8")), encoding="utf-8")
 
     template = (ROOT / "web" / "index.template.html").read_text(encoding="utf-8")
     html = (
         template.replace("{{STLITE_VERSION}}", STLITE_VERSION)
+        .replace("{{SITE_URL}}", SITE_URL)
+        .replace("{{HOSTED_URL}}", HOSTED_URL)
         .replace("{{REQUIREMENTS}}", json.dumps(REQUIREMENTS))
         .replace("{{FILES}}", json.dumps({name: {"url": name} for name in files}, indent=2))
     )
